@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="bitcmockexams.client/bitcmockexams.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="BITCMockExams.Server/BITCMockExams.Server.csproj" />
+</Solution>
