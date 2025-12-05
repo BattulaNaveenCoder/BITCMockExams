@@ -71,6 +71,14 @@ function AuthRoutes() {
                 element={<Layout><MockExams /></Layout>}
             />
             <Route
+                path="/exams/:code/topics"
+                element={<Layout><ExamTopics /></Layout>}
+            />
+            <Route
+                path="/practice/:code/section/:sectionId"
+                element={<Layout><Practice /></Layout>}
+            />
+            <Route
                 path="/contact"
                 element={<Layout><Contact /></Layout>}
             />
