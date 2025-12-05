@@ -4,6 +4,8 @@ import Layout from '@shared/components/layout/Layout';
 import Home from '../pages/Home';
 import About from '../pages/About';
 import MockExams from '../pages/MockExams';
+import ExamTopics from '../pages/ExamTopics';
+import Practice from '../pages/Practice';
 import Contact from '../pages/Contact';
 import SignUp from '../pages/SignUp';
 import Dashboard from '../pages/Dashboard';
@@ -63,9 +65,18 @@ function AuthRoutes() {
                     </ProtectedRoute>
                 }
             />
+            {/** Exam Reports now rendered as a tab inside Dashboard; route removed **/}
             <Route
                 path="/mock-exams"
                 element={<Layout><MockExams /></Layout>}
+            />
+            <Route
+                path="/exams/:code/topics"
+                element={<Layout><ExamTopics /></Layout>}
+            />
+            <Route
+                path="/practice/:code/section/:sectionId"
+                element={<Layout><Practice /></Layout>}
             />
             <Route
                 path="/contact"

@@ -16,4 +16,14 @@ export default defineConfig({
       '@contexts': fileURLToPath(new URL('./src/contexts', import.meta.url)),
     },
   },
+  server: {
+    proxy: {
+      '/a2z-tests': {
+        target: 'https://a2z-tests.azurewebsites.net',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/a2z-tests/, ''),
+      },
+    },
+  },
 })

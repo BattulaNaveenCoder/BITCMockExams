@@ -5,6 +5,8 @@ import Input from '../ui/Input';
 import { useLoginModal } from '@features/auth/context/LoginModalContext';
 import { useAuth } from '@features/auth/context/AuthContext';
 import { useAuthApi } from '../../shared/api/auth';
+import { authConfig } from '../../shared/config/auth';
+import { useGoogleLogin } from '@react-oauth/google';
 
 const base64Url = (obj: any) => {
   const json = JSON.stringify(obj);
@@ -99,7 +101,33 @@ const LoginModal: React.FC = () => {
     }
   };
 
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        // tokenResponse.access_token can be used to call backend to exchange for app JWT
+        const result: any = await authApi.loginWithGoogle({ accessToken: tokenResponse.access_token });
+        if (!result?.isSuccess) throw new Error(result?.message || 'Google login failed.');
+        const token = result?.data?.token as string | undefined;
+        if (!token) throw new Error('Token missing in response');
+        login(token, returnUrl);
+        close();
+      } catch (err: any) {
+        setErrors((p) => ({ ...p, form: err?.message || 'Google login failed. Please try again.' }));
+      }
+    },
+    onError: () => setErrors((p) => ({ ...p, form: 'Google login was cancelled or failed.' })),
+  });
+
   const handleSocialLogin = (provider: string) => {
+    if (provider === 'Google') {
+      const clientId = authConfig.googleClientId;
+      if (!clientId) {
+        alert('Google Client ID is not configured.');
+        return;
+      }
+      googleLogin();
+      return;
+    }
     alert(`Login with ${provider} - Feature coming soon!`);
   };
 
@@ -169,12 +197,7 @@ const LoginModal: React.FC = () => {
             >
               <FaGoogle className="text-[#DB4437]" /> Continue with Google
             </button>
-            <button
-              className="flex items-center justify-center gap-4 px-6 py-3 border-2 border-border bg-white rounded-md font-semibold cursor-pointer transition-all duration-250 hover:border-primary-blue hover:bg-light-blue"
-              onClick={() => handleSocialLogin('Microsoft')}
-            >
-              <FaMicrosoft className="text-[#00A4EF]" /> Continue with Microsoft
-            </button>
+           
           </div>
 
           <div className="text-center pt-4 border-t border-border">

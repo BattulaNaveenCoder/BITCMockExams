@@ -12,5 +12,16 @@ export const useAuthApi = () => {
     return api.post(url, payload, showGlobalLoader);
   };
 
-  return { login };
+  const loginWithGoogle = (
+    payload: { accessToken: string; provider?: 'Google' },
+    showGlobalLoader: boolean = true
+  ) => {
+    // Endpoint provided by user for social login
+    const url = `https://a2z-identity.azurewebsites.net/api/AuthAPI/SocialLogin`;
+    // Ensure provider is sent as Google if not specified
+    const body = { ...payload, provider: payload.provider ?? 'Google' } as Record<string, unknown>;
+    return api.post(url, body, showGlobalLoader);
+  };
+
+  return { login, loginWithGoogle };
 };
