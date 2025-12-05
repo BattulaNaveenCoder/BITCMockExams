@@ -1,18 +1,26 @@
 import { Link } from 'react-router-dom';
-import { FaArrowRight, FaStar } from 'react-icons/fa';
+import { FaArrowRight, FaStar, FaServer, FaDatabase, FaLightbulb, FaUsers, FaThLarge, FaShieldAlt } from 'react-icons/fa';
 import Button from '@shared/components/ui/Button';
 import Card from '@shared/components/ui/Card';
 import { mockExams, testimonials, stats } from '../data/mockData';
+import { useEffect, useRef, useState } from 'react';
 
 const Home = () => {
+    const featuredCodes = ['AZ-900', 'DP-900', 'AI-900', 'SC-900', 'PL-900', 'MB-910', 'MB-920', 'MS-900', 'AI-102', 'AZ-102'];
+    const badgeByCategory: Record<string, string> = {
+        Fundamentals: 'https://www.getmicrosoftcertification.com/lib/images/fundamentals.png',
+        'Role-Based': 'https://www.getmicrosoftcertification.com/lib/images/expert.png',
+        Speciality: 'https://www.getmicrosoftcertification.com/lib/images/associate.png'
+    };
+    const featuredExams = mockExams.filter(exam => featuredCodes.includes(exam.code));
     return (
         <div className="home">
             {/* Hero Section */}
-            <section className="relative min-h-[600px] display flex items-center bg-gradient-to-br from-primary-blue via-secondary-blue to-dark-blue text-white overflow-hidden md:min-h-[500px]">
+            <section className="relative min-h-[600px] display flex items-center justify-center bg-gradient-to-br from-primary-blue via-secondary-blue to-dark-blue text-white overflow-hidden md:min-h-[500px]">
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80')] bg-cover bg-center opacity-10"></div>
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-blue/90 to-secondary-blue/80"></div>
                 <div className="container mx-auto px-4 relative z-10 py-16">
-                    <div className="max-w-[800px] animate-fadeIn">
+                    <div className="max-w-[800px] animate-fadeIn text-center mx-auto">
                         <h1 className="text-5xl font-extrabold mb-6 leading-tight text-white md:text-3xl">
                             Transform Your Cloud Journey
                         </h1>
@@ -20,7 +28,7 @@ const Home = () => {
                             Master cloud certifications with expert-led training, comprehensive mock exams,
                             and personalized guidance. Join 50,000+ successful students worldwide.
                         </p>
-                        <div className="flex flex-col md:flex-row gap-6 flex-wrap">
+                        <div className="flex flex-col md:flex-row gap-6 flex-wrap justify-center items-center">
                             <Link to="/mock-exams">
                                 <Button variant="secondary" size="large" icon={<FaArrowRight />}>
                                     Explore Mock Exams
@@ -41,10 +49,7 @@ const Home = () => {
                 <div className="container mx-auto px-4">
                     <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-8">
                         {stats.map((stat, index) => (
-                            <div key={index} className="text-center p-8 bg-white rounded-lg shadow-lg animate-scaleIn">
-                                <h3 className="text-4xl font-extrabold text-primary-blue mb-2">{stat.value}</h3>
-                                <p className="text-base text-text-secondary m-0">{stat.label}</p>
-                            </div>
+                            <AnimatedStat key={index} label={stat.label} value={stat.value} />
                         ))}
                     </div>
                 </div>
@@ -62,35 +67,18 @@ const Home = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                        <div className="bg-white border border-border rounded-lg p-8 shadow-sm">
+                        <Link to="/mock-exams?category=Fundamentals" className="block">
+                        <div className="bg-white border border-border rounded-lg p-8 shadow-sm cursor-pointer">
                             <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-bg-light md:gap-4">
                                 <div>
                                     <h3 className="text-2xl text-primary-blue m-0 mb-1 font-bold">FUNDAMENTALS</h3>
                                     <Link to="/mock-exams" className="text-primary-blue text-sm m-0 underline cursor-pointer">Master the basics</Link>
                                 </div>
-                                <svg width="60" height="60" viewBox="0 0 100 100" className="shrink-0 drop-shadow-sm md:self-center">
-                                    <defs>
-                                        <linearGradient id="gradient-fundamentals" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" style={{ stopColor: '#0078D4', stopOpacity: 1 }} />
-                                            <stop offset="100%" style={{ stopColor: '#004578', stopOpacity: 1 }} />
-                                        </linearGradient>
-                                    </defs>
-                                    <path
-                                        d="M50 10 L80 25 L80 50 Q80 75 50 90 Q20 75 20 50 L20 25 Z"
-                                        fill="url(#gradient-fundamentals)"
-                                        stroke="#fff"
-                                        strokeWidth="2"
-                                    />
-                                    <g transform="translate(50, 35)">
-                                        <rect x="-12" y="-8" width="5" height="5" fill="#fff" />
-                                        <rect x="-6" y="-8" width="5" height="5" fill="#fff" />
-                                        <rect x="-12" y="-2" width="5" height="5" fill="#fff" />
-                                        <rect x="-6" y="-2" width="5" height="5" fill="#fff" />
-                                    </g>
-                                    <text x="50" y="65" textAnchor="middle" fill="#fff" fontSize="8" fontWeight="bold">MICROSOFT</text>
-                                    <text x="50" y="75" textAnchor="middle" fill="#fff" fontSize="7" fontWeight="600">CERTIFIED</text>
-                                    <text x="50" y="85" textAnchor="middle" fill="#fff" fontSize="6" fontWeight="600">FUNDAMENTAL</text>
-                                </svg>
+                                <img
+                                    src="https://www.getmicrosoftcertification.com/lib/images/fundamentals.png"
+                                    alt="Microsoft Certified Fundamentals"
+                                    className="w-[60px] h-[60px] object-contain shrink-0 drop-shadow-sm md:self-center"
+                                />
                             </div>
                             <div className="flex flex-col gap-4">
                                 {mockExams.filter(exam => exam.category === 'Fundamentals').map((exam) => (
@@ -102,36 +90,20 @@ const Home = () => {
                                 ))}
                             </div>
                         </div>
+                        </Link>
 
-                        <div className="bg-white border border-border rounded-lg p-8 shadow-sm">
+                        <Link to="/mock-exams?category=Role-Based" className="block">
+                        <div className="bg-white border border-border rounded-lg p-8 shadow-sm cursor-pointer">
                             <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-bg-light md:gap-4">
                                 <div>
                                     <h3 className="text-2xl text-primary-blue m-0 mb-1 font-bold">ROLE-BASED</h3>
                                     <Link to="/mock-exams" className="text-primary-blue text-sm m-0 underline cursor-pointer">Expand your technical skill set</Link>
                                 </div>
-                                <svg width="60" height="60" viewBox="0 0 100 100" className="shrink-0 drop-shadow-sm md:self-center">
-                                    <defs>
-                                        <linearGradient id="gradient-rolebased" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" style={{ stopColor: '#106EBE', stopOpacity: 1 }} />
-                                            <stop offset="100%" style={{ stopColor: '#004578', stopOpacity: 1 }} />
-                                        </linearGradient>
-                                    </defs>
-                                    <path
-                                        d="M50 10 L80 25 L80 50 Q80 75 50 90 Q20 75 20 50 L20 25 Z"
-                                        fill="url(#gradient-rolebased)"
-                                        stroke="#fff"
-                                        strokeWidth="2"
-                                    />
-                                    <g transform="translate(50, 35)">
-                                        <rect x="-12" y="-8" width="5" height="5" fill="#fff" />
-                                        <rect x="-6" y="-8" width="5" height="5" fill="#fff" />
-                                        <rect x="-12" y="-2" width="5" height="5" fill="#fff" />
-                                        <rect x="-6" y="-2" width="5" height="5" fill="#fff" />
-                                    </g>
-                                    <text x="50" y="65" textAnchor="middle" fill="#fff" fontSize="8" fontWeight="bold">MICROSOFT</text>
-                                    <text x="50" y="75" textAnchor="middle" fill="#fff" fontSize="7" fontWeight="600">CERTIFIED</text>
-                                    <text x="50" y="85" textAnchor="middle" fill="#fff" fontSize="6" fontWeight="600">EXPERT</text>
-                                </svg>
+                                <img
+                                    src="https://www.getmicrosoftcertification.com/lib/images/expert.png"
+                                    alt="Microsoft Certified Expert"
+                                    className="w-[60px] h-[60px] object-contain shrink-0 drop-shadow-sm md:self-center"
+                                />
                             </div>
                             <div className="flex flex-col gap-4">
                                 {mockExams.filter(exam => exam.category === 'Role-Based').map((exam) => (
@@ -143,36 +115,20 @@ const Home = () => {
                                 ))}
                             </div>
                         </div>
+                        </Link>
 
-                        <div className="bg-white border border-border rounded-lg p-8 shadow-sm">
+                        <Link to="/mock-exams?category=Speciality" className="block">
+                        <div className="bg-white border border-border rounded-lg p-8 shadow-sm cursor-pointer">
                             <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-bg-light md:gap-4">
                                 <div>
                                     <h3 className="text-2xl text-primary-blue m-0 mb-1 font-bold">SPECIALITY</h3>
                                     <Link to="/mock-exams" className="text-primary-blue text-sm m-0 underline cursor-pointer">Deepen your technical skills and manage industry solutions</Link>
                                 </div>
-                                <svg width="60" height="60" viewBox="0 0 100 100" className="shrink-0 drop-shadow-sm md:self-center">
-                                    <defs>
-                                        <linearGradient id="gradient-speciality" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" style={{ stopColor: '#50E6FF', stopOpacity: 1 }} />
-                                            <stop offset="100%" style={{ stopColor: '#004578', stopOpacity: 1 }} />
-                                        </linearGradient>
-                                    </defs>
-                                    <path
-                                        d="M50 10 L80 25 L80 50 Q80 75 50 90 Q20 75 20 50 L20 25 Z"
-                                        fill="url(#gradient-speciality)"
-                                        stroke="#fff"
-                                        strokeWidth="2"
-                                    />
-                                    <g transform="translate(50, 35)">
-                                        <rect x="-12" y="-8" width="5" height="5" fill="#fff" />
-                                        <rect x="-6" y="-8" width="5" height="5" fill="#fff" />
-                                        <rect x="-12" y="-2" width="5" height="5" fill="#fff" />
-                                        <rect x="-6" y="-2" width="5" height="5" fill="#fff" />
-                                    </g>
-                                    <text x="50" y="65" textAnchor="middle" fill="#fff" fontSize="8" fontWeight="bold">MICROSOFT</text>
-                                    <text x="50" y="75" textAnchor="middle" fill="#fff" fontSize="7" fontWeight="600">CERTIFIED</text>
-                                    <text x="50" y="85" textAnchor="middle" fill="#fff" fontSize="6" fontWeight="600">ASSOCIATE</text>
-                                </svg>
+                                <img
+                                    src="https://www.getmicrosoftcertification.com/lib/images/associate.png"
+                                    alt="Microsoft Certified Associate"
+                                    className="w-[60px] h-[60px] object-contain shrink-0 drop-shadow-sm md:self-center"
+                                />
                             </div>
                             <div className="flex flex-col gap-4">
                                 {mockExams.filter(exam => exam.category === 'Speciality').map((exam) => (
@@ -184,14 +140,144 @@ const Home = () => {
                                 ))}
                             </div>
                         </div>
+                        </Link>
                     </div>
 
                     <div className="text-center mt-12">
-                        <Link to="/mock-exams">
-                            <Button variant="outline" size="large">
-                                View All Exams <FaArrowRight />
+                        <Link to="/mock-exams" className="inline-block">
+                            <Button variant="outline" size="large" icon={<FaArrowRight />}>
+                                View All Exams
                             </Button>
                         </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* Browse Categories */}
+            <section className="py-16 bg-white">
+                <div className="container mx-auto px-4">
+                    <div className="mb-12 text-center">
+                        <h2 className="text-4xl font-bold mb-4">Browse For Microsoft Certification</h2>
+                        <p className="text-lg text-text-secondary max-w-[700px] mx-auto">
+                            Explore certification categories across Azure, Dynamics, security, and modern work.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {/* Infrastructure */}
+                        <Link to="/mock-exams?category=infrastructure" className="block">
+                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer">
+                            <div className="flex items-start justify-between mb-4">
+                                <h3 className="text-xl font-bold text-primary-blue">INFRASTRUCTURE</h3>
+                                <FaServer className="text-primary-blue text-3xl" aria-hidden="true" />
+                            </div>
+                            <p className="text-text-secondary">
+                                Certifications for infrastructure technologies like Azure, Windows Server, and DevOps.
+                            </p>
+                        </div>
+                        </Link>
+
+                        {/* Data and AI */}
+                        <Link to="/mock-exams?category=data-ai" className="block">
+                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer">
+                            <div className="flex items-start justify-between mb-4">
+                                <h3 className="text-xl font-bold text-primary-blue">DATA AND AI</h3>
+                                <FaDatabase className="text-primary-blue text-3xl" aria-hidden="true" />
+                            </div>
+                            <p className="text-text-secondary">
+                                Certifications covering data engineering, data science, and artificial intelligence.
+                            </p>
+                        </div>
+                        </Link>
+
+                        {/* Digital Innovation */}
+                        <Link to="/mock-exams?category=digital-innovation" className="block">
+                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer">
+                            <div className="flex items-start justify-between mb-4">
+                                <h3 className="text-xl font-bold text-primary-blue">DIGITAL INNOVATION</h3>
+                                <FaLightbulb className="text-primary-blue text-3xl" aria-hidden="true" />
+                            </div>
+                            <p className="text-text-secondary">
+                                Certifications for app development and innovative technologies.
+                            </p>
+                        </div>
+                        </Link>
+
+                        {/* Modern Work */}
+                        <Link to="/mock-exams?category=modern-work" className="block">
+                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer">
+                            <div className="flex items-start justify-between mb-4">
+                                <h3 className="text-xl font-bold text-primary-blue">MODERN WORK</h3>
+                                <FaUsers className="text-primary-blue text-3xl" aria-hidden="true" />
+                            </div>
+                            <p className="text-text-secondary">
+                                Certifications focused on modern workplace technologies and collaboration tools.
+                            </p>
+                        </div>
+                        </Link>
+
+                        {/* Business Applications */}
+                        <Link to="/mock-exams?category=business-applications" className="block">
+                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer">
+                            <div className="flex items-start justify-between mb-4">
+                                <h3 className="text-xl font-bold text-primary-blue">BUSINESS APPLICATIONS</h3>
+                                <FaThLarge className="text-primary-blue text-3xl" aria-hidden="true" />
+                            </div>
+                            <p className="text-text-secondary">
+                                Certifications related to Dynamics 365 and business applications.
+                            </p>
+                        </div>
+                        </Link>
+
+                        {/* Security */}
+                        <Link to="/mock-exams?category=security" className="block">
+                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer">
+                            <div className="flex items-start justify-between mb-4">
+                                <h3 className="text-xl font-bold text-primary-blue">SECURITY</h3>
+                                <FaShieldAlt className="text-primary-blue text-3xl" aria-hidden="true" />
+                            </div>
+                            <p className="text-text-secondary">
+                                Certifications related to cybersecurity, identity, and compliance.
+                            </p>
+                        </div>
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* Learning Paths */}
+            <section className="py-16 bg-bg-light">
+                <div className="container mx-auto px-4">
+                    <div className="mb-12 text-center">
+                        <h2 className="text-3xl md:text-4xl font-bold mb-4">Determine which certification is right for you and start learning</h2>
+                        <p className="text-lg text-text-secondary max-w-[800px] mx-auto">Curated learning paths to help you get certified faster.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {featuredExams.map((exam) => (
+                            <div key={exam.id} className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg flex flex-col gap-4">
+                                <div className="flex items-start gap-3">
+                                    <img
+                                        src={badgeByCategory[exam.category] || badgeByCategory['Fundamentals']}
+                                        alt={`${exam.category} badge`}
+                                        className="w-10 h-10 rounded-full object-contain shrink-0"
+                                    />
+                                    <div>
+                                        <Link to={`/mock-exams?code=${exam.code}`} className="text-primary-blue font-semibold hover:underline">
+                                            {exam.code}: {exam.title}
+                                        </Link>
+                                        <p className="mt-2 text-text-secondary text-sm">
+                                            Practice questions and structured prep to master {exam.title}.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="mt-auto text-center">
+                                    <Link to={`/mock-exams?code=${exam.code}`} className="inline-block">
+                                        <Button variant="secondary" size="small">Get Certified</Button>
+                                    </Link>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>
@@ -255,6 +341,62 @@ const Home = () => {
                     </div>
                 </div>
             </section>
+        </div>
+    );
+};
+
+function parseValueToNumber(value: string): { target: number; suffix: string } {
+    const match = value.match(/([0-9,]+)([^0-9,]*)/);
+    if (!match) return { target: 0, suffix: '' };
+    const numeric = parseInt(match[1].replace(/,/g, ''), 10);
+    const suffix = match[2] || '';
+    return { target: isNaN(numeric) ? 0 : numeric, suffix };
+}
+
+function formatNumberWithCommas(n: number): string {
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+const AnimatedStat: React.FC<{ label: string; value: string }> = ({ label, value }) => {
+    const { target, suffix } = parseValueToNumber(value);
+    const [display, setDisplay] = useState(0);
+    const [hasAnimated, setHasAnimated] = useState(false);
+    const ref = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting && !hasAnimated) {
+                        setHasAnimated(true);
+                        const duration = 1200;
+                        const start = performance.now();
+                        const startVal = 0;
+                        const animate = (now: number) => {
+                            const progress = Math.min((now - start) / duration, 1);
+                            const eased = 1 - Math.pow(1 - progress, 3);
+                            const current = Math.floor(startVal + (target - startVal) * eased);
+                            setDisplay(current);
+                            if (progress < 1) requestAnimationFrame(animate);
+                        };
+                        requestAnimationFrame(animate);
+                    }
+                });
+            },
+            { threshold: 0.3 }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [target, hasAnimated]);
+
+    return (
+        <div ref={ref} className="text-center p-8 bg-white rounded-lg shadow-lg animate-scaleIn">
+            <h3 className="text-4xl font-extrabold text-primary-blue mb-2">
+                {formatNumberWithCommas(display)}{suffix}
+            </h3>
+            <p className="text-base text-text-secondary m-0">{label}</p>
         </div>
     );
 };

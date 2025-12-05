@@ -342,10 +342,11 @@ export const testimonials: Testimonial[] = [
 ];
 
 export const stats: Stat[] = [
-    { label: 'Students Trained', value: '50,000+' },
-    { label: 'Success Rate', value: '95%' },
-    { label: 'Certifications', value: '100+' },
-    { label: 'Countries', value: '75+' }
+    { label: 'Years Training Experience', value: '28+' },
+    { label: 'Student Careers', value: '500,000+' },
+    { label: 'Online Training Batches', value: '10,000+' },
+    { label: 'Corporate Trainings', value: '500+' },
+    { label: 'Highly Qualified Faculty', value: '10+' }
 ];
 
 export const companyValues: CompanyValue[] = [
