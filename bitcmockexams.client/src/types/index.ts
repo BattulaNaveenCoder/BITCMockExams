@@ -10,6 +10,8 @@ export interface MockExam {
     id: number;
     title: string;
     code: string;
+    suiteId?: string;
+    pathId?: string;
     vendor: string;
     category: string;
     description: string;
@@ -19,6 +21,7 @@ export interface MockExam {
     price: number;
     rating: number;
     students: number;
+    image?: string;
 }
 
 export interface BlogPost {

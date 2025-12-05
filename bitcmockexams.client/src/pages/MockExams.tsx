@@ -1,42 +1,126 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FaStar } from 'react-icons/fa';
-import Button from '@shared/components/ui/Button';
-import { mockExams } from '../data/mockData';
+import ExamCard from '@shared/components/exams/ExamCard';
+import { useTestSuitesApi, type TestSuite } from '@shared/api/testSuites';
+import type { MockExam } from '../types';
+import { useAuth } from '@features/auth/context/AuthContext';
 
 const MockExams = () => {
     const [searchParams] = useSearchParams();
     const difficulty = searchParams.get('difficulty');
 
+    const { getAllTestSuitesByUserId } = useTestSuitesApi();
+    const [suites, setSuites] = useState<TestSuite[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const { user } = useAuth();
+    const userId = useMemo(() => (user as any)?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/sid'] as string || '', [user]);
+
+    useEffect(() => {
+        let mounted = true;
+        const loadSuites = async () => {
+            console.log('Loading test suites for user:', userId);
+            setLoading(true);
+            try {
+                const data = await getAllTestSuitesByUserId(userId);
+                console.log('Fetched test suites:', data);
+                if (mounted) setSuites(data);
+            } catch (e) {
+                // errors already handled in service; keep UI resilient
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        };
+        if (userId) {
+            loadSuites();
+        } else {
+            // If no userId, ensure we don't show infinite loading
+            setLoading(false);
+        }
+        return () => {
+            mounted = false;
+        };
+    }, [userId]);
+
+    const mappedExams: MockExam[] = useMemo(() => {
+        // Category definitions
+        const beginners = new Set([
+            'AZ-900', 'DP-900', 'AI-900', 'PL-900'
+        ].map((c) => c.toUpperCase()));
+        const intermediates = new Set([
+            // Azure Associate
+            'AZ-104', 'AZ-204', 'AZ-500', 'AZ-700',
+            // Data & AI Associate
+            'DP-100', 'DP-203',
+            // Power Platform Associate
+            'PL-100', 'PL-200', 'PL-300', 'PL-400', 'PL-500',
+            // Security Associate
+            'SC-200', 'SC-300', 'SC-400',
+            // Other
+            'Docker Certified Associate', 'SQL Server Live Session'
+        ].map((c) => c.toUpperCase()));
+        const advanced = new Set([
+            'AZ-305', 'AZ-400', 'PL-600', 'AI-102'
+        ].map((c) => c.toUpperCase()));
+
+        const levelOrder: Record<string, number> = {
+            Beginner: 0,
+            Intermediate: 1,
+            Advanced: 2,
+        };
+
+        const inferDifficulty = (code: string, title: string): 'Beginner' | 'Intermediate' | 'Advanced' => {
+            const key = code.trim().toUpperCase();
+            const t = title.trim();
+            // Direct code match
+            if (beginners.has(key)) return 'Beginner';
+            if (advanced.has(key)) return 'Advanced';
+            if (intermediates.has(key)) return 'Intermediate';
+            // Title-based special cases
+            if (/Challenge/i.test(t) && /AZ-104/i.test(t)) return 'Intermediate';
+            if (/Docker Certified Associate/i.test(t)) return 'Intermediate';
+            if (/SQL Server Live Session/i.test(t)) return 'Intermediate';
+            // Fallback by prefix
+            if (key.startsWith('AZ-900') || key.startsWith('DP-900') || key.startsWith('AI-900') || key.startsWith('PL-900')) return 'Beginner';
+            if (key.startsWith('AZ-305') || key.startsWith('AZ-400') || key.startsWith('PL-600') || key.startsWith('AI-102')) return 'Advanced';
+            return 'Intermediate';
+        };
+
+        const exams = suites.map((s, idx) => {
+            const code = (s.PathId || '').split(':')[0] || 'EXAM';
+            const difficulty = inferDifficulty(code, s.TestSuiteTitle || '');
+            return {
+                id: idx + 1,
+                title: s.TestSuiteTitle,
+                code,
+                suiteId: s.PKTestSuiteId,
+                pathId: s.PathId,
+                vendor: 'Microsoft',
+                category: 'Certification',
+                description: s.FKContributorName || 'Certification practice tests',
+                questions: s.totalCountQues ?? 0,
+                duration: 60,
+                difficulty,
+                price: 0,
+                rating: s.Average ?? 0,
+                students: s.TotalLearners ?? 0,
+                image: s.ImageTestsuiteUrl,
+            } as MockExam;
+        });
+
+        // Order by Beginner -> Intermediate -> Advanced
+        exams.sort((a, b) => levelOrder[a.difficulty] - levelOrder[b.difficulty]);
+        return exams;
+    }, [suites]);
+
     // Filter exams based on difficulty parameter
-    const filteredExams = difficulty
-        ? mockExams.filter(exam => exam.difficulty.toLowerCase() === difficulty.toLowerCase())
-        : mockExams;
+    const filteredExams = useMemo(() => {
+        if (!difficulty) return mappedExams;
+        return mappedExams.filter(
+            (exam) => exam.difficulty.toLowerCase() === difficulty.toLowerCase()
+        );
+    }, [mappedExams, difficulty]);
 
-    const getDifficultyBadge = (difficulty: string) => {
-        switch (difficulty) {
-            case 'Beginner':
-                return 'BEGINNER';
-            case 'Intermediate':
-                return 'INTERMEDIATE';
-            case 'Advanced':
-                return 'ADVANCED';
-            default:
-                return difficulty.toUpperCase();
-        }
-    };
-
-    const getDifficultyColorClass = (difficulty: string) => {
-        switch (difficulty.toLowerCase()) {
-            case 'beginner':
-                return 'bg-green-100 text-green-700';
-            case 'intermediate':
-                return 'bg-yellow-100 text-yellow-700';
-            case 'advanced':
-                return 'bg-red-100 text-red-700';
-            default:
-                return 'bg-gray-100 text-gray-700';
-        }
-    };
+    // Card presentation is handled by shared ExamCard component
 
     return (
         <div className="mock-exams">
@@ -53,46 +137,15 @@ const MockExams = () => {
             {/* Exams Grid */}
             <section className="py-16 bg-white">
                 <div className="container mx-auto px-4">
-                    <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-8">
-                        {filteredExams.map((exam) => (
-                            <div key={exam.id} className="bg-white border border-border rounded-lg p-8 transition-all duration-250 flex flex-col hover:shadow-lg hover:-translate-y-1">
-                                <div className="flex justify-between items-center mb-6">
-                                    <span className="text-primary-blue font-semibold text-sm">{exam.vendor}</span>
-                                    <span className={`px-3 py-1 rounded text-xs font-semibold uppercase ${getDifficultyColorClass(exam.difficulty)}`}>
-                                        {getDifficultyBadge(exam.difficulty)}
-                                    </span>
-                                </div>
-
-                                <h3 className="text-2xl font-bold text-text-primary m-0 mb-2 leading-tight">{exam.title}</h3>
-                                <p className="text-sm text-text-light m-0 mb-6">{exam.code}</p>
-
-                                <div className="bg-bg-light rounded-md p-4 mb-6">
-                                    <div className="flex justify-between items-center py-2 border-b border-border last:border-0">
-                                        <span className="text-text-secondary text-sm">Questions:</span>
-                                        <span className="text-text-primary font-semibold text-sm">{exam.questions}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-2 border-b border-border last:border-0">
-                                        <span className="text-text-secondary text-sm">Duration:</span>
-                                        <span className="text-text-primary font-semibold text-sm">{exam.duration} min</span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-2 border-b border-border last:border-0">
-                                        <span className="text-text-secondary text-sm">Students:</span>
-                                        <span className="text-text-primary font-semibold text-sm">{exam.students.toLocaleString()}</span>
-                                    </div>
-                                </div>
-
-                                <div className="flex justify-between items-center mb-6">
-                                    <div className="flex items-center gap-1 font-semibold text-text-primary">
-                                        <FaStar className="text-warning text-base" />
-                                        <span>{exam.rating}</span>
-                                    </div>
-                                    <div className="text-2xl font-bold text-primary-blue">${exam.price}</div>
-                                </div>
-
-                                <Button variant="primary" fullWidth>Start Practice</Button>
-                            </div>
-                        ))}
-                    </div>
+                    {loading ? (
+                        <div className="text-center py-10 text-text-secondary">Loading test suites...</div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {filteredExams.map((exam) => (
+                                <ExamCard key={exam.id} exam={exam} />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -105,32 +158,61 @@ const MockExams = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8">
                         <div className="text-center p-8 bg-white rounded-lg transition-all duration-250 hover:-translate-y-1 hover:shadow-lg">
-                            <div className="text-5xl mb-4">📊</div>
+                            <div className="mb-4 flex justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-12 h-12 text-primary-blue">
+                                    <rect x="3" y="10" width="3" height="11" rx="1" strokeWidth="2" />
+                                    <rect x="9" y="6" width="3" height="15" rx="1" strokeWidth="2" />
+                                    <rect x="15" y="3" width="3" height="18" rx="1" strokeWidth="2" />
+                                </svg>
+                            </div>
                             <h3 className="text-xl mb-2 text-text-primary font-bold">Real Exam Questions</h3>
                             <p className="text-text-secondary m-0">Practice with questions taken from actual certification exams</p>
                         </div>
                         <div className="text-center p-8 bg-white rounded-lg transition-all duration-250 hover:-translate-y-1 hover:shadow-lg">
-                            <div className="text-5xl mb-4">💡</div>
+                            <div className="mb-4 flex justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-12 h-12 text-amber-500">
+                                    <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 18h6M10 22h4M12 2a7 7 0 00-7 7c0 2.5 1.4 4.2 3 5.4.7.6 1 1.1 1 1.6V17h6v-1c0-.5.3-1 .9-1.5 1.7-1.2 3.1-3 3.1-5.5a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
                             <h3 className="text-xl mb-2 text-text-primary font-bold">Detailed Explanations</h3>
                             <p className="text-text-secondary m-0">Understand every answer with comprehensive explanations</p>
                         </div>
                         <div className="text-center p-8 bg-white rounded-lg transition-all duration-250 hover:-translate-y-1 hover:shadow-lg">
-                            <div className="text-5xl mb-4">📈</div>
+                            <div className="mb-4 flex justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-12 h-12 text-primary-blue">
+                                    <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M3 17l6-6 4 4 6-8" />
+                                    <path strokeWidth="2" d="M3 21h18" />
+                                </svg>
+                            </div>
                             <h3 className="text-xl mb-2 text-text-primary font-bold">Performance Analytics</h3>
                             <p className="text-text-secondary m-0">Track your progress and identify areas for improvement</p>
                         </div>
                         <div className="text-center p-8 bg-white rounded-lg transition-all duration-250 hover:-translate-y-1 hover:shadow-lg">
-                            <div className="text-5xl mb-4">🔄</div>
+                            <div className="mb-4 flex justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-12 h-12 text-primary-blue">
+                                    <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M4 7h4V3M20 17h-4v4M7 4a9 9 0 0113 8M17 20a9 9 0 01-13-8" />
+                                </svg>
+                            </div>
                             <h3 className="text-xl mb-2 text-text-primary font-bold">Unlimited Attempts</h3>
                             <p className="text-text-secondary m-0">Practice as many times as you need to build confidence</p>
                         </div>
                         <div className="text-center p-8 bg-white rounded-lg transition-all duration-250 hover:-translate-y-1 hover:shadow-lg">
-                            <div className="text-5xl mb-4">⏱️</div>
+                            <div className="mb-4 flex justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-12 h-12 text-violet-600">
+                                    <circle cx="12" cy="13" r="8" strokeWidth="2" />
+                                    <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M12 13l3 3M9 3h6" />
+                                </svg>
+                            </div>
                             <h3 className="text-xl mb-2 text-text-primary font-bold">Timed Mode</h3>
                             <p className="text-text-secondary m-0">Simulate real exam conditions with time limits</p>
                         </div>
                         <div className="text-center p-8 bg-white rounded-lg transition-all duration-250 hover:-translate-y-1 hover:shadow-lg">
-                            <div className="text-5xl mb-4">✅</div>
+                            <div className="mb-4 flex justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-12 h-12 text-emerald-600">
+                                    <rect x="4" y="4" width="16" height="16" rx="3" strokeWidth="2" />
+                                    <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M8 12l3 3 5-6" />
+                                </svg>
+                            </div>
                             <h3 className="text-xl mb-2 text-text-primary font-bold">Up-to-Date Content</h3>
                             <p className="text-text-secondary m-0">Regularly updated to match the latest exam patterns</p>
                         </div>

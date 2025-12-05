@@ -59,7 +59,8 @@ export const mockExams: MockExam[] = [
         difficulty: 'Beginner',
         price: 19.99,
         rating: 4.8,
-        students: 25000
+        students: 25000,
+        image: 'https://images.unsplash.com/photo-1496307653780-42ee777d4833?q=80&w=1200&auto=format&fit=crop'
     },
     {
         id: 2,
@@ -73,7 +74,8 @@ export const mockExams: MockExam[] = [
         difficulty: 'Beginner',
         price: 19.99,
         rating: 4.7,
-        students: 18000
+        students: 18000,
+        image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=1200&auto=format&fit=crop'
     },
     {
         id: 3,
@@ -87,7 +89,8 @@ export const mockExams: MockExam[] = [
         difficulty: 'Beginner',
         price: 19.99,
         rating: 4.8,
-        students: 20000
+        students: 20000,
+        image: 'https://images.unsplash.com/photo-1517433456452-f9633a875f6f?q=80&w=1200&auto=format&fit=crop'
     },
     {
         id: 4,
@@ -101,7 +104,8 @@ export const mockExams: MockExam[] = [
         difficulty: 'Beginner',
         price: 19.99,
         rating: 4.6,
-        students: 15000
+        students: 15000,
+        image: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1200&auto=format&fit=crop'
     },
     // Role-Based
     {
@@ -116,7 +120,8 @@ export const mockExams: MockExam[] = [
         difficulty: 'Intermediate',
         price: 29.99,
         rating: 4.9,
-        students: 22000
+        students: 22000,
+        image: 'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=1200&auto=format&fit=crop'
     },
     {
         id: 6,
@@ -130,7 +135,8 @@ export const mockExams: MockExam[] = [
         difficulty: 'Intermediate',
         price: 29.99,
         rating: 4.8,
-        students: 18500
+        students: 18500,
+        image: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop'
     },
     {
         id: 7,
@@ -144,7 +150,8 @@ export const mockExams: MockExam[] = [
         difficulty: 'Advanced',
         price: 34.99,
         rating: 4.9,
-        students: 16000
+        students: 16000,
+        image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop'
     },
     {
         id: 8,
@@ -158,7 +165,8 @@ export const mockExams: MockExam[] = [
         difficulty: 'Advanced',
         price: 34.99,
         rating: 4.8,
-        students: 14500
+        students: 14500,
+        image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1200&auto=format&fit=crop'
     },
     // Speciality
     {
@@ -173,7 +181,8 @@ export const mockExams: MockExam[] = [
         difficulty: 'Advanced',
         price: 39.99,
         rating: 4.7,
-        students: 8000
+        students: 8000,
+        image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1200&auto=format&fit=crop'
     },
     {
         id: 10,
@@ -187,7 +196,8 @@ export const mockExams: MockExam[] = [
         difficulty: 'Advanced',
         price: 39.99,
         rating: 4.8,
-        students: 9500
+        students: 9500,
+        image: 'https://images.unsplash.com/photo-1589149098258-3e9102cd63d3?q=80&w=1200&auto=format&fit=crop'
     },
     {
         id: 11,
@@ -201,7 +211,8 @@ export const mockExams: MockExam[] = [
         difficulty: 'Advanced',
         price: 39.99,
         rating: 4.9,
-        students: 7500
+        students: 7500,
+        image: 'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=1200&auto=format&fit=crop'
     }
 ];
 
