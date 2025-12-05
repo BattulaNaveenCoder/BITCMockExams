@@ -1,6 +1,6 @@
 
 import { FaLinkedinIn } from 'react-icons/fa';
-import Card from '../components/ui/Card';
+import Card from '@shared/components/ui/Card';
 import { teamMembers, companyValues } from '../data/mockData';
 
 const About = () => {

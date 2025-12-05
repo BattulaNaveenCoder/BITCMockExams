@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FaClock, FaUser } from 'react-icons/fa';
-import Card from '../components/ui/Card';
+import Card from '@shared/components/ui/Card';
 import { blogPosts } from '../data/mockData';
 
 const Blog = () => {

@@ -15,6 +15,15 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@app/*": ["src/app/*"],
+      "@features/*": ["src/features/*"],
+      "@shared/*": ["src/shared/*"],
+      "@config/*": ["src/shared/config/*"],
+      "@api/*": ["src/shared/api/*"],
+      "@types/*": ["src/types/*"]
+    },
 
     /* Linting */
     "strict": true,

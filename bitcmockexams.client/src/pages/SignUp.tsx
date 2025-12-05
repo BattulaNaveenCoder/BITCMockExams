@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
+import Button from '@shared/components/ui/Button';
+import Input from '@shared/components/ui/Input';
 
 const SignUp = () => {
     const navigate = useNavigate();

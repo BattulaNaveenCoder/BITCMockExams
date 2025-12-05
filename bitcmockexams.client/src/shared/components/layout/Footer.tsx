@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebookF, FaTwitter, FaLinkedinIn, FaYoutube, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
-import Button from '../ui/Button';
-import Input from '../ui/Input';
+import Button from '@shared/components/ui/Button';
+import Input from '@shared/components/ui/Input';
 
 const Footer = () => {
     const [email, setEmail] = useState('');
 
     const handleNewsletterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // Handle newsletter signup
         alert('Thank you for subscribing!');
         setEmail('');
     };
@@ -20,7 +19,6 @@ const Footer = () => {
         <footer className="bg-text-primary text-white py-16 mt-16">
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-                    {/* About Section */}
                     <div className="flex flex-col gap-4">
                         <h3 className="text-2xl font-extrabold mb-2 text-white">BITC<span className="text-primary-blue">MockExams</span></h3>
                         <p className="text-white/80 leading-relaxed mb-4">
@@ -42,7 +40,6 @@ const Footer = () => {
                         </div>
                     </div>
 
-                    {/* Quick Links */}
                     <div className="flex flex-col gap-4">
                         <h4 className="text-lg font-bold mb-4 text-white">Quick Links</h4>
                         <ul className="list-none p-0 m-0 flex flex-col gap-2">
@@ -53,7 +50,6 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Mock Exams */}
                     <div className="flex flex-col gap-4">
                         <h4 className="text-lg font-bold mb-4 text-white">Mock Exams</h4>
                         <ul className="list-none p-0 m-0 flex flex-col gap-2">
@@ -63,7 +59,6 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Contact & Newsletter */}
                     <div className="flex flex-col gap-4">
                         <h4 className="text-lg font-bold mb-4 text-white">Contact Us</h4>
                         <ul className="list-none p-0 m-0 flex flex-col gap-4">
@@ -101,7 +96,6 @@ const Footer = () => {
                     </div>
                 </div>
 
-                {/* Bottom Bar */}
                 <div className="flex justify-between items-center pt-8 border-t border-white/10 flex-wrap gap-4 md:flex-col md:text-center">
                     <p className="text-white/60 m-0">
                         © {currentYear} BITCMockExams. All rights reserved.

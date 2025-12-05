@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { FaStar } from 'react-icons/fa';
-import Button from '../components/ui/Button';
+import Button from '@shared/components/ui/Button';
 import { mockExams } from '../data/mockData';
 
 const MockExams = () => {
