@@ -65,19 +65,11 @@ function AuthRoutes() {
             />
             <Route
                 path="/mock-exams"
-                element={
-                    <ProtectedRoute>
-                        <Layout><MockExams /></Layout>
-                    </ProtectedRoute>
-                }
+                element={<Layout><MockExams /></Layout>}
             />
             <Route
                 path="/contact"
-                element={
-                    <ProtectedRoute>
-                        <Layout><Contact /></Layout>
-                    </ProtectedRoute>
-                }
+                element={<Layout><Contact /></Layout>}
             />
             <Route path="/signup" element={<SignUp />} />
         </Routes>

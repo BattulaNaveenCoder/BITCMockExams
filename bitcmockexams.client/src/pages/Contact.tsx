@@ -161,7 +161,7 @@ const Contact = () => {
                                     </div>
                                     <div className="info-content">
                                         <h4 className="text-base font-bold mb-2">Address</h4>
-                                        <p className="text-text-secondary m-0 leading-relaxed">123 Tech Street, Suite 100<br />San Francisco, CA 94105</p>
+                                        <p className="text-text-secondary m-0 leading-relaxed">H.No: 153, A/4,<br />Balamrai,<br />Rasoolpura,<br />Secunderabad-500003<br />TELANGANA, INDIA.</p>
                                     </div>
                                 </div>
 
@@ -170,8 +170,8 @@ const Contact = () => {
                                         <FaPhone />
                                     </div>
                                     <div className="info-content">
-                                        <h4 className="text-base font-bold mb-2">Phone</h4>
-                                        <p className="text-text-secondary m-0 leading-relaxed">+1 (555) 123-4567</p>
+                                        <h4 className="text-base font-bold mb-2">Mobile / WhatsApp</h4>
+                                        <p className="text-text-secondary m-0 leading-relaxed">+91 9347458388</p>
                                     </div>
                                 </div>
 
@@ -180,8 +180,10 @@ const Contact = () => {
                                         <FaEnvelope />
                                     </div>
                                     <div className="info-content">
-                                        <h4 className="text-base font-bold mb-2">Email</h4>
-                                        <p className="text-text-secondary m-0 leading-relaxed">info@azurea2z.com</p>
+                                        <h4 className="text-base font-bold mb-2">Support Email</h4>
+                                        <p className="text-text-secondary m-0 leading-relaxed">azurea2z@deccansoft.net</p>
+                                        <h4 className="text-base font-bold mt-4 mb-2">Contact Person</h4>
+                                        <p className="text-text-secondary m-0 leading-relaxed"><strong>Mrs. Kashmira Shah</strong><br />Email: kashmira.shah@deccansoft.com</p>
                                     </div>
                                 </div>
 
@@ -196,12 +198,17 @@ const Contact = () => {
                                 </div>
                             </div>
 
-                            {/* Map Placeholder */}
-                            <div className="w-full h-[300px] rounded-lg overflow-hidden shadow-md">
-                                <img
-                                    src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&q=80"
-                                    alt="Office location map"
-                                    className="w-full h-full object-cover"
+                            {/* Google Map */}
+                            <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md">
+                                <iframe
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3806.254686524798!2d78.48348631487717!3d17.447519988042586!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcb9b761a1ab997%3A0x579d79a7010d05d6!2sDeccansoft%20Software%20Services!5e0!3m2!1sen!2sin!4v1661169831724!5m2!1sen!2sin"
+                                    width="100%"
+                                    height="100%"
+                                    style={{ border: 0 }}
+                                    allowFullScreen
+                                    loading="lazy"
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                    title="Deccansoft Software Services Location"
                                 />
                             </div>
                         </div>
