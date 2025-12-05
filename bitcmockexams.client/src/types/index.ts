@@ -61,3 +61,19 @@ export interface CompanyValue {
     description: string;
     icon: string;
 }
+
+// Auth types
+export interface LoginRequest {
+    emailid: string;
+    password: string;
+}
+
+export interface LoginResponse {
+    // Flexible to accommodate unknown backend shape
+    token?: string;
+    accessToken?: string;
+    message?: string;
+    success?: boolean;
+    data?: any;
+    [key: string]: any;
+}

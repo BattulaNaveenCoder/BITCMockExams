@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
+import Button from '@shared/components/ui/Button';
+import Input from '@shared/components/ui/Input';
 
 const Contact = () => {
     const [formData, setFormData] = useState({

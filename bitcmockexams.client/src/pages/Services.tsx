@@ -1,8 +1,8 @@
 
 import { Link } from 'react-router-dom';
 import { FaCheckCircle, FaArrowRight } from 'react-icons/fa';
-import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
+import Button from '@shared/components/ui/Button';
+import Card from '@shared/components/ui/Card';
 import { services } from '../data/mockData';
 
 const Services = () => {

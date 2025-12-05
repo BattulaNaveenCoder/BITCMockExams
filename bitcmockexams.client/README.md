@@ -1,73 +1,63 @@
-# React + TypeScript + Vite
+# BITC Mock Exams — Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 + TypeScript + Vite app structured for scalability with feature-based folders, shared UI, and path aliases.
 
-Currently, two official plugins are available:
+## Project Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+  app/
+    App.tsx                  # App shell + routes
+  features/
+    auth/
+      components/            # Auth-specific UI (LoginModal, ProtectedRoute)
+      context/               # Auth + LoginModal contexts
+  shared/
+    api/                     # API hooks/services
+      api.ts
+    config/                  # Cross-cutting runtime config
+      axios.ts
+    contexts/                # App-wide contexts (e.g., Loading)
+      LoadingContext.tsx
+    components/
+      layout/                # Layout primitives (Header, Footer, Loader, Layout)
+      ui/                    # Reusable UI components (Button, Input, Card)
+  pages/                     # Route screens (kept simple; can migrate to features/* later)
+  data/                      # Mock/static data
+  types/                     # Global types
+  assets/                    # Static assets
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Path Aliases
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Configured in `tsconfig.json`, `tsconfig.app.json`, and `vite.config.ts`:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+@app/*      -> src/app/*
+@features/* -> src/features/*
+@shared/*   -> src/shared/*
+@config/*   -> src/shared/config/*
+@api/*      -> src/shared/api/*
+@types/*    -> src/types/*
+```
+
+Example:
+
+```
+import Button from '@shared/components/ui/Button'
+import { useAuth } from '@features/auth/context/AuthContext'
+```
+
+## Develop
+
+```powershell
+npm install
+npm run dev
+```
+
+## Build
+
+```powershell
+npm run build
+npm run preview
 ```
