@@ -282,36 +282,31 @@ export const blogPosts: BlogPost[] = [
 export const teamMembers: TeamMember[] = [
     {
         id: 1,
-        name: 'John Smith',
+        name: 'Mr. Sandeep Soni',
         title: 'Founder & CEO',
-        bio: '15+ years in cloud architecture and enterprise solutions. AWS & Azure certified.',
-        image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80',
-        linkedin: '#'
+        bio: '29+ years of experience',
+        image: 'https://www.deccansoft.com/assets/img/team/Sandeep%20Soni%20Dss%20Home%20page.jpg',
+        experience: 'Trained 300000+ students',
+        linkedin: 'https://www.linkedin.com/in/sandeepsoni123/'
     },
     {
         id: 2,
-        name: 'Sarah Johnson',
-        title: 'Head of Training',
-        bio: 'Certified instructor with 10+ years teaching cloud technologies to thousands of students.',
-        image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80',
-        linkedin: '#'
+        name: 'Mr. Rahul Rampurkar',
+        title: 'CTO',
+        bio: '29+ years of experience',
+        experience: 'Trained 250000+ students',
+        image: 'https://www.deccansoft.com/assets/img/team/Our-Team/Rahul%20sir%20DSS.png',
+        linkedin: 'https://www.linkedin.com/in/rahulrampurkar/'
     },
     {
         id: 3,
-        name: 'Michael Chen',
-        title: 'Lead Cloud Architect',
-        bio: 'Expert in multi-cloud solutions and DevOps practices. Google Cloud and AWS certified.',
-        image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80',
-        linkedin: '#'
+        name: 'Mrs. Vandana Soni',
+        title: 'Director',
+        bio: '25+ years of experience',
+        experience: 'Trained 200000+ students',
+        image: 'https://www.deccansoft.com/assets/img/team/VandanaMadam450.jpg',
+        linkedin: 'https://www.linkedin.com/in/vandana-soni-85a29475/'
     },
-    {
-        id: 4,
-        name: 'Emily Davis',
-        title: 'Security Specialist',
-        bio: 'Cybersecurity expert specializing in cloud security and compliance frameworks.',
-        image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80',
-        linkedin: '#'
-    }
 ];
 
 export const testimonials: Testimonial[] = [
