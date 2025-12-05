@@ -23,7 +23,7 @@ const About = () => {
                         <div className="mission-text">
                             <h2 className="mb-6 text-3xl font-bold">Our Mission</h2>
                             <p className="mb-6 leading-relaxed">
-                                At AzureA2Z, we are dedicated to transforming the way professionals approach
+                                At Deccansoft, we are dedicated to transforming the way professionals approach
                                 cloud certifications. Our mission is to provide world-class training, comprehensive
                                 practice exams, and personalized guidance that empowers individuals and organizations
                                 to succeed in their cloud journey.
@@ -85,63 +85,93 @@ const About = () => {
                                     <img
                                         src={member.image}
                                         alt={member.name}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full"
+                                        style={{ objectFit: 'contain' }}
                                     />
                                 </div>
-                                <h3 className="text-xl font-bold mb-1">{member.name}</h3>
-                                <p className="text-primary-blue font-semibold mb-4">{member.title}</p>
-                                <p className="text-sm text-text-secondary mb-4 leading-relaxed">{member.bio}</p>
-                                <a
+                                <h3 className="text-xl font-bold mb-1 text-center">{member.name}</h3>
+                                <p className="text-primary-blue font-semibold mb-2 text-center">{member.title}</p>
+                                <p className="text-sm font-semibold text-text-secondary leading-relaxed text-center">{member.bio}</p>
+                                <p className="text-sm font-semibold text-text-secondary leading-relaxed text-center">{member.experience}</p>
+                                {/* <a
                                     href={member.linkedin}
                                     className="inline-flex items-center gap-2 text-primary-blue font-semibold text-sm mt-auto hover:text-secondary-blue"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
-                                    <FaLinkedinIn /> Connect on LinkedIn
-                                </a>
+                                    <FaLinkedinIn />
+                                </a> */}
                             </Card>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* Timeline Section */}
-            <section className="py-16 bg-bg-light">
+            {/* Timeline Section - History, Mission, Vision, Why Choose Us */}
+            <section className="py-16 bg-gray-50">
                 <div className="container mx-auto px-4">
-                    <div className="mb-12 text-center">
-                        <h2 className="text-4xl font-bold mb-4">Our Journey</h2>
-                        <p className="text-lg text-text-secondary max-w-[600px] mx-auto">
-                            Milestones in our mission to empower cloud professionals
-                        </p>
-                    </div>
+                    <div className="max-w-5xl mx-auto relative">
+                        {/* Vertical Line */}
+                        <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-primary-blue transform -translate-x-1/2 hidden md:block"></div>
 
-                    <div className="max-w-[800px] mx-auto relative before:absolute before:left-1/2 before:top-0 before:bottom-0 before:w-0.5 before:bg-primary-blue before:-translate-x-1/2 md:before:left-0 md:before:translate-x-0">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 relative md:gap-4 md:pl-8">
-                            <div className="text-3xl font-extrabold text-primary-blue text-right pr-8 md:text-left md:pr-0">2018</div>
-                            <div className="pr-8 md:pr-0">
-                                <h4 className="text-xl font-bold mb-2">Company Founded</h4>
-                                <p className="text-text-secondary m-0">Started with a vision to make cloud certification accessible to everyone</p>
+                        {/* Timeline Items */}
+                        <div className="space-y-12">
+                            {/* Our History - Left Side (Teal) */}
+                            <div className="relative flex flex-col md:flex-row items-center gap-8">
+                                <div className="w-full md:w-1/2 md:pr-12">
+                                    <div className="bg-gradient-to-br from-accent-blue to-primary-blue text-white p-8 rounded-lg shadow-lg">
+                                        <h2 className="text-2xl font-bold mb-4 uppercase tracking-wide">Our History</h2>
+                                        <p className="leading-relaxed text-white/95">
+                                            Deccansoft was founded in 1997 by Sandeep Soni and Rahul Rampurkar.
+                                            Since its inception, it has earned strong recognition for innovation and commitment in software training, particularly in Microsoft Azure and other modern technologies.
+                                            The institute is considered one of India’s top training centers and has trained over 1,50,000 candidates who are now placed in companies worldwide.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="hidden md:flex w-12 h-12 bg-primary-blue rounded-full border-4 border-white shadow-lg z-10 flex-shrink-0"></div>
+                                <div className="w-full md:w-1/2"></div>
                             </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 relative md:gap-4 md:pl-8">
-                            <div className="order-2 text-left pl-8 md:order-1 md:pl-0 text-3xl font-extrabold text-primary-blue">2019</div>
-                            <div className="order-1 text-right pr-8 md:order-2 md:text-left md:pr-0">
-                                <h4 className="text-xl font-bold mb-2">10,000 Students</h4>
-                                <p className="text-text-secondary m-0">Reached our first major milestone of 10,000 successful students</p>
+
+                            {/* Our Mission - Right Side (Dark Blue) */}
+                            <div className="relative flex flex-col md:flex-row items-center gap-8">
+                                <div className="w-full md:w-1/2"></div>
+                                <div className="hidden md:flex w-12 h-12 bg-primary-blue rounded-full border-4 border-white shadow-lg z-10 flex-shrink-0"></div>
+                                <div className="w-full md:w-1/2 md:pl-12">
+                                    <div className="bg-gradient-to-br from-primary-blue to-secondary-blue text-white p-8 rounded-lg shadow-lg">
+                                        <h2 className="text-2xl font-bold mb-4 uppercase tracking-wide">Our Mission</h2>
+                                        <p className="leading-relaxed text-white/95">
+                                            To deliver exceptional services to our clients by upholding the Deccansoft Code of Ethics, honoring our Service Promises, and consistently aligning our actions with the expectations of all stakeholders.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 relative md:gap-4 md:pl-8">
-                            <div className="text-3xl font-extrabold text-primary-blue text-right pr-8 md:text-left md:pr-0">2021</div>
-                            <div className="pr-8 md:pr-0">
-                                <h4 className="text-xl font-bold mb-2">Global Expansion</h4>
-                                <p className="text-text-secondary m-0">Expanded services to 50+ countries worldwide</p>
+
+                            {/* Our Vision - Left Side (Coral/Red) */}
+                            <div className="relative flex flex-col md:flex-row items-center gap-8">
+                                <div className="w-full md:w-1/2 md:pr-12">
+                                    <div className="bg-gradient-to-br from-secondary-blue to-dark-blue text-white p-8 rounded-lg shadow-lg">
+                                        <h2 className="text-2xl font-bold mb-4 uppercase tracking-wide">Our Vision</h2>
+                                        <p className="leading-relaxed text-white/95">
+                                            To be recognized as a trusted and valued partner in delivering quality through our expertise and innovative thinking, while developing business-critical solutions for clients across the globe.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="hidden md:flex w-12 h-12 bg-primary-blue rounded-full border-4 border-white shadow-lg z-10 flex-shrink-0"></div>
+                                <div className="w-full md:w-1/2"></div>
                             </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 relative md:gap-4 md:pl-8">
-                            <div className="order-2 text-left pl-8 md:order-1 md:pl-0 text-3xl font-extrabold text-primary-blue">2024</div>
-                            <div className="order-1 text-right pr-8 md:order-2 md:text-left md:pr-0">
-                                <h4 className="text-xl font-bold mb-2">50,000+ Students</h4>
-                                <p className="text-text-secondary m-0">Celebrating 50,000+ certified professionals and counting</p>
+
+                            {/* Why Choose Us - Right Side (Light Blue) */}
+                            <div className="relative flex flex-col md:flex-row items-center gap-8">
+                                <div className="w-full md:w-1/2"></div>
+                                <div className="hidden md:flex w-12 h-12 bg-cyan-400 rounded-full border-4 border-white shadow-lg z-10 flex-shrink-0"></div>
+                                <div className="w-full md:w-1/2 md:pl-12">
+                                    <div className="bg-gradient-to-br from-dark-blue to-[#003050] text-white p-8 rounded-lg shadow-lg">
+                                        <h2 className="text-2xl font-bold mb-4 uppercase tracking-wide">Why Choose Us</h2>
+                                        <p className="leading-relaxed text-white/95">
+                                            To deliver exceptional and distinctive services to our clients by upholding the Deccansoft Code of Ethics, honoring our Service Promises, and consistently aligning our efforts with the interests of all stakeholders.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
