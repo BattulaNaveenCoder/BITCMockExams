@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ExamCard from '@shared/components/exams/ExamCard';
+import ExamCardSkeleton from '@shared/components/exams/ExamCardSkeleton';
 import { useTestSuitesApi, type TestSuite } from '@shared/api/testSuites';
 import type { MockExam } from '../types';
 import { useAuth } from '@features/auth/context/AuthContext';
@@ -138,7 +139,11 @@ const MockExams = () => {
             <section className="py-16 bg-white">
                 <div className="container mx-auto px-4">
                     {loading ? (
-                        <div className="text-center py-10 text-text-secondary">Loading test suites...</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {Array.from({ length: 6 }).map((_, i) => (
+                                <ExamCardSkeleton key={i} />
+                            ))}
+                        </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {filteredExams.map((exam) => (

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getExamTopics } from '../data/examTopics';
 import Button from '@shared/components/ui/Button';
+import Skeleton from '@shared/components/ui/Skeleton';
 import { FaLock, FaClock, FaTimes } from 'react-icons/fa';
 
 interface Question {
@@ -77,115 +78,176 @@ const Practice: React.FC = () => {
 
   const accessibleCount = Math.min(21, total); // rest appear locked like screenshot
 
+  // Page-level loading state to present skeletons on mount/section change
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    setLoading(true);
+    const t = setTimeout(() => setLoading(false), 400);
+    return () => clearTimeout(t);
+  }, [sectionId]);
+
   return (
     <div className="w-full p-3">
       {/* Top bar */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-primary-blue">
-          {topic?.title} <span className="text-text-primary">(Practice)</span>
-        </h1>
-        <Button variant="secondary" className="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full px-6 py-2">Unlock Questions</Button>
+        {loading ? (
+          <>
+            <Skeleton className="h-8 w-1/2" />
+            <Skeleton className="h-10 w-40 rounded-full" />
+          </>
+        ) : (
+          <>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-primary-blue">
+              {topic?.title} <span className="text-text-primary">(Practice)</span>
+            </h1>
+            <Button variant="secondary" className="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full px-6 py-2">Unlock Questions</Button>
+          </>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Question panel */}
         <div className="lg:col-span-9">
           <div className="rounded-2xl bg-white shadow-md border border-border p-6">
-            <div className="flex items-center justify-between">
-              <div className="text-xl font-semibold text-text-primary">Question: <span className="text-primary-blue">{String(index + 1).padStart(2,'0')} of {total}</span></div>
-              <div className="flex items-center gap-2 bg-yellow-200 text-text-primary rounded-full px-4 py-2">
-                <FaClock />
-                <span className="font-semibold">Time: {formatTime(remaining)}</span>
-              </div>
-            </div>
+            {loading ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-6 w-1/3" />
+                  <Skeleton className="h-8 w-32 rounded-full" />
+                </div>
+                <div className="mt-6">
+                  <Skeleton className="h-8 w-44 rounded-md" />
+                </div>
+                <Skeleton className="h-20 w-full mt-6" />
+                <Skeleton className="h-10 w-2/5 mt-6 rounded-lg" />
+                <div className="mt-4 space-y-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Skeleton key={i} className="h-14 w-full rounded-xl" />
+                  ))}
+                </div>
+                <div className="mt-6 grid grid-cols-[auto_auto_1fr_auto_auto] gap-3 items-center">
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-8 w-24" />
+                  <span />
+                  <Skeleton className="h-8 w-20 rounded-full" />
+                  <Skeleton className="h-10 w-28 rounded-full" />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <div className="text-xl font-semibold text-text-primary">Question: <span className="text-primary-blue">{String(index + 1).padStart(2,'0')} of {total}</span></div>
+                  <div className="flex items-center gap-2 bg-yellow-200 text-text-primary rounded-full px-4 py-2">
+                    <FaClock />
+                    <span className="font-semibold">Time: {formatTime(remaining)}</span>
+                  </div>
+                </div>
 
-            <div className="mt-6">
-              <span className="inline-block bg-light-blue text-primary-blue rounded-md px-4 py-2 font-semibold">Domain: {q.domain || topic?.title}</span>
-            </div>
+                <div className="mt-6">
+                  <span className="inline-block bg-light-blue text-primary-blue rounded-md px-4 py-2 font-semibold">Domain: {q.domain || topic?.title}</span>
+                </div>
 
-            <p className="mt-6 text-lg leading-relaxed text-text-primary">{q.text}</p>
+                <p className="mt-6 text-lg leading-relaxed text-text-primary">{q.text}</p>
 
-            <div className="mt-6 rounded-lg bg-green-100 text-green-700 px-4 py-3">(Please select all correct answers)</div>
+                <div className="mt-6 rounded-lg bg-green-100 text-green-700 px-4 py-3">(Please select all correct answers)</div>
 
-            {/* Options */}
-            <div className="mt-4 space-y-4">
-              {q.options.map((opt, i) => {
-                const selectedSet = selected[q.id] || new Set<number>();
-                const isSelected = selectedSet.has(i);
-                const label = String.fromCharCode(65 + i);
-                return (
-                  <button
-                    key={i}
-                    className={`w-full text-left rounded-xl border border-border px-4 py-4 hover:border-primary-blue transition-colors ${isSelected ? 'ring-2 ring-primary-blue bg-light-blue' : 'bg-white'}`}
-                    onClick={() => toggleOption(q.id, i)}
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md border ${isSelected ? 'bg-primary-blue text-white border-primary-blue' : 'border-border text-text-secondary'}`}>{label}</span>
-                      <span className="text-text-primary">{opt}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                {/* Options */}
+                <div className="mt-4 space-y-4">
+                  {q.options.map((opt, i) => {
+                    const selectedSet = selected[q.id] || new Set<number>();
+                    const isSelected = selectedSet.has(i);
+                    const label = String.fromCharCode(65 + i);
+                    return (
+                      <button
+                        key={i}
+                        className={`w-full text-left rounded-xl border border-border px-4 py-4 hover:border-primary-blue transition-colors ${isSelected ? 'ring-2 ring-primary-blue bg-light-blue' : 'bg-white'}`}
+                        onClick={() => toggleOption(q.id, i)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md border ${isSelected ? 'bg-primary-blue text-white border-primary-blue' : 'border-border text-text-secondary'}`}>{label}</span>
+                          <span className="text-text-primary">{opt}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
 
-            {/* Show Answer */}
-            <div className="mt-6 rounded-xl border border-border bg-gray-50 p-4">
-              <button className="text-primary-blue font-semibold" onClick={() => setShowAnswer(s => !s)}>Show Answer</button>
-              {showAnswer && (
-                <div className="mt-3 text-text-secondary">Answers are available in the paid version. Upgrade to unlock detailed explanations.</div>
-              )}
-            </div>
+                {/* Show Answer */}
+                <div className="mt-6 rounded-xl border border-border bg-gray-50 p-4">
+                  <button className="text-primary-blue font-semibold" onClick={() => setShowAnswer(s => !s)}>Show Answer</button>
+                  {showAnswer && (
+                    <div className="mt-3 text-text-secondary">Answers are available in the paid version. Upgrade to unlock detailed explanations.</div>
+                  )}
+                </div>
 
-            {/* Navigation */}
-            <div className="mt-6 flex flex-wrap gap-3 items-center">
-              <Button variant="secondary" size="small" onClick={() => goto(0)}>{'« First'}</Button>
-              <Button variant="secondary" size="small" onClick={() => goto(index - 1)}>{'‹ Previous'}</Button>
-              <Button variant="primary" size="small" onClick={() => goto(index + 1)}>{'Next ›'}</Button>
-              <Button variant="primary" size="small" onClick={() => goto(total - 1)}>{'Last »'}</Button>
-              <div className="ml-auto">
-                <Button
-                  variant="secondary"
-                  size="medium"
-                  className="!bg-green-600 !text-white hover:!bg-green-700 !border-0 rounded-full px-6"
-                >
-                  Finish
-                </Button>
-              </div>
-            </div>
+                {/* Navigation */}
+                <div className="mt-6 flex flex-wrap gap-3 items-center">
+                  <Button variant="secondary" size="small" onClick={() => goto(0)}>{'« First'}</Button>
+                  <Button variant="secondary" size="small" onClick={() => goto(index - 1)}>{'‹ Previous'}</Button>
+                  <Button variant="primary" size="small" onClick={() => goto(index + 1)}>{'Next ›'}</Button>
+                  <Button variant="primary" size="small" onClick={() => goto(total - 1)}>{'Last »'}</Button>
+                  <div className="ml-auto">
+                    <Button
+                      variant="secondary"
+                      size="medium"
+                      className="!bg-green-600 !text-white hover:!bg-green-700 !border-0 rounded-full px-6"
+                    >
+                      Finish
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
         {/* Right sidebar */}
         <div className="lg:col-span-3">
           <div className="rounded-2xl bg-white shadow-md border border-border p-6">
-            <div className="flex items-center justify-between">
-              <h3 className="m-0 font-bold text-text-primary">Questions</h3>
-              <label className="flex items-center gap-2 text-sm text-text-secondary">
-                <input
-                  type="checkbox"
-                  checked={!!marked[q.id]}
-                  onChange={(e) => setMarked(m => ({ ...m, [q.id]: e.target.checked }))}
-                />
-                Mark for Review
-              </label>
-            </div>
-
-            <div className="mt-4 grid grid-cols-5 gap-3">
-              {Array.from({ length: accessibleCount }, (_, i) => (
-                <button
-                  key={i}
-                  className={`h-12 rounded-md border ${i === index ? 'bg-primary-blue text-white border-primary-blue' : 'bg-gray-100 text-text-primary border-border'} font-semibold`}
-                  onClick={() => goto(i)}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              {Array.from({ length: total - accessibleCount }, (_, i) => (
-                <div key={`lock-${i}`} className="h-12 rounded-md bg-gray-200 text-text-secondary grid place-items-center">
-                  <FaLock />
+            {loading ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-6 w-28" />
+                  <Skeleton className="h-4 w-24" />
                 </div>
-              ))}
-            </div>
+                <div className="mt-4 grid grid-cols-5 gap-3">
+                  {Array.from({ length: 15 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full rounded-md" />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <h3 className="m-0 font-bold text-text-primary">Questions</h3>
+                  <label className="flex items-center gap-2 text-sm text-text-secondary">
+                    <input
+                      type="checkbox"
+                      checked={!!marked[q.id]}
+                      onChange={(e) => setMarked(m => ({ ...m, [q.id]: e.target.checked }))}
+                    />
+                    Mark for Review
+                  </label>
+                </div>
+
+                <div className="mt-4 grid grid-cols-5 gap-3">
+                  {Array.from({ length: accessibleCount }, (_, i) => (
+                    <button
+                      key={i}
+                      className={`h-12 rounded-md border ${i === index ? 'bg-primary-blue text-white border-primary-blue' : 'bg-gray-100 text-text-primary border-border'} font-semibold`}
+                      onClick={() => goto(i)}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                  {Array.from({ length: total - accessibleCount }, (_, i) => (
+                    <div key={`lock-${i}`} className="h-12 rounded-md bg-gray-200 text-text-secondary grid place-items-center">
+                      <FaLock />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

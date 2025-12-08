@@ -27,7 +27,7 @@ export const useTestSuitesApi = () => {
     const base = isDev ? `${window.location.origin}/a2z-tests` : 'https://a2z-tests.azurewebsites.net';
     const endpoint = `${base}/api/TestSuite/GetAllTestSuites/User/${encodeURIComponent(userId)}`;
     try {
-      const data = await api.get(endpoint, true);
+      const data = await api.get(endpoint, false);
       if (!data) return [];
       if (Array.isArray(data)) return data as TestSuite[];
       if (Array.isArray((data as any)?.data)) return (data as any).data as TestSuite[];
@@ -88,7 +88,7 @@ export const useTestSuitesApi = () => {
     // Preserve PathId segment as-is (backend supports ':' unencoded); encode IDs
     const endpoint = `${base}/api/TestSuite/GetTestSuiteByPathId/${pathId}/${encodeURIComponent(testSuiteId)}/User/`;
     try {
-      const data = await api.get(endpoint, true);
+      const data = await api.get(endpoint, false);
       // Attempt to normalize typical API shapes
       const payload = (data && (data as any).data) ? (data as any).data : data;
       if (!payload) return null;
