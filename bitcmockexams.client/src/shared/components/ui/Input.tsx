@@ -6,6 +6,7 @@ interface InputProps {
     name: string;
     value: string | number | boolean;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     placeholder?: string;
     error?: string;
     required?: boolean;
@@ -20,6 +21,7 @@ const Input: React.FC<InputProps> = ({
     name,
     value,
     onChange,
+    onBlur,
     placeholder,
     error,
     required = false,
@@ -53,6 +55,7 @@ const Input: React.FC<InputProps> = ({
                     name={name}
                     value={value as string}
                     onChange={handleChange}
+                    onBlur={onBlur}
                     placeholder={placeholder}
                     required={required}
                     disabled={disabled}
@@ -68,6 +71,7 @@ const Input: React.FC<InputProps> = ({
                     name={name}
                     value={value as string}
                     onChange={handleChange}
+                    onBlur={onBlur}
                     placeholder={placeholder}
                     required={required}
                     disabled={disabled}
