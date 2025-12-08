@@ -91,8 +91,12 @@ const About = () => {
                                 </div>
                                 <h3 className="text-xl font-bold mb-1 text-center">{member.name}</h3>
                                 <p className="text-primary-blue font-semibold mb-2 text-center">{member.title}</p>
-                                <p className="text-sm font-semibold text-text-secondary leading-relaxed text-center">{member.bio}</p>
-                                <p className="text-sm font-semibold text-text-secondary leading-relaxed text-center">{member.experience}</p>
+                                {member.bio && (
+                                    <p className="text-sm font-semibold text-text-secondary leading-relaxed text-center">{member.bio}</p>
+                                )}
+                                {(member as any)?.experience && (
+                                    <p className="text-sm font-semibold text-text-secondary leading-relaxed text-center">{(member as any).experience}</p>
+                                )}
                                 {/* <a
                                     href={member.linkedin}
                                     className="inline-flex items-center gap-2 text-primary-blue font-semibold text-sm mt-auto hover:text-secondary-blue"

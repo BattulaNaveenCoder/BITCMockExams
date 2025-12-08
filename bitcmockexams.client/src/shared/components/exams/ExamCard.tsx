@@ -15,7 +15,7 @@ const ExamCard: React.FC<Props> = ({ exam }) => {
   const navigate = useNavigate();
   return (
     <div
-      className="relative flex flex-col rounded-2xl p-6 bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
+      className="relative flex flex-col h-full rounded-2xl p-6 bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
       style={{
         boxShadow:
           '0 1px 3px rgba(0,0,0,0.06), 0 10px 20px rgba(30,64,175,0.08)'
@@ -43,26 +43,30 @@ const ExamCard: React.FC<Props> = ({ exam }) => {
         ) : null}
       </div>
 
-      <ExamStats questions={exam.questions} duration={exam.duration} students={exam.students} />
-
-      <div className="flex justify-between items-center mb-6">
-        <RatingBadge rating={exam.rating} />
-        {/* <PriceTag price={exam.price} /> */}
+      <div className="min-h-[170px]">
+        <ExamStats questions={exam.questions} duration={exam.duration} students={exam.students} />
+        <div className="flex justify-between items-center mt-4">
+          <RatingBadge rating={exam.rating} />
+          {/* <PriceTag price={exam.price} /> */}
+        </div>
       </div>
 
-      <Button
-        variant="primary"
-        fullWidth
-        className="rounded-full h-12 text-base font-semibold shadow-[0_8px_24px_rgba(28,100,242,0.25)] bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700"
-        onClick={() => {
-          const qp = new URLSearchParams();
-          if (exam.suiteId) qp.set('suiteId', exam.suiteId);
-          if (exam.pathId) qp.set('pathId', exam.pathId);
-          navigate(`/exams/${exam.code}/topics${qp.toString() ? `?${qp.toString()}` : ''}`);
-        }}
-      >
-        Start Practice
-      </Button>
+      <div className="mt-auto pt-6">
+        <Button
+          variant="primary"
+          fullWidth
+          className="rounded-full h-12 text-base font-semibold shadow-[0_8px_24px_rgba(28,100,242,0.25)] bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700"
+          onClick={() => {
+            const qp = new URLSearchParams();
+            if (exam.suiteId) qp.set('suiteId', exam.suiteId);
+            if (exam.pathId) qp.set('pathId', exam.pathId);
+            navigate(`/exams/${exam.code}/topics${qp.toString() ? `?${qp.toString()}` : ''}`);
+          }}
+        >
+          Start Practice
+        </Button>
+      </div>
+    
     </div>
   );
 };
