@@ -5,16 +5,21 @@ import ExamCardSkeleton from '@shared/components/exams/ExamCardSkeleton';
 import { useTestSuitesApi, type TestSuite } from '@shared/api/testSuites';
 import type { MockExam } from '../types';
 import { useAuth } from '@features/auth/context/AuthContext';
+import { mockExams as localMockExams } from '../data/mockData';
+import { getUserIdFromClaims } from '@shared/utils/auth';
 
 const MockExams = () => {
     const [searchParams] = useSearchParams();
     const difficulty = searchParams.get('difficulty');
+    const category = searchParams.get('category');
+    const code = searchParams.get('code');
+    const q = searchParams.get('q');
 
     const { getAllTestSuitesByUserId } = useTestSuitesApi();
     const [suites, setSuites] = useState<TestSuite[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const { user } = useAuth();
-    const userId = useMemo(() => (user as any)?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/sid'] as string || '', [user]);
+    const userId = useMemo(() => getUserIdFromClaims(user as any), [user]);
 
     useEffect(() => {
         let mounted = true;
@@ -110,16 +115,68 @@ const MockExams = () => {
 
         // Order by Beginner -> Intermediate -> Advanced
         exams.sort((a, b) => levelOrder[a.difficulty] - levelOrder[b.difficulty]);
+        // Fallback to local data when API has no suites
+        if (exams.length === 0) {
+            return localMockExams;
+        }
         return exams;
     }, [suites]);
 
-    // Filter exams based on difficulty parameter
+    // Filter exams based on query parameters: code, q, category, difficulty
     const filteredExams = useMemo(() => {
-        if (!difficulty) return mappedExams;
-        return mappedExams.filter(
-            (exam) => exam.difficulty.toLowerCase() === difficulty.toLowerCase()
-        );
-    }, [mappedExams, difficulty]);
+        let list = mappedExams;
+
+        // Filter by exact code
+        if (code) {
+            const c = code.toLowerCase();
+            let byCode = list.filter((e) => e.code.toLowerCase() === c);
+            // Fallback to local data when remote suites exist but specific code not found
+            if (byCode.length === 0) {
+                byCode = localMockExams.filter((e) => e.code.toLowerCase() === c);
+            }
+            list = byCode;
+        }
+
+        // Text query search when no explicit code
+        if (q && !code) {
+            const term = q.toLowerCase();
+            let byQuery = list.filter(
+                (e) => e.code.toLowerCase().includes(term) || e.title.toLowerCase().includes(term) || (e.category || '').toLowerCase().includes(term)
+            );
+            // Fallback augment from local when remote results are sparse
+            if (byQuery.length === 0) {
+                byQuery = localMockExams.filter(
+                    (e) => e.code.toLowerCase().includes(term) || e.title.toLowerCase().includes(term) || (e.category || '').toLowerCase().includes(term)
+                );
+            }
+            list = byQuery;
+        }
+
+        if (category) {
+            const cat = category.toLowerCase();
+            let byCat = list.filter((e) => (e.category || '').toLowerCase() === cat);
+            if (byCat.length === 0) {
+                byCat = localMockExams.filter((e) => (e.category || '').toLowerCase() === cat);
+            }
+            list = byCat;
+        }
+
+        if (difficulty) {
+            let byDiff = list.filter((e) => e.difficulty.toLowerCase() === difficulty.toLowerCase());
+            if (byDiff.length === 0) {
+                byDiff = localMockExams.filter((e) => e.difficulty.toLowerCase() === difficulty.toLowerCase());
+            }
+            list = byDiff;
+        }
+
+        // Ensure exact code match, if present, appears first
+        if (code) {
+            const c = code.toLowerCase();
+            list = [...list].sort((a, b) => (a.code.toLowerCase() === c ? -1 : b.code.toLowerCase() === c ? 1 : 0));
+        }
+
+        return list;
+    }, [mappedExams, code, q, category, difficulty]);
 
     // Card presentation is handled by shared ExamCard component
 

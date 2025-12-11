@@ -2,6 +2,19 @@ import { useAxiosInstance } from '@config/axios';
 
 export const useApiService = () => {
   const axios = useAxiosInstance();
+  type RequestOptions = boolean | { showGlobalLoader?: boolean; skipAuth?: boolean; headers?: Record<string, string> };
+
+  const buildConfig = (opts?: RequestOptions) => {
+    if (typeof opts === 'boolean' || typeof opts === 'undefined') {
+      return { showGlobalLoader: opts as any } as any;
+    }
+    const { showGlobalLoader, skipAuth, headers } = opts || {};
+    const cfg: any = {};
+    if (typeof showGlobalLoader !== 'undefined') cfg.showGlobalLoader = showGlobalLoader;
+    if (typeof skipAuth !== 'undefined') cfg.skipAuth = skipAuth;
+    if (headers) cfg.headers = headers;
+    return cfg;
+  };
 
   const handleError = (error: any) => {
     if (error?.response) {
@@ -28,9 +41,9 @@ export const useApiService = () => {
   };
 
   return {
-    get: async (endpoint: string, showGlobalLoader: boolean = true) => {
+    get: async (endpoint: string, options: RequestOptions = true) => {
       try {
-        const response = await axios.get(endpoint, { showGlobalLoader } as any);
+        const response = await axios.get(endpoint, buildConfig(options));
         return response.data;
       } catch (error) {
         const handledError = handleError(error);
@@ -40,9 +53,9 @@ export const useApiService = () => {
         throw error;
       }
     },
-    post: async (endpoint: string, data: any, showGlobalLoader: boolean = true) => {
+    post: async (endpoint: string, data: any, options: RequestOptions = true) => {
       try {
-        const response = await axios.post(endpoint, data, { showGlobalLoader } as any);
+        const response = await axios.post(endpoint, data, buildConfig(options));
         return response.data;
       } catch (error) {
         const handledError = handleError(error);
@@ -52,9 +65,9 @@ export const useApiService = () => {
         throw error;
       }
     },
-    put: async (endpoint: string, data: any, showGlobalLoader: boolean = true) => {
+    put: async (endpoint: string, data: any, options: RequestOptions = true) => {
       try {
-        const response = await axios.put(endpoint, data, { showGlobalLoader } as any);
+        const response = await axios.put(endpoint, data, buildConfig(options));
         return response.data;
       } catch (error) {
         const handledError = handleError(error);
@@ -64,9 +77,9 @@ export const useApiService = () => {
         throw error;
       }
     },
-    delete: async (endpoint: string, data: any = null, showGlobalLoader: boolean = true) => {
+    delete: async (endpoint: string, data: any = null, options: RequestOptions = true) => {
       try {
-        const config: any = { showGlobalLoader };
+        const config: any = buildConfig(options);
         if (data) {
           config.data = data;
         }
@@ -80,9 +93,9 @@ export const useApiService = () => {
         throw error;
       }
     },
-    patch: async (endpoint: string, data: any, showGlobalLoader: boolean = true) => {
+    patch: async (endpoint: string, data: any, options: RequestOptions = true) => {
       try {
-        const response = await axios.patch(endpoint, data, { showGlobalLoader } as any);
+        const response = await axios.patch(endpoint, data, buildConfig(options));
         return response.data;
       } catch (error) {
         const handledError = handleError(error);

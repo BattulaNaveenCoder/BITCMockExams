@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/aria-proptypes */
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaBars, FaTimes } from 'react-icons/fa';
@@ -65,7 +66,7 @@ const Header = () => {
                         <span className="text-2xl font-extrabold text-text-primary tracking-tighter">BITC<span className="text-primary-blue">MockExams</span></span>
                     </Link>
 
-                    <nav className={`fixed top-0 w-4/5 max-w-[300px] h-screen bg-white flex flex-col items-start p-8 pt-20 shadow-xl transition-all duration-250 gap-4 md:static md:w-auto md:max-w-none md:h-auto md:bg-transparent md:flex-row md:items-center md:p-0 md:shadow-none md:gap-8 ${isMobileMenuOpen ? 'right-0' : '-right-full'}`}>
+                    <nav id="primary-navigation" className={`fixed top-0 w-4/5 max-w-[300px] h-screen bg-white flex flex-col items-start p-8 pt-20 shadow-xl transition-all duration-250 gap-4 md:static md:w-auto md:max-w-none md:h-auto md:bg-transparent md:flex-row md:items-center md:p-0 md:shadow-none md:gap-8 ${isMobileMenuOpen ? 'right-0' : '-right-full'}`}>
                         <ul className="flex flex-col items-start gap-4 w-full list-none m-0 p-0 md:flex-row md:items-center md:gap-8 md:w-auto">
                             {navLinks.map((link) => {
                                 const isMock = link.path === '/mock-exams';
@@ -95,13 +96,14 @@ const Header = () => {
                                             className={`block w-full py-3 text-lg text-text-primary font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base bg-transparent border-none cursor-pointer ${isActive(link.path) ? 'text-primary-blue' : ''}`}
                                             onClick={() => setMockMenuOpen((o) => !o)}
                                             aria-haspopup="menu"
-                                            aria-expanded={mockMenuOpen}
+                                            aria-controls="mock-dropdown"
                                         >
                                             {link.label}
                                             <span className={`absolute bottom-0 left-0 h-0.5 bg-primary-blue transition-all duration-250 ${isActive(link.path) ? 'w-full' : 'w-0'}`}></span>
                                         </button>
                                         {/* Dropdown: visible when mockMenuOpen */}
                                         <div
+                                            id="mock-dropdown"
                                             className={`absolute left-0 md:left-auto md:right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-border overflow-hidden transition-opacity duration-200 z-[1100] ${mockMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
                                             onMouseEnter={handleMockEnter}
                                             onMouseLeave={handleMockLeave}
@@ -143,25 +145,26 @@ const Header = () => {
                                         className="flex items-center gap-2 bg-transparent border-none cursor-pointer text-text-primary font-semibold"
                                         onClick={() => setMenuOpen((o) => !o)}
                                         aria-haspopup="menu"
-                                        aria-expanded={menuOpen}
+                                        aria-controls="user-menu"
                                     >
-                                        {`Hello, ${
-                                            displayName ||
-                                            (user?.email ? user.email.split('@')[0] : 'User')
-                                        }`}
-                                        <span className="inline-block rotate-0 transition-transform" style={{ transform: menuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>▾</span>
+                                        {(() => {
+                                            const emailClaim = (user as any)?.emailaddress || (user as any)?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'];
+                                            const nameClaim = (user as any)?.name || (user as any)?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
+                                            const fallback = emailClaim ? String(emailClaim).split('@')[0] : (nameClaim || 'User');
+                                            const text = displayName || fallback;
+                                            return `Hello, ${text}`;
+                                        })()}
+                                        <span className={`inline-block transition-transform ${menuOpen ? 'rotate-180' : 'rotate-0'}`}>▾</span>
                                     </button>
                                     {menuOpen && (
-                                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-border overflow-hidden z-[1100]">
-                                            <Link to="/dashboard" className="no-underline">
-                                                <button
-                                                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-light-blue bg-transparent border-none cursor-pointer"
-                                                    onClick={() => setMenuOpen(false)}
-                                                >
-                                                    <FaChartBar className="text-text-secondary" />
-                                                    <span>DashBoard</span>
-                                                </button>
-                                            </Link>
+                                        <div id="user-menu" className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-border overflow-hidden z-[1100]">
+                                            <button
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-light-blue bg-transparent border-none cursor-pointer"
+                                                onMouseDown={() => { setMenuOpen(false); navigate('/dashboard'); }}
+                                            >
+                                                <FaChartBar className="text-text-secondary" />
+                                                <span>DashBoard</span>
+                                            </button>
                                             
                                             <div className="h-px bg-border" />
                                             <button
@@ -187,7 +190,7 @@ const Header = () => {
                         className="block md:hidden bg-transparent border-none text-2xl text-text-primary cursor-pointer z-[1001] p-2"
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                         aria-label="Toggle menu"
-                        aria-expanded={isMobileMenuOpen}
+                        aria-controls="primary-navigation"
                     >
                         {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
                     </button>

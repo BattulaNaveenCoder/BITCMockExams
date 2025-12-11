@@ -38,6 +38,22 @@ export const useTestSuitesApi = () => {
     }
   };
 
+  // Global search endpoint: /api/TestSuite/GlobalSearch/{skip}/{take}/{term}
+  const globalSearch = async (term: string, skip = 0, take = 10): Promise<TestSuite[]> => {
+    const base = isDev ? `${window.location.origin}/a2z-tests` : 'https://a2z-tests.azurewebsites.net';
+    const endpoint = `${base}/api/TestSuite/GlobalSearch/${skip}/${take}/${encodeURIComponent(term)}`;
+    try {
+      const data = await api.get(endpoint, false);
+      if (!data) return [];
+      if (Array.isArray(data)) return data as TestSuite[];
+      if (Array.isArray((data as any)?.data)) return (data as any).data as TestSuite[];
+      return [];
+    } catch (error) {
+      console.error('Failed global search:', error);
+      return [];
+    }
+  };
+
   // Detailed Test Suite types aligned to backend response
   interface TestDetailDTO {
     PKTestId: string;
@@ -81,12 +97,11 @@ export const useTestSuitesApi = () => {
   // Fetch a single Test Suite by PathId with its Test details for a User
   const getTestSuiteByPathId = async (
     pathId: string,
-    testSuiteId: string,
     userId: string
   ): Promise<TestSuiteDetailsResponse | null> => {
     const base = isDev ? `${window.location.origin}/a2z-tests` : 'https://a2z-tests.azurewebsites.net';
-    // Preserve PathId segment as-is (backend supports ':' unencoded); encode IDs
-    const endpoint = `${base}/api/TestSuite/GetTestSuiteByPathId/${pathId}/${encodeURIComponent(testSuiteId)}/User/`;
+    // Backend URL shape: /api/TestSuite/GetTestSuiteByPathId/{PathId}/{UserId}/User
+    const endpoint = `${base}/api/TestSuite/GetTestSuiteByPathId/${encodeURIComponent(pathId)}/${encodeURIComponent(userId)}/User`;
     try {
       const data = await api.get(endpoint, false);
       // Attempt to normalize typical API shapes
@@ -94,10 +109,10 @@ export const useTestSuitesApi = () => {
       if (!payload) return null;
       return payload as TestSuiteDetailsResponse;
     } catch (error) {
-      console.error('Failed to fetch test suite by PathId:', { pathId, testSuiteId, userId, error });
+      console.error('Failed to fetch test suite by PathId:', { pathId, userId, error });
       return null;
     }
   };
 
-  return { getAllTestSuitesByUserId, getTestSuiteByPathId };
+  return { getAllTestSuitesByUserId, getTestSuiteByPathId, globalSearch };
 };

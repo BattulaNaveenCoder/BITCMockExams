@@ -3,7 +3,7 @@ import { useLoader } from '@shared/contexts/LoadingContext';
 
 const createAxiosInstance = (showLoader: () => void, hideLoader: () => void) => {
   const instance = axios.create({
-    // No baseURL - we pass complete URLs from environment config
+    baseURL: 'https://a2z-identity.azurewebsites.net/',
     timeout: 100000,
   });
 
@@ -12,10 +12,13 @@ const createAxiosInstance = (showLoader: () => void, hideLoader: () => void) => 
       if ((config as any).showGlobalLoader !== false) {
         showLoader();
       }
-      const token = localStorage.getItem('AuthToken');
-      if (token) {
-        config.headers = config.headers ?? {};
-        (config.headers as any).Authorization = `Bearer ${token}`;
+      const skipAuth = (config as any).skipAuth === true || ((config.headers as any)?.['X-Skip-Auth'] === 'true');
+      if (!skipAuth) {
+        const token = localStorage.getItem('AuthToken');
+        if (token) {
+          config.headers = config.headers ?? {};
+          (config.headers as any).Authorization = `Bearer ${token}`;
+        }
       }
       if (!(config.headers as any)?.['Content-Type']) {
         if (config.data instanceof FormData) {
@@ -43,12 +46,7 @@ const createAxiosInstance = (showLoader: () => void, hideLoader: () => void) => 
       if (error?.config && (error.config as any).showGlobalLoader !== false) {
         hideLoader();
       }
-      // Handle 400 errors
       if (error?.response && error.response.status === 400) {
-        return Promise.resolve(error.response);
-      }
-      // Handle 500 errors that might have response data (some APIs return data even with 500)
-      if (error?.response && error.response.status === 500 && error.response.data) {
         return Promise.resolve(error.response);
       }
       return Promise.reject(error);

@@ -78,17 +78,13 @@ const LoginModal: React.FC = () => {
     setIsSubmitting(true);
     try {
       const payload = {
-        username: formData.email,
-        password: formData.password,
-        isrememberme: String(formData.rememberMe),
+        userName: formData.email,
+        Password: formData.password,
+        isrememberme: formData.rememberMe,
       } as Record<string, unknown>;
 
       const result: any = await authApi.login(payload, true);
-      debugger;
-      if (!result?.isSuccess) {
-        throw new Error(result?.message || 'Login failed.');
-      }
-      const token = result?.data?.token as string | undefined;
+      const token = (result?.data?.token as string | undefined) ?? (result?.token as string | undefined);
       if (!token) {
         throw new Error('Token missing in response');
       }

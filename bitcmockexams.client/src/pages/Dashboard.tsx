@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@features/auth/context/AuthContext';
 import { useTestsApi, type UserTestSubscription } from '@shared/api/tests';
 import { useTestSuitesApi, type TestSuite } from '@shared/api/testSuites';
+import { getUserIdFromClaims, normalizeClaims } from '@shared/utils/auth';
 
 const tabs = [
   { key: 'subscription', label: 'Subscription' },
@@ -84,14 +85,17 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { getTestsByUserId } = useTestsApi();
   const { getAllTestSuitesByUserId } = useTestSuitesApi();
+  
   const [subs, setSubs] = useState<SubscriptionView[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [suiteMap, setSuiteMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const email = user?.email;
-    const userId = (user as any)?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/sid'] as string | undefined;
+    debugger;
+    const normalized = normalizeClaims(user as any);
+    const email = normalized.email;
+    const userId = getUserIdFromClaims(user as any) as string | undefined;
     if (!email || !userId) {
       setError('Missing user info');
       return;

@@ -1,11 +1,61 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaArrowRight, FaStar, FaServer, FaDatabase, FaLightbulb, FaUsers, FaThLarge, FaShieldAlt } from 'react-icons/fa';
 import Button from '@shared/components/ui/Button';
 import Card from '@shared/components/ui/Card';
 import { mockExams, testimonials, stats } from '../data/mockData';
+import { useTestSuitesApi, type TestSuite } from '@shared/api/testSuites';
 import { useEffect, useRef, useState } from 'react';
 
 const Home = () => {
+    const navigate = useNavigate();
+    const [search, setSearch] = useState('');
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [activeResultIndex, setActiveResultIndex] = useState(0);
+    const [remoteResults, setRemoteResults] = useState<TestSuite[]>([]);
+    const { globalSearch } = useTestSuitesApi();
+    const globalSearchRef = useRef(globalSearch);
+    useEffect(() => { globalSearchRef.current = globalSearch; }, [globalSearch]);
+    const normalized = (s: string) => s.toLowerCase();
+    // Prefer remote global search when query length >= 2; otherwise fallback to local
+    const localResults = mockExams
+        .filter(exam => {
+            const q = normalized(search);
+            if (!q) return false;
+            return (
+                normalized(exam.title).includes(q) ||
+                normalized(exam.code).includes(q) ||
+                normalized(exam.category).includes(q)
+            );
+        })
+        .slice(0, 20);
+    const searchResults = (search.trim().length >= 2 && remoteResults.length > 0) ? remoteResults : localResults;
+
+    useEffect(() => {
+        let mounted = true;
+        const q = search.trim();
+        if (q.length < 2) { setRemoteResults([]); return; }
+        const handle = window.setTimeout(async () => {
+            try {
+                const data = await globalSearchRef.current(q, 0, 20);
+                if (mounted) setRemoteResults(data);
+            } catch {
+                if (mounted) setRemoteResults([]);
+            }
+        }, 250);
+        return () => { mounted = false; window.clearTimeout(handle); };
+    }, [search]);
+
+    const extractCode = (item: TestSuite | null): string | null => {
+        if (!item) return null;
+        // Try to read code from title prefix like "AZ-104: ..."
+        const t = item.TestSuiteTitle || '';
+        const m = t.match(/^[A-Z]+-\d{2,3}/);
+        if (m) return m[0];
+        // Fallback: find code inside title
+        const m2 = t.match(/[A-Z]+-\d{2,3}/);
+        if (m2) return m2[0];
+        return null;
+    };
     const featuredCodes = ['AZ-900', 'DP-900', 'AI-900', 'SC-900', 'PL-900', 'MB-910', 'MB-920', 'MS-900', 'AI-102', 'AZ-102'];
     const badgeByCategory: Record<string, string> = {
         Fundamentals: 'https://www.getmicrosoftcertification.com/lib/images/fundamentals.png',
@@ -16,10 +66,10 @@ const Home = () => {
     return (
         <div className="home">
             {/* Hero Section */}
-            <section className="relative min-h-[600px] display flex items-center justify-center bg-gradient-to-br from-primary-blue via-secondary-blue to-dark-blue text-white overflow-hidden md:min-h-[500px]">
+            <section className="relative min-h-[600px] display flex items-center justify-center bg-gradient-to-br from-primary-blue via-secondary-blue to-dark-blue text-white md:min-h-[500px]">
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80')] bg-cover bg-center opacity-10"></div>
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-blue/90 to-secondary-blue/80"></div>
-                <div className="container mx-auto px-4 relative z-10 py-16">
+                <div className="container mx-auto px-4 relative z-[100] py-16">
                     <div className="max-w-[800px] animate-fadeIn text-center mx-auto">
                         <h1 className="text-5xl font-extrabold mb-6 leading-tight text-white md:text-3xl">
                             Transform Your Cloud Journey
@@ -28,6 +78,75 @@ const Home = () => {
                             Master cloud certifications with expert-led training, comprehensive mock exams,
                             and personalized guidance. Join 50,000+ successful students worldwide.
                         </p>
+                        {/* Global Search */}
+                        <div className={`relative max-w-[800px] mx-auto mb-8`}>
+                            <div className="flex items-center bg-white rounded-2xl shadow-md overflow-hidden ring-2 ring-primary-blue/50">
+                                <div className="pl-4 pr-2 text-primary-blue text-xl" aria-hidden="true">🔍</div>
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); setActiveResultIndex(0); }}
+                                    onFocus={() => setShowSuggestions(true)}
+                                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                                    placeholder="Search by certification, exam voucher and exam dumps"
+                                    className="w-full px-4 py-3 text-text-primary outline-none"
+                                    aria-label="Global search"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            const q = search.trim();
+                                            if (!q) return;
+                                            const exact = mockExams.find(m => m.code.toLowerCase() === q.toLowerCase() || m.title.toLowerCase() === q.toLowerCase());
+                                            if (exact) navigate(`/mock-exams?code=${encodeURIComponent(exact.code)}`);
+                                            else navigate(`/mock-exams?q=${encodeURIComponent(q)}`);
+                                        }
+                                        if (e.key === 'ArrowDown') {
+                                            e.preventDefault();
+                                            setActiveResultIndex(i => Math.min(i + 1, Math.max(searchResults.length - 1, 0)));
+                                        }
+                                        if (e.key === 'ArrowUp') {
+                                            e.preventDefault();
+                                            setActiveResultIndex(i => Math.max(i - 1, 0));
+                                        }
+                                    }}
+                                />
+                                <button
+                                    className="px-5 py-3 bg-primary-blue text-white font-semibold"
+                                    onClick={() => {
+                                        const q = search.trim();
+                                        if (!q) return;
+                                        const exact = mockExams.find(m => m.code.toLowerCase() === q.toLowerCase() || m.title.toLowerCase() === q.toLowerCase());
+                                        if (exact) navigate(`/mock-exams?code=${encodeURIComponent(exact.code)}`);
+                                        else navigate(`/mock-exams?q=${encodeURIComponent(q)}`);
+                                    }}
+                                >Search</button>
+                            </div>
+                            {showSuggestions && searchResults.length > 0 && (
+                                <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl border border-border overflow-auto max-h-[70vh] md:max-h-[60vh] z-[3000] overscroll-contain">
+                                    {searchResults.map((item: any, idx) => (
+                                        <button
+                                            key={(item.id || item.PKTestSuiteId)}
+                                            className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-light-blue ${idx === activeResultIndex ? 'bg-light-blue' : ''}`}
+                                            onMouseDown={() => {
+                                                const code = extractCode(item as TestSuite) || (item.code as string) || '';
+                                                if (code) navigate(`/mock-exams?code=${encodeURIComponent(code)}`);
+                                                else navigate(`/mock-exams?q=${encodeURIComponent(search.trim())}`);
+                                            }}
+                                        >
+                                            <img
+                                                src={(item.ImageTestsuiteUrl as string) || badgeByCategory[item.category] || badgeByCategory['Fundamentals']}
+                                                alt={(item.category ? `${item.category} badge` : 'Exam badge')}
+                                                className="w-8 h-8 rounded-full object-contain shrink-0"
+                                            />
+                                            <div>
+                                                <div className="text-primary-blue font-semibold">{(item.title || (item as TestSuite).TestSuiteTitle)}</div>
+                                                <div className="text-text-secondary text-sm">{item.description || (item as TestSuite).FKContributorName}</div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
                         <div className="flex flex-col md:flex-row gap-6 flex-wrap justify-center items-center">
                             <Link to="/mock-exams">
                                 <Button variant="secondary" size="large" icon={<FaArrowRight />}>
@@ -45,7 +164,7 @@ const Home = () => {
             </section>
 
             {/* Stats Section */}
-            <section className="bg-white py-12 -mt-12 relative z-20">
+            <section className="bg-white py-12 -mt-12 relative z-0">
                 <div className="container mx-auto px-4">
                     <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-8">
                         {stats.map((stat, index) => (
@@ -72,7 +191,13 @@ const Home = () => {
                             <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-bg-light md:gap-4">
                                 <div>
                                     <h3 className="text-2xl text-primary-blue m-0 mb-1 font-bold">FUNDAMENTALS</h3>
-                                    <Link to="/mock-exams" className="text-primary-blue text-sm m-0 underline cursor-pointer">Master the basics</Link>
+                                    <button
+                                        type="button"
+                                        className="text-primary-blue text-sm m-0 underline cursor-pointer bg-transparent border-none p-0"
+                                        onClick={(e) => { e.stopPropagation(); navigate('/mock-exams'); }}
+                                    >
+                                        Master the basics
+                                    </button>
                                 </div>
                                 <img
                                     src="https://www.getmicrosoftcertification.com/lib/images/fundamentals.png"
@@ -97,7 +222,13 @@ const Home = () => {
                             <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-bg-light md:gap-4">
                                 <div>
                                     <h3 className="text-2xl text-primary-blue m-0 mb-1 font-bold">ROLE-BASED</h3>
-                                    <Link to="/mock-exams" className="text-primary-blue text-sm m-0 underline cursor-pointer">Expand your technical skill set</Link>
+                                    <button
+                                        type="button"
+                                        className="text-primary-blue text-sm m-0 underline cursor-pointer bg-transparent border-none p-0"
+                                        onClick={(e) => { e.stopPropagation(); navigate('/mock-exams'); }}
+                                    >
+                                        Expand your technical skill set
+                                    </button>
                                 </div>
                                 <img
                                     src="https://www.getmicrosoftcertification.com/lib/images/expert.png"
@@ -122,7 +253,13 @@ const Home = () => {
                             <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-bg-light md:gap-4">
                                 <div>
                                     <h3 className="text-2xl text-primary-blue m-0 mb-1 font-bold">SPECIALITY</h3>
-                                    <Link to="/mock-exams" className="text-primary-blue text-sm m-0 underline cursor-pointer">Deepen your technical skills and manage industry solutions</Link>
+                                    <button
+                                        type="button"
+                                        className="text-primary-blue text-sm m-0 underline cursor-pointer bg-transparent border-none p-0"
+                                        onClick={(e) => { e.stopPropagation(); navigate('/mock-exams'); }}
+                                    >
+                                        Deepen your technical skills and manage industry solutions
+                                    </button>
                                 </div>
                                 <img
                                     src="https://www.getmicrosoftcertification.com/lib/images/associate.png"
