@@ -8,16 +8,16 @@ import { useTestSuitesApi } from '@shared/api/testSuites';
 import { useAuth } from '@features/auth/context/AuthContext';
 import { FaQuestionCircle, FaClock } from 'react-icons/fa';
 import { title } from 'node:process';
+import { getUserIdFromClaims } from '@shared/utils/auth';
 
 const ExamTopics: React.FC = () => {
   const { code } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const suiteId = searchParams.get('suiteId') || '';
   const pathId = searchParams.get('pathId') || '';
   const { getTestSuiteByPathId } = useTestSuitesApi();
   const { user } = useAuth();
-  const userId = useMemo(() => (user as any)?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/sid'] as string || '', [user]);
+  const userId = useMemo(() => getUserIdFromClaims(user as any), [user]);
   const [topics, setTopics] = useState(getExamTopics(code || ''));
   const [suiteDetails, setSuiteDetails] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -25,10 +25,10 @@ const ExamTopics: React.FC = () => {
   useEffect(() => {
     let mounted = true;
     const load = async () => {
-      if (!suiteId || !pathId || !userId) return;
+      if (!pathId || !userId) return;
       setLoading(true);
       try {
-        const details = await getTestSuiteByPathId(pathId, suiteId, userId);
+        const details = await getTestSuiteByPathId(pathId, userId);
         if (mounted && details) {
           setSuiteDetails(details);
           const apiTopics = (details.TestsDetailsDTO || []).map((t: any, idx: number) => ({
@@ -48,7 +48,7 @@ const ExamTopics: React.FC = () => {
     };
     load();
     return () => { mounted = false; };
-  }, [suiteId, pathId, userId]);
+  }, [pathId, userId]);
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
@@ -130,7 +130,6 @@ const ExamTopics: React.FC = () => {
                   className="rounded-md px-5 py-2 shadow-[0_8px_24px_rgba(28,100,242,0.25)]"
                   onClick={() => {
                     const qp = new URLSearchParams();
-                    if (suiteId) qp.set('suiteId', suiteId);
                     if ((topic as any).testId) qp.set('testId', (topic as any).testId);
                     navigate(`/practice/${code}/section/${topic.id}${qp.toString() ? `?${qp.toString()}` : ''}`);
                   }}
@@ -159,7 +158,6 @@ const ExamTopics: React.FC = () => {
           if (selected) {
             setOpen(false);
             const qp = new URLSearchParams();
-            if (suiteId) qp.set('suiteId', suiteId);
             if ((selected as any).testId) qp.set('testId', (selected as any).testId);
             navigate(`/practice/${code}/section/${selected.id}${qp.toString() ? `?${qp.toString()}` : ''}`);
           }

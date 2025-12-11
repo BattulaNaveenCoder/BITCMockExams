@@ -5,7 +5,7 @@ import Home from '../pages/Home';
 import About from '../pages/About';
 import MockExams from '../pages/MockExams';
 import ExamTopics from '../pages/ExamTopics';
-import Practice from '../pages/Practice';
+import Practice from '../pages/PracticeExam';
 import Contact from '../pages/Contact';
 import SignUp from '../pages/SignUp';
 import Dashboard from '../pages/Dashboard';

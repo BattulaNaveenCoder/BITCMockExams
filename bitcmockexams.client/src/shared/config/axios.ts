@@ -3,7 +3,7 @@ import { useLoader } from '@shared/contexts/LoadingContext';
 
 const createAxiosInstance = (showLoader: () => void, hideLoader: () => void) => {
   const instance = axios.create({
-    baseURL: 'https://dsselixirapi.azurewebsites.net/api/v1',
+    baseURL: 'https://a2z-identity.azurewebsites.net/',
     timeout: 100000,
   });
 
@@ -12,10 +12,13 @@ const createAxiosInstance = (showLoader: () => void, hideLoader: () => void) => 
       if ((config as any).showGlobalLoader !== false) {
         showLoader();
       }
-      const token = localStorage.getItem('AuthToken');
-      if (token) {
-        config.headers = config.headers ?? {};
-        (config.headers as any).Authorization = `Bearer ${token}`;
+      const skipAuth = (config as any).skipAuth === true || ((config.headers as any)?.['X-Skip-Auth'] === 'true');
+      if (!skipAuth) {
+        const token = localStorage.getItem('AuthToken');
+        if (token) {
+          config.headers = config.headers ?? {};
+          (config.headers as any).Authorization = `Bearer ${token}`;
+        }
       }
       if (!(config.headers as any)?.['Content-Type']) {
         if (config.data instanceof FormData) {

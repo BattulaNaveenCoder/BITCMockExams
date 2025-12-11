@@ -16,7 +16,7 @@ interface AuthContextType {
 interface JWTPayload extends JwtPayload {
   exp: number;
   nbf: number;
-  email?: string;
+  emailaddress?: string;
   isReadOnly?: string;
   ISEmailVerified?: boolean | string;
 }

@@ -24,6 +24,25 @@ export default defineConfig({
         secure: true,
         rewrite: (path) => path.replace(/^\/a2z-tests/, ''),
       },
+      '/a2z-identity': {
+        target: 'https://a2z-identity.azurewebsites.net',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/a2z-identity/, ''),
+      },
+      '/subscriptionapi': {
+        target: 'https://subscriptionapi.azurewebsites.net',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/subscriptionapi/, ''),
+      },
+      // New: proxy BestITCourses API to avoid CORS in dev
+      '/api': {
+        target: 'https://www.bestitcourses.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
+      },
     },
   },
 })
