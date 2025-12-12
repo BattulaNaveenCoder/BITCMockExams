@@ -1,31 +1,32 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Button from '@shared/components/ui/Button';
 import Skeleton from '@shared/components/ui/Skeleton';
 import { getExamTopics } from '../data/examTopics';
 import ExamInstructionsModal from '@shared/components/exams/ExamInstructionsModal';
 import { useTestSuitesApi } from '@shared/api/testSuites';
 import { useAuth } from '@features/auth/context/AuthContext';
+import { useLoginModal } from '@features/auth/context/LoginModalContext';
 import { FaQuestionCircle, FaClock } from 'react-icons/fa';
-import { title } from 'node:process';
 import { getUserIdFromClaims } from '@shared/utils/auth';
 
 const ExamTopics: React.FC = () => {
-  const { code } = useParams();
+  const { PathId } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const pathId = searchParams.get('pathId') || '';
+  const pathId = PathId || '';
   const { getTestSuiteByPathId } = useTestSuitesApi();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const { open: openLoginModal } = useLoginModal();
   const userId = useMemo(() => getUserIdFromClaims(user as any), [user]);
-  const [topics, setTopics] = useState(getExamTopics(code || ''));
+  const [topics, setTopics] = useState(getExamTopics(pathId || ''));
   const [suiteDetails, setSuiteDetails] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     let mounted = true;
+    console.log(pathId, userId);
     const load = async () => {
-      if (!pathId || !userId) return;
+      if (!pathId) return;
       setLoading(true);
       try {
         const details = await getTestSuiteByPathId(pathId, userId);
@@ -53,6 +54,23 @@ const ExamTopics: React.FC = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const selected = topics.find(t => t.id === selectedId) || null;
+
+  const startExam = (topic: any) => {
+    const testId = topic?.testId || '';
+    const encodedTitle = encodeURIComponent(topic?.title ?? '');
+    const returnUrl = `/exams/${pathId}/${encodedTitle}/${testId}`;
+
+    if (isAuthenticated === false) {
+      openLoginModal(returnUrl);
+      return;
+    }
+
+    if (isAuthenticated === null) {
+      return;
+    }
+
+    navigate(returnUrl);
+  };
 
   return (
     <div className="max-w-screen-2xl mx-auto px-4 md:px-6 lg:px-12">
@@ -129,9 +147,7 @@ const ExamTopics: React.FC = () => {
                   size="medium"
                   className="rounded-md px-5 py-2 shadow-[0_8px_24px_rgba(28,100,242,0.25)]"
                   onClick={() => {
-                    const qp = new URLSearchParams();
-                    if ((topic as any).testId) qp.set('testId', (topic as any).testId);
-                    navigate(`/practice/${code}/section/${topic.id}${qp.toString() ? `?${qp.toString()}` : ''}`);
+                    startExam(topic);
                   }}
                 >
                   Start
@@ -157,15 +173,13 @@ const ExamTopics: React.FC = () => {
         onStart={() => {
           if (selected) {
             setOpen(false);
-            const qp = new URLSearchParams();
-            if ((selected as any).testId) qp.set('testId', (selected as any).testId);
-            navigate(`/practice/${code}/section/${selected.id}${qp.toString() ? `?${qp.toString()}` : ''}`);
+            startExam(selected);
           }
         }}
         questions={selected?.questions || 0}
         maxMarks={selected?.questions || 0}
         passingPercent={50}
-        title={`${code} Exam Instructions`}
+        title={`${suiteDetails?.TestSuiteTitle || 'Exam'} Instructions`}
       />
     </div>
   );

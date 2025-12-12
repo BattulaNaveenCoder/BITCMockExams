@@ -49,7 +49,8 @@ export const useTestsApi = () => {
       // Accept possible backend-required fields as passthrough too
       UserName?: string;
       UserImage?: string;
-    }
+    },
+    showGlobalLoader: boolean = true
   ): Promise<any | null> => {
     const base = isDev ? `${window.location.origin}/a2z-tests` : 'https://a2z-tests.azurewebsites.net';
     const endpoint = `${base}/api/BuyerTest/GetTestViewModel/${skip}/${encodeURIComponent(testId)}/${encodeURIComponent(userId)}`;
@@ -66,7 +67,7 @@ export const useTestsApi = () => {
         };
       }
       const requestBody = { ...defaults, ...(body ?? {}) };
-      const data = await api.post(endpoint, requestBody, true);
+      const data = await api.post(endpoint, requestBody, { showGlobalLoader });
       if (!data) return null;
       // Normalize common API wrapping
       return (data as any)?.data ?? data;
@@ -80,12 +81,13 @@ export const useTestsApi = () => {
   // GET: /api/BuyerTest/IsTestSubscribed/{testId}/{userId}
   const isTestSubscribed = async (
     testId: string,
-    userId: string
+    userId: string,
+    showGlobalLoader: boolean = true
   ): Promise<boolean> => {
     const base = isDev ? `${window.location.origin}/a2z-tests` : 'https://a2z-tests.azurewebsites.net';
     const endpoint = `${base}/api/BuyerTest/IsTestSubscribed/${encodeURIComponent(testId)}/${encodeURIComponent(userId)}`;
     try {
-      const data = await api.get(endpoint, true);
+      const data = await api.get(endpoint, { showGlobalLoader });
       const payload = (data as any)?.data ?? data;
       if (typeof payload === 'string') return /^true$/i.test(payload);
       if (typeof payload === 'boolean') return payload;
@@ -114,7 +116,8 @@ export const useTestsApi = () => {
   const getCurrentExamQuestion = async (
     isExamOver: boolean,
     isUpdate: boolean,
-    viewModel: Record<string, unknown>
+    viewModel: Record<string, unknown>,
+    showGlobalLoader: boolean = true
   ): Promise<any | null> => {
     const base = isDev ? `${window.location.origin}/a2z-tests` : 'https://a2z-tests.azurewebsites.net';
     const endpoint = `${base}/api/BuyerTest/GetCurrentExamQuestion/${isExamOver}/${isUpdate}`;
@@ -128,7 +131,7 @@ export const useTestsApi = () => {
         if (enriched.UserName === undefined) enriched.UserName = profile.name ?? '';
         if (enriched.UserImage === undefined) enriched.UserImage = profile.image ?? '';
       }
-      const data = await api.put(endpoint, enriched, true);
+      const data = await api.put(endpoint, enriched, { showGlobalLoader });
       return (data as any)?.data ?? data ?? null;
     } catch (error) {
       console.error('Failed to persist current exam question:', { isExamOver, isUpdate, error });

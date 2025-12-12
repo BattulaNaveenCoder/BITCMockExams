@@ -22,30 +22,32 @@ const MockExams = () => {
     const userId = useMemo(() => getUserIdFromClaims(user as any), [user]);
 
     useEffect(() => {
-        let mounted = true;
-        const loadSuites = async () => {
-            console.log('Loading test suites for user:', userId);
-            setLoading(true);
-            try {
-                const data = await getAllTestSuitesByUserId(userId);
-                console.log('Fetched test suites:', data);
-                if (mounted) setSuites(data);
-            } catch (e) {
-                // errors already handled in service; keep UI resilient
-            } finally {
-                if (mounted) setLoading(false);
-            }
-        };
-        if (userId) {
-            loadSuites();
-        } else {
-            // If no userId, ensure we don't show infinite loading
-            setLoading(false);
+    let isActive = true;  // prevents updates after unmount
+
+    const loadSuites = async () => {
+        console.log('Loading test suites for user:', userId ?? null);
+        setLoading(true);
+
+        try {
+            const data = await getAllTestSuitesByUserId(userId ?? null);
+
+            console.log('Fetched test suites:', data);
+            if (isActive) setSuites(data);
+        } catch (e) {
+            // errors already handled in service
+        } finally {
+            if (isActive) setLoading(false);
         }
-        return () => {
-            mounted = false;
-        };
-    }, [userId]);
+    };
+
+    // Always call, passing null explicitly if userId is absent
+    loadSuites();
+
+    return () => {
+        isActive = false;
+    };
+}, [userId]);
+
 
     const mappedExams: MockExam[] = useMemo(() => {
         // Category definitions
@@ -113,12 +115,10 @@ const MockExams = () => {
             } as MockExam;
         });
 
+        
         // Order by Beginner -> Intermediate -> Advanced
         exams.sort((a, b) => levelOrder[a.difficulty] - levelOrder[b.difficulty]);
-        // Fallback to local data when API has no suites
-        if (exams.length === 0) {
-            return localMockExams;
-        }
+        
         return exams;
     }, [suites]);
 

@@ -6,13 +6,18 @@ import DifficultyBadge from './DifficultyBadge';
 import ExamStats from './ExamStats';
 import RatingBadge from './RatingBadge';
 import PriceTag from './PriceTag';
+import { useAuth } from '@features/auth/context/AuthContext';
+import { useLoginModal } from '@features/auth/context/LoginModalContext';
 
 interface Props {
   exam: MockExam;
 }
 
 const ExamCard: React.FC<Props> = ({ exam }) => {
+  console.log('ExamCard rendering for exam:', exam);
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { open: openLoginModal } = useLoginModal();
   return (
     <div
       className="relative flex flex-col h-full rounded-2xl p-6 bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
@@ -29,7 +34,7 @@ const ExamCard: React.FC<Props> = ({ exam }) => {
         <DifficultyBadge difficulty={exam.difficulty} />
       </div>
 
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-justify-between mb-6">
         <h3 className="text-[28px] font-bold text-text-primary m-0 leading-tight">
           {exam.title}
         </h3>
@@ -57,10 +62,15 @@ const ExamCard: React.FC<Props> = ({ exam }) => {
           fullWidth
           className="rounded-full h-12 text-base font-semibold shadow-[0_8px_24px_rgba(28,100,242,0.25)] bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700"
           onClick={() => {
-            const qp = new URLSearchParams();
-            if (exam.suiteId) qp.set('suiteId', exam.suiteId);
-            if (exam.pathId) qp.set('pathId', exam.pathId);
-            navigate(`/exams/${exam.code}/topics${qp.toString() ? `?${qp.toString()}` : ''}`);
+            const pathId = exam.pathId;
+            const returnUrl = `/exams/${pathId}`;
+            if (isAuthenticated === false) {
+              openLoginModal(returnUrl);
+              return;
+            }
+            if (isAuthenticated === null) return;
+
+            navigate(returnUrl);
           }}
         >
           Start Practice
