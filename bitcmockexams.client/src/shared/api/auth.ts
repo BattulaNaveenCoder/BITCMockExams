@@ -58,5 +58,28 @@ export const useAuthApi = () => {
     return api.post(url, body, { showGlobalLoader, skipAuth: true });
   };
 
-  return { login, loginWithGoogle, getUserCreditDetails };
+  // Check BDT User Subscription
+  // GET: /api/UserProfile/GetBDTuserCreditDetails/{email}/{testTitle}
+  // Returns boolean indicating if the user has BDT subscription for the given test
+  const checkBDTSubscription = async (email: string, testTitle: string): Promise<boolean> => {
+    if (!email || !testTitle) return false;
+    
+    const base = process.env.NODE_ENV === 'development' ? `${window.location.origin}/a2z-identity` : 'https://a2z-identity.azurewebsites.net';
+    const endpoint = `${base}/api/UserProfile/GetBDTuserCreditDetails/${encodeURIComponent(email)}/${encodeURIComponent(testTitle)}`;
+    
+    try {
+      const data = await api.get(endpoint, false); // Don't show loader for this check
+      // Normalize to boolean: API may return string or primitive
+      const payload = (data as any)?.data ?? data;
+      if (typeof payload === 'string') return /^true$/i.test(payload);
+      if (typeof payload === 'boolean') return payload;
+      if (typeof payload === 'number') return payload !== 0;
+      return false;
+    } catch (error) {
+      console.error('Failed to check BDT subscription:', { email, testTitle, error });
+      return false;
+    }
+  };
+
+  return { login, loginWithGoogle, getUserCreditDetails, checkBDTSubscription };
 };

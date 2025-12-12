@@ -1,8 +1,6 @@
 import { useApiService } from '@shared/api/api';
 import environment from '@shared/config/environment';
 
-const isDev = process.env.NODE_ENV === 'development';
-
 export interface ContactUsVM {
     Name: string;
     EmailId: string;        // Changed from Email to EmailId
@@ -16,38 +14,11 @@ export interface ContactUsResponse {
     message?: string;
 }
 
-export interface CountryCode {
-    code: string;
-    name: string;
-    pattern?: string;
-}
-
 export const useContactApi = () => {
     const api = useApiService();
 
-    const getCountryCodes = async (): Promise<CountryCode[]> => {
-        const base = isDev ? `${window.location.origin}/a2z-identity` : 'https://a2z-identity.azurewebsites.net';
-        const endpoint = `${base}/api/UserProfile/GetCountryCodes`;
-        try {
-            const data = await api.get(endpoint, false);
-            if (!data) return [];
-            if (Array.isArray(data)) return data as CountryCode[];
-            if (Array.isArray((data as any)?.data)) return (data as any).data as CountryCode[];
-            return [];
-        } catch (error) {
-            console.error('Failed to fetch country codes:', error);
-            // Return default country codes as fallback
-            return [
-                { code: '+91', name: 'India' },
-                { code: '+1', name: 'United States' },
-                { code: '+44', name: 'United Kingdom' }
-            ];
-        }
-    };
-
     const submitContactForm = async (data: ContactUsVM): Promise<ContactUsResponse> => {
-        const base = isDev ? `${window.location.origin}/a2z-identity` : 'https://a2z-identity.azurewebsites.net';
-        const endpoint = `${base}/api/UserProfile/ContactUs`;
+        const endpoint = `${environment.identityUrl}/UserProfile/ContactUs`;
         try {
             const response = await api.post(endpoint, data, true);
 
@@ -66,5 +37,5 @@ export const useContactApi = () => {
         }
     };
 
-    return { submitContactForm, getCountryCodes };
+    return { submitContactForm };
 };

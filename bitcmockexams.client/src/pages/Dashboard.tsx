@@ -41,11 +41,8 @@ function CertificationCard({ code, title, start, end, pathId, suiteId }: { code:
     <div
       className="relative rounded-3xl border border-[#cfe6ff] bg-gradient-to-b from-[#eaf4ff] via-[#e1f0ff] to-[#d7ecff] shadow-sm p-6 cursor-pointer transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-[#93c5fd]/40 hover:border-[#93c5fd] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1e88e5]/30"
       onClick={() => {
-        const qp = new URLSearchParams();
-        if (pathId) qp.set('pathId', pathId);
-        if (suiteId) qp.set('suiteId', suiteId);
-        const examCode = (code || '').split(':')[0] || code;
-        navigate(`/exams/${examCode}/topics${qp.toString() ? `?${qp.toString()}` : ''}`);
+        const examPathId = pathId || code;
+        navigate(`/exams/${examPathId}`);
       }}
     >
       
@@ -92,7 +89,6 @@ export default function Dashboard() {
   const [suiteMap, setSuiteMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    debugger;
     const normalized = normalizeClaims(user as any);
     const email = normalized.email;
     const userId = getUserIdFromClaims(user as any) as string | undefined;

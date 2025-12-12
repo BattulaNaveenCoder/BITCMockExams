@@ -139,6 +139,7 @@ const Home = () => {
                                             />
                                             <div>
                                                 <div className="text-primary-blue font-semibold">{(item.title || (item as TestSuite).TestSuiteTitle)}</div>
+                                                <div className="text-text-secondary text-sm">{item.description || (item as TestSuite).FKContributorName}</div>
                                             </div>
                                         </button>
                                     ))}

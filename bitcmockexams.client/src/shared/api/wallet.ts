@@ -7,7 +7,7 @@ export const useWalletApi = () => {
   const api = useApiService();
 
   // GET: /api/Wallet/GetBalance/{userId}
-  const getWalletBalance = async (userId?: string): Promise<number> => {
+  const getWalletBalance = async (userId?: string, showGlobalLoader: boolean = true): Promise<number> => {
     // Follow project flow: derive userId from JWT if not provided
     let effectiveUserId = userId;
     if (!effectiveUserId) {
@@ -23,7 +23,7 @@ export const useWalletApi = () => {
     const base = isDev ? `${window.location.origin}/subscriptionapi` : 'https://subscriptionapi.azurewebsites.net';
     const endpoint = `${base}/api/Wallet/GetBalance/${encodeURIComponent(effectiveUserId)}`;
     try {
-      const data = await api.get(endpoint, true);
+      const data = await api.get(endpoint, { showGlobalLoader });
       const payload = (data as any)?.data ?? data;
       if (typeof payload === 'number') return payload;
       if (typeof payload === 'string') {
