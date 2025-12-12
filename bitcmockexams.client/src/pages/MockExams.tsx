@@ -24,10 +24,10 @@ const MockExams = () => {
     useEffect(() => {
         let mounted = true;
         const loadSuites = async () => {
-            console.log('Loading test suites for user:', userId);
+            console.log('Loading test suites for user:', userId || 'guest');
             setLoading(true);
             try {
-                const data = await getAllTestSuitesByUserId(userId);
+                const data = await getAllTestSuitesByUserId(userId || '');
                 console.log('Fetched test suites:', data);
                 if (mounted) setSuites(data);
             } catch (e) {
@@ -36,12 +36,7 @@ const MockExams = () => {
                 if (mounted) setLoading(false);
             }
         };
-        if (userId) {
-            loadSuites();
-        } else {
-            // If no userId, ensure we don't show infinite loading
-            setLoading(false);
-        }
+        loadSuites();
         return () => {
             mounted = false;
         };

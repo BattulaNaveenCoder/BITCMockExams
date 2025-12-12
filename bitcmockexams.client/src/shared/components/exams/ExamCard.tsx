@@ -9,30 +9,32 @@ import PriceTag from './PriceTag';
 
 interface Props {
   exam: MockExam;
+  hideVendorTag?: boolean;
 }
 
-const ExamCard: React.FC<Props> = ({ exam }) => {
+const ExamCard: React.FC<Props> = ({ exam, hideVendorTag = false }) => {
   const navigate = useNavigate();
   return (
     <div
       className="relative flex flex-col h-full rounded-2xl p-6 bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
-      style={{
-        boxShadow:
-          '0 1px 3px rgba(0,0,0,0.06), 0 10px 20px rgba(30,64,175,0.08)'
-      }}
     >
       <div className="flex justify-between items-center mb-6">
         <span className="flex items-center gap-2 text-primary-blue font-semibold text-sm">
-          <span className="inline-block w-2 h-2 rounded-full bg-sky-400"></span>
-          {exam.vendor}
-        </span>
-        <DifficultyBadge difficulty={exam.difficulty} />
+            <span className="inline-block w-2 h-2 rounded-full bg-sky-400"></span>
+            {exam.vendor}
+          </span>
+        {!hideVendorTag && (
+          <DifficultyBadge difficulty={exam.difficulty} />
+        )}
+        
       </div>
 
       <div className="flex items-start justify-between mb-6">
-        <h3 className="text-[28px] font-bold text-text-primary m-0 leading-tight">
-          {exam.title}
-        </h3>
+        <div className="flex-1">
+          <h3 className="text-2xl font-bold text-text-primary m-0 mb-2">
+            {exam.title}
+          </h3>
+        </div>
         {exam.image ? (
           <img
             src={exam.image}

@@ -4,6 +4,7 @@ import Layout from '@shared/components/layout/Layout';
 import Home from '../pages/Home';
 import About from '../pages/About';
 import MockExams from '../pages/MockExams';
+import CertificationExams from '../pages/CertificationExams';
 import ExamTopics from '../pages/ExamTopics';
 import Practice from '../pages/PracticeExam';
 import Contact from '../pages/Contact';
@@ -69,6 +70,14 @@ function AuthRoutes() {
             <Route
                 path="/mock-exams"
                 element={<Layout><MockExams /></Layout>}
+            />
+            <Route
+                path="/certification-exam"
+                element={<Layout><CertificationExams /></Layout>}
+            />
+            <Route
+                path="/exams/:code"
+                element={<Layout><ExamTopics /></Layout>}
             />
             <Route
                 path="/exams/:code/topics"

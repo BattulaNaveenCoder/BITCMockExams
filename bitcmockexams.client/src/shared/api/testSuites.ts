@@ -25,15 +25,20 @@ export const useTestSuitesApi = () => {
 
   const getAllTestSuitesByUserId = async (userId: string): Promise<TestSuite[]> => {
     const base = isDev ? `${window.location.origin}/a2z-tests` : 'https://a2z-tests.azurewebsites.net';
-    const endpoint = `${base}/api/TestSuite/GetAllTestSuites/User/${encodeURIComponent(userId)}`;
+    // Backend expects: /api/TestSuite/GetAllTestSuites/{param1}/{param2}
+    // Pass 'null' for both params when no userId
+    const userParam = userId || 'null';
+    const endpoint = `${base}/api/TestSuite/GetAllTestSuites/${userParam}/${userParam}`;
+    console.log('🔵 Calling GetAllTestSuites:', endpoint);
     try {
       const data = await api.get(endpoint, false);
+      console.log('✅ GetAllTestSuites response:', data?.length || 0, 'suites');
       if (!data) return [];
       if (Array.isArray(data)) return data as TestSuite[];
       if (Array.isArray((data as any)?.data)) return (data as any).data as TestSuite[];
       return [];
     } catch (error) {
-      console.error('Failed to fetch test suites:', error);
+      console.error('❌ Failed to fetch test suites:', error);
       return [];
     }
   };
