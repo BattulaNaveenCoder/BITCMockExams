@@ -259,8 +259,8 @@ const Practice: React.FC = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [buyingAmount, setBuyingAmount] = useState(0);
   
-  // Loading state
-  const [loading, setLoading] = useState(true);
+  // Initial loading state
+  const [initialLoading, setInitialLoading] = useState(true);
   
   // Refs for cleanup
   const mountedRef = useRef(true);
@@ -442,7 +442,7 @@ const Practice: React.FC = () => {
     questions.forEach((qq) => {
       const svq = serverVm.Questions.find((x: any) => (x?.PKTestQuestionId || x?.QuestionId || x?.Id) === qq.serverQuestionId);
       if (!svq) return;
-      const opts = svq.options || svq.Options || [];
+      const opts = svq.options || [];
       const set = new Set<number>();
       opts.forEach((o: any, idx: number) => {
         const isSel = Boolean(o?.isSelectedOption) || false;

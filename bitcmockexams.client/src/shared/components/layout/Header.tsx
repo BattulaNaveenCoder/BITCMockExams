@@ -6,6 +6,7 @@ import Button from '@shared/components/ui/Button';
 import { useLoginModal } from '@features/auth/context/LoginModalContext';
 import { useAuth } from '@features/auth/context/AuthContext';
 import { FaChartBar, FaWallet, FaLock, FaPowerOff } from 'react-icons/fa';
+import path from 'node:path';
 
 const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -52,6 +53,7 @@ const Header = () => {
     const navLinks = [
         { path: '/', label: 'Home' },
         { path: '/about', label: 'About' },
+        {path: '/certification-exam', label: 'Certification Exam' },
         { path: '/mock-exams', label: 'Mock Exams' },
         { path: '/contact', label: 'Contact' }
     ];
