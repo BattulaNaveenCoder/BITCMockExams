@@ -23,19 +23,38 @@ export interface TestSuite {
 export const useTestSuitesApi = () => {
   const api = useApiService();
 
-  const getAllTestSuitesByUserId = async (userId: string): Promise<TestSuite[]> => {
+  const getAllTestSuitesByUserId = async (userId: string, retryCount = 0): Promise<TestSuite[]> => {
     const base = isDev ? `${window.location.origin}/a2z-tests` : 'https://a2z-tests.azurewebsites.net';
-const endpoint = `${base}/api/TestSuite/GetAllTestSuites${userId ? '/User' : '/null'}/${userId ? encodeURIComponent(userId) : 'null'}`;
+    const endpoint = `${base}/api/TestSuite/GetAllTestSuites${userId ? '/User' : '/null'}/${userId ? encodeURIComponent(userId) : 'null'}`;
+    const maxRetries = 2;
+    const timeout = 180000; // 3 minutes timeout
 
     try {
-      const data = await api.get(endpoint, false);
+      const data = await api.get(endpoint, { 
+        showGlobalLoader: false, 
+        timeout 
+      });
       if (!data) return [];
       if (Array.isArray(data)) return data as TestSuite[];
       if (Array.isArray((data as any)?.data)) return (data as any).data as TestSuite[];
       return [];
-    } catch (error) {
-      console.error('Failed to fetch test suites:', error);
-      return [];
+    } catch (error: any) {
+      const isTimeout = error?.code === 'ECONNABORTED' || 
+                        error?.message?.toLowerCase().includes('timeout') ||
+                        error?.response?.data?.Message?.includes('Timeout');
+      
+      if (isTimeout && retryCount < maxRetries) {
+        console.warn(`Request timeout, retrying... (${retryCount + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1))); // Exponential backoff
+        return getAllTestSuitesByUserId(userId, retryCount + 1);
+      }
+      
+      console.error('Failed to fetch test suites:', {
+        error: error?.message,
+        isTimeout,
+        retries: retryCount
+      });
+      throw error; // Re-throw to allow component to handle
     }
   };
 

@@ -186,7 +186,7 @@ const Home = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                        <Link to="/mock-exams?category=Fundamentals" className="block">
+                        <Link to="/mock-exams?difficulty=Beginner" className="block">
                         <div className="bg-white border border-border rounded-lg p-8 shadow-sm cursor-pointer">
                             <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-bg-light md:gap-4">
                                 <div>
@@ -217,7 +217,7 @@ const Home = () => {
                         </div>
                         </Link>
 
-                        <Link to="/mock-exams?category=Role-Based" className="block">
+                        <Link to="/mock-exams?difficulty=Intermediate" className="block">
                         <div className="bg-white border border-border rounded-lg p-8 shadow-sm cursor-pointer">
                             <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-bg-light md:gap-4">
                                 <div>
@@ -248,7 +248,7 @@ const Home = () => {
                         </div>
                         </Link>
 
-                        <Link to="/mock-exams?category=Speciality" className="block">
+                        <Link to="/mock-exams?difficulty=Advanced" className="block">
                         <div className="bg-white border border-border rounded-lg p-8 shadow-sm cursor-pointer">
                             <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-bg-light md:gap-4">
                                 <div>
@@ -382,8 +382,70 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Learning Paths */}
+            {/* Browse by Difficulty Level */}
             <section className="py-16 bg-bg-light">
+                <div className="container mx-auto px-4">
+                    <div className="mb-12 text-center">
+                        <h2 className="text-4xl font-bold mb-4">Browse Exams by Difficulty Level</h2>
+                        <p className="text-lg text-text-secondary max-w-[700px] mx-auto">
+                            Choose your learning path based on your experience level
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {/* Beginner */}
+                        <Link to="/mock-exams?difficulty=Beginner" className="block">
+                            <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer h-full">
+                                <div className="flex items-start justify-between mb-4">
+                                    <h3 className="text-xl font-bold text-emerald-600">BEGINNER</h3>
+                                    <span className="text-4xl">🌱</span>
+                                </div>
+                                <p className="text-text-secondary mb-4">
+                                    Perfect for those starting their cloud certification journey. Foundational exams covering core concepts.
+                                </p>
+                                <div className="mt-auto">
+                                    <Button variant="outline" size="small">View Beginner Exams</Button>
+                                </div>
+                            </div>
+                        </Link>
+
+                        {/* Intermediate */}
+                        <Link to="/mock-exams?difficulty=Intermediate" className="block">
+                            <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer h-full">
+                                <div className="flex items-start justify-between mb-4">
+                                    <h3 className="text-xl font-bold text-amber-600">INTERMEDIATE</h3>
+                                    <span className="text-4xl">📈</span>
+                                </div>
+                                <p className="text-text-secondary mb-4">
+                                    Build on your foundational knowledge with associate-level certifications for technical roles.
+                                </p>
+                                <div className="mt-auto">
+                                    <Button variant="outline" size="small">View Intermediate Exams</Button>
+                                </div>
+                            </div>
+                        </Link>
+
+                        {/* Advanced */}
+                        <Link to="/mock-exams?difficulty=Advanced" className="block">
+                            <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer h-full">
+                                <div className="flex items-start justify-between mb-4">
+                                    <h3 className="text-xl font-bold text-red-600">ADVANCED</h3>
+                                    <span className="text-4xl">🏆</span>
+                                </div>
+                                <p className="text-text-secondary mb-4">
+                                    Expert-level certifications for experienced professionals. Design and architect complex solutions.
+                                </p>
+                                <div className="mt-auto">
+                                    <Button variant="outline" size="small">View Advanced Exams</Button>
+                                </div>
+                            </div>
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* Learning Paths */}
+            <section className="py-16 bg-white">
                 <div className="container mx-auto px-4">
                     <div className="mb-12 text-center">
                         <h2 className="text-3xl md:text-4xl font-bold mb-4">Determine which certification is right for you and start learning</h2>

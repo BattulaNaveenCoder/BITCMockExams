@@ -1,12 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ExamCard from '@shared/components/exams/ExamCard';
 import ExamCardSkeleton from '@shared/components/exams/ExamCardSkeleton';
-import { useTestSuitesApi, type TestSuite } from '@shared/api/testSuites';
+import { useTestSuites } from '@shared/contexts/TestSuitesContext';
 import type { MockExam } from '../types';
-import { useAuth } from '@features/auth/context/AuthContext';
-import { mockExams as localMockExams } from '../data/mockData';
-import { getUserIdFromClaims } from '@shared/utils/auth';
 
 const MockExams = () => {
     const [searchParams] = useSearchParams();
@@ -15,38 +12,8 @@ const MockExams = () => {
     const code = searchParams.get('code');
     const q = searchParams.get('q');
 
-    const { getAllTestSuitesByUserId } = useTestSuitesApi();
-    const [suites, setSuites] = useState<TestSuite[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
-    const { user } = useAuth();
-    const userId = useMemo(() => getUserIdFromClaims(user as any), [user]);
-
-    useEffect(() => {
-    let isActive = true;  // prevents updates after unmount
-
-    const loadSuites = async () => {
-        console.log('Loading test suites for user:', userId ?? null);
-        setLoading(true);
-
-        try {
-            const data = await getAllTestSuitesByUserId(userId ?? null);
-
-            console.log('Fetched test suites:', data);
-            if (isActive) setSuites(data);
-        } catch (e) {
-            // errors already handled in service
-        } finally {
-            if (isActive) setLoading(false);
-        }
-    };
-
-    // Always call, passing null explicitly if userId is absent
-    loadSuites();
-
-    return () => {
-        isActive = false;
-    };
-}, [userId]);
+    // Use shared context instead of making individual API calls
+    const { suites, loading } = useTestSuites();
 
 
     const mappedExams: MockExam[] = useMemo(() => {
@@ -129,44 +96,24 @@ const MockExams = () => {
         // Filter by exact code
         if (code) {
             const c = code.toLowerCase();
-            let byCode = list.filter((e) => e.code.toLowerCase() === c);
-            // Fallback to local data when remote suites exist but specific code not found
-            if (byCode.length === 0) {
-                byCode = localMockExams.filter((e) => e.code.toLowerCase() === c);
-            }
-            list = byCode;
+            list = list.filter((e) => e.code.toLowerCase() === c);
         }
 
         // Text query search when no explicit code
         if (q && !code) {
             const term = q.toLowerCase();
-            let byQuery = list.filter(
+            list = list.filter(
                 (e) => e.code.toLowerCase().includes(term) || e.title.toLowerCase().includes(term) || (e.category || '').toLowerCase().includes(term)
             );
-            // Fallback augment from local when remote results are sparse
-            if (byQuery.length === 0) {
-                byQuery = localMockExams.filter(
-                    (e) => e.code.toLowerCase().includes(term) || e.title.toLowerCase().includes(term) || (e.category || '').toLowerCase().includes(term)
-                );
-            }
-            list = byQuery;
         }
 
         if (category) {
             const cat = category.toLowerCase();
-            let byCat = list.filter((e) => (e.category || '').toLowerCase() === cat);
-            if (byCat.length === 0) {
-                byCat = localMockExams.filter((e) => (e.category || '').toLowerCase() === cat);
-            }
-            list = byCat;
+            list = list.filter((e) => (e.category || '').toLowerCase() === cat);
         }
 
         if (difficulty) {
-            let byDiff = list.filter((e) => e.difficulty.toLowerCase() === difficulty.toLowerCase());
-            if (byDiff.length === 0) {
-                byDiff = localMockExams.filter((e) => e.difficulty.toLowerCase() === difficulty.toLowerCase());
-            }
-            list = byDiff;
+            list = list.filter((e) => e.difficulty.toLowerCase() === difficulty.toLowerCase());
         }
 
         // Ensure exact code match, if present, appears first
@@ -177,7 +124,7 @@ const MockExams = () => {
 
         return list;
     }, [mappedExams, code, q, category, difficulty]);
-
+ 
     // Card presentation is handled by shared ExamCard component
 
     return (
