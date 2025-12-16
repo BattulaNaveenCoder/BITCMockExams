@@ -11,9 +11,10 @@ import { useLoginModal } from '@features/auth/context/LoginModalContext';
 
 interface Props {
   exam: MockExam;
+  hideVendorTag?: boolean;
 }
 
-const ExamCard: React.FC<Props> = ({ exam }) => {
+const ExamCard: React.FC<Props> = ({ exam, hideVendorTag = false }) => {
   console.log('ExamCard rendering for exam:', exam);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -27,11 +28,14 @@ const ExamCard: React.FC<Props> = ({ exam }) => {
       }}
     >
       <div className="flex justify-between items-center mb-6">
-        <span className="flex items-center gap-2 text-primary-blue font-semibold text-sm">
-          <span className="inline-block w-2 h-2 rounded-full bg-sky-400"></span>
-          {exam.vendor}
-        </span>
-        <DifficultyBadge difficulty={exam.difficulty} />
+        {!hideVendorTag && (
+          <span className="flex items-center gap-2 text-primary-blue font-semibold text-sm">
+            <span className="inline-block w-2 h-2 rounded-full bg-sky-400"></span>
+            {exam.vendor}
+          </span>
+        )}
+        {!hideVendorTag && <DifficultyBadge difficulty={exam.difficulty} />}
+        
       </div>
 
       <div className="flex items-justify-between mb-6">

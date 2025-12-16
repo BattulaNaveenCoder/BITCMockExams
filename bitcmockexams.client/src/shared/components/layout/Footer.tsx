@@ -82,7 +82,7 @@ const Footer = () => {
                             </li>
                         </ul>
 
-                        <div className="mt-6">
+                        {/* <div className="mt-6">
                             <h5 className="text-base font-semibold mb-4 text-white">Newsletter</h5>
                             <form onSubmit={handleNewsletterSubmit} className="flex flex-col gap-2">
                                 <Input
@@ -98,7 +98,7 @@ const Footer = () => {
                                     Subscribe
                                 </Button>
                             </form>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
 
