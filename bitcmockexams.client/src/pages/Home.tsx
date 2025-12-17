@@ -173,6 +173,7 @@ const Home = () => {
                     </div>
                 </div>
             </section>
+            
 
 
             {/* Microsoft Certifications */}

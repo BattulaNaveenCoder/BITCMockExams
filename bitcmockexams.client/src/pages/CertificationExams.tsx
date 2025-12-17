@@ -45,12 +45,33 @@ const CertificationExams: React.FC = () => {
 
   const getCategoryFromCode = useMemo(() => (code: string, title: string): string => {
     const upperCode = code.toUpperCase();
+    const upperTitle = (title || '').toUpperCase();
+    
+    // Check for AI certifications
     if (upperCode.startsWith('AI-')) return 'AI';
-    if (upperCode.startsWith('AZ-') || upperCode.includes('DOCKER')) return 'Azure';
+    
+    // Check for Data Engineering certifications FIRST (before Azure check)
+    // DP courses contain "Azure" in title but should be categorized as Data Engineering
     if (upperCode.startsWith('DP-')) return 'Data Engineering';
+    
+    // Check for Power Platform certifications
     if (upperCode.startsWith('PL-')) return 'Power Platform';
+    
+    // Check for Security certifications
     if (upperCode.startsWith('SC-')) return 'Security';
-    if (upperCode.includes('SQL')) return 'Miscellaneous';
+    
+    // Check for Docker certifications - should go to Miscellaneous
+    if (upperCode.includes('DOCKER') || upperTitle.includes('DOCKER')) return 'Miscellaneous';
+    
+    // Check for SQL Server - should go to Miscellaneous
+    if (upperCode.includes('SQL') || upperTitle.includes('SQL')) return 'Miscellaneous';
+    
+    // Check for Azure certifications - multiple patterns
+    // This check comes AFTER DP- check to prevent DP courses from being categorized as Azure
+    if (upperCode.startsWith('AZ-') || 
+        upperCode.includes('AZURE') || 
+        upperTitle.includes('AZURE')) return 'Azure';
+    
     return 'Miscellaneous';
   }, []);
 

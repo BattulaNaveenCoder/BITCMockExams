@@ -81,13 +81,8 @@ const Header = () => {
         // Check for AI certifications
         if (upperCode.startsWith('AI-')) return 'AI';
         
-        // Check for Azure certifications - multiple patterns
-        if (upperCode.startsWith('AZ-') || 
-            upperCode.includes('AZURE') || 
-            upperCode.includes('DOCKER') ||
-            upperTitle.includes('AZURE')) return 'Azure';
-        
-        // Check for Data Engineering certifications
+        // Check for Data Engineering certifications FIRST (before Azure check)
+        // DP courses contain "Azure" in title but should be categorized as Data Engineering
         if (upperCode.startsWith('DP-')) return 'Data Engineering';
         
         // Check for Power Platform certifications
@@ -96,11 +91,66 @@ const Header = () => {
         // Check for Security certifications
         if (upperCode.startsWith('SC-')) return 'Security';
         
+        // Check for Docker certifications - should go to Miscellaneous
+        if (upperCode.includes('DOCKER') || upperTitle.includes('DOCKER')) return 'Miscellaneous';
+        
+        // Check for Azure certifications - multiple patterns
+        // This check comes AFTER DP- check to prevent DP courses from being categorized as Azure
+        if (upperCode.startsWith('AZ-') || 
+            upperCode.includes('AZURE') || 
+            upperTitle.includes('AZURE')) return 'Azure';
+        
         return 'Miscellaneous';
     };
 
+    const getDifficultyLevel = (code: string, title: string): string => {
+        // Extract clean code (remove any trailing characters after the exam number)
+        const cleanCode = code.trim().toUpperCase().replace(/[:\s].*$/, '');
+        
+        // Exact same logic as MockExams.tsx
+        const beginners = new Set([
+            'AZ-900', 'DP-900', 'AI-900', 'PL-900'
+        ]);
+        
+        const intermediates = new Set([
+            // Azure Associate
+            'AZ-104', 'AZ-204', 'AZ-500', 'AZ-700',
+            // Data & AI Associate
+            'DP-100', 'DP-203',
+            // Power Platform Associate
+            'PL-100', 'PL-200', 'PL-300', 'PL-400', 'PL-500',
+            // Security Associate
+            'SC-200', 'SC-300', 'SC-400',
+            // Other
+            'DOCKER CERTIFIED ASSOCIATE', 'SQL SERVER LIVE SESSION'
+        ]);
+        
+        const advanced = new Set([
+            'AZ-305', 'AZ-400', 'PL-600', 'AI-102'
+        ]);
+
+        // Direct code match
+        if (beginners.has(cleanCode)) return 'Beginner';
+        if (advanced.has(cleanCode)) return 'Advanced';
+        if (intermediates.has(cleanCode)) return 'Intermediate';
+        
+        // Title-based special cases (matching MockExams.tsx)
+        const upperTitle = title.trim().toUpperCase();
+        if (/CHALLENGE/i.test(upperTitle) && /AZ-104/i.test(upperTitle)) return 'Intermediate';
+        if (/DOCKER CERTIFIED ASSOCIATE/i.test(upperTitle)) return 'Intermediate';
+        if (/SQL SERVER LIVE SESSION/i.test(upperTitle)) return 'Intermediate';
+        
+        // Fallback by prefix (matching MockExams.tsx)
+        if (cleanCode.startsWith('AZ-900') || cleanCode.startsWith('DP-900') || 
+            cleanCode.startsWith('AI-900') || cleanCode.startsWith('PL-900')) return 'Beginner';
+        if (cleanCode.startsWith('AZ-305') || cleanCode.startsWith('AZ-400') || 
+            cleanCode.startsWith('PL-600') || cleanCode.startsWith('AI-102')) return 'Advanced';
+        
+        return 'Intermediate';
+    };
+
     const categorizedCourses = useMemo(() => {
-        const categories: Record<string, Array<{title: string, code: string, pathId: string}>> = {
+        const categories: Record<string, Array<{title: string, code: string, pathId: string, difficulty: string}>> = {
             'AI': [],
             'Azure': [],
             'Data Engineering': [],
@@ -135,7 +185,8 @@ const Header = () => {
             categories[category].push({
                 title,
                 code,
-                pathId: suite.PathId || '' // Use exact PathId from database for routing
+                pathId: suite.PathId || '', // Use exact PathId from database for routing
+                difficulty: getDifficultyLevel(code, title)
             });
         });
 
@@ -152,21 +203,29 @@ const Header = () => {
                     categories['Data Engineering'].push({
                         title: dbCourse.TestSuiteTitle || 'Data Engineering Certification',
                         code: dpCode,
-                        pathId: dbCourse.PathId || dpCode
+                        pathId: dbCourse.PathId || dpCode,
+                        difficulty: getDifficultyLevel(dpCode, dbCourse.TestSuiteTitle || 'Data Engineering Certification')
                     });
                 }
             }
         });
 
-        // Sort Data Engineering courses by priority
-        const dpPriority = ['DP-900', 'DP-203', 'DP-100'];
-        categories['Data Engineering'].sort((a, b) => {
-            const aIndex = dpPriority.indexOf(a.code);
-            const bIndex = dpPriority.indexOf(b.code);
-            if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-            if (aIndex !== -1) return -1;
-            if (bIndex !== -1) return 1;
-            return 0;
+        // Sort all categories by difficulty: Beginner -> Intermediate -> Advanced
+        const difficultyOrder: Record<string, number> = {
+            'Beginner': 0,
+            'Intermediate': 1,
+            'Advanced': 2
+        };
+        
+        Object.keys(categories).forEach(category => {
+            categories[category].sort((a, b) => {
+                // First sort by difficulty
+                const diffOrder = difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
+                if (diffOrder !== 0) return diffOrder;
+                
+                // If same difficulty, sort by code alphabetically
+                return a.code.localeCompare(b.code);
+            });
         });
 
         // Debug logging
@@ -247,11 +306,7 @@ const Header = () => {
                                             >
                                                 {['AI', 'Azure', 'Data Engineering', 'Power Platform', 'Security', 'Miscellaneous'].map((category) => {
                                                     const coursesInCategory = categorizedCourses[category] || [];
-                                                    // Only show categories that have courses or are priority categories
-                                                    const isPriorityCategory = ['Azure', 'Data Engineering', 'AI'].includes(category);
-                                                    if (coursesInCategory.length === 0 && !isPriorityCategory) {
-                                                        return null;
-                                                    }
+                                                    // Always show all categories to prevent loading flash
                                                     return (
                                                     <div key={category}>
                                                         <div
@@ -277,9 +332,7 @@ const Header = () => {
                                                                 <span className="flex-1 text-primary-blue group-hover:text-blue-700 font-medium text-sm transition-colors">
                                                                     {category} Certification Dumps
                                                                 </span>
-                                                                {categorizedCourses[category]?.length > 0 && (
-                                                                    <span className="text-base text-gray-400 group-hover:text-blue-700 ml-2 transition-colors">›</span>
-                                                                )}
+                                                                <span className="text-base text-gray-400 group-hover:text-blue-700 ml-2 transition-colors">›</span>
                                                             </button>
                                                             {categorizedCourses[category]?.length > 0 && activeSubmenu === category && (
                                                                 <div 
@@ -316,8 +369,18 @@ const Header = () => {
                                                                                 navigate(returnUrl);
                                                                             }}
                                                                         >
-                                                                            <div className="font-semibold text-primary-blue group-hover:text-blue-700 text-sm leading-tight transition-colors">{course.code}</div>
-                                                                            <div className="text-xs text-gray-600 group-hover:text-gray-800 mt-1.5 leading-snug transition-colors">{course.title}</div>
+                                                                            <div className="flex items-center justify-between gap-2">
+                                                                                <div className="flex-1">
+                                                                                    <div className="text-xs font-semibold text-primary-blue group-hover:text-gray-800 leading-snug transition-colors">{course.title}</div>
+                                                                                </div>
+                                                                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
+                                                                                    course.difficulty === 'Beginner' ? 'bg-green-100 text-green-700' :
+                                                                                    course.difficulty === 'Intermediate' ? 'bg-blue-100 text-blue-700' :
+                                                                                    'bg-purple-100 text-purple-700'
+                                                                                }`}>
+                                                                                    {course.difficulty}
+                                                                                </span>
+                                                                            </div>
                                                                         </button>
                                                                     ))}
                                                                 </div>

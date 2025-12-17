@@ -397,6 +397,7 @@ const Contact = () => {
                                                 value={formData.countryCode}
                                                 onChange={handleChange}
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all duration-200"
+                                                aria-label="Country Code"
                                                 required
                                             >
                                                 {countryCodes.map((country) => (
@@ -456,6 +457,7 @@ const Contact = () => {
                                         onChange={handleChange}
                                         onBlur={handleBlur}
                                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all duration-200"
+                                        aria-label="How did you find us"
                                         required
                                     >
                                         <option value="">Select an option</option>
