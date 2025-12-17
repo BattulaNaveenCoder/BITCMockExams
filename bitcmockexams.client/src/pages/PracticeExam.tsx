@@ -468,6 +468,10 @@ const PracticeExam: React.FC = () => {
       console.log('Exam is paused, aborting');
       return;
     }
+    if (isExamOver) {
+      console.log('Exam is over, aborting API call');
+      return;
+    }
     if (!testViewModel) {
       console.log('No testViewModel, aborting');
       return;
@@ -543,7 +547,7 @@ const PracticeExam: React.FC = () => {
     } finally {
       setIsQuestionLoading(false);
     }
-  }, [questions.length, isPaused, testViewModel, currentIndex, getCurrentExamQuestion, isExamOver]);
+  }, [questions.length, isPaused, testViewModel, currentIndex, getCurrentExamQuestion]);
 
   const handleNext = useCallback(() => {
     if (currentIndex < questions.length - 1) {
@@ -651,6 +655,12 @@ const PracticeExam: React.FC = () => {
   const updateBuyerTest = useCallback(async (isFinish: boolean = false) => {
     if (!testViewModel) return;
     
+    // Prevent API calls if exam is already over (unless we're finishing it now)
+    if (isExamOver && !isFinish) {
+      console.log('Exam already over, skipping updateBuyerTest');
+      return;
+    }
+    
     const updatedViewModel = isFinish ? {
       ...testViewModel,
       Status: TestStatus.Completed
@@ -669,7 +679,7 @@ const PracticeExam: React.FC = () => {
     } catch (error) {
       console.error('Failed to update buyer test:', error);
     }
-  }, [testViewModel, currentIndex, getCurrentExamQuestion]);
+  }, [testViewModel, currentIndex, getCurrentExamQuestion, isExamOver]);
 
   // ===== FINISH EXAM =====
   const handleFinish = useCallback(async () => {
@@ -677,7 +687,6 @@ const PracticeExam: React.FC = () => {
     if (quizWithQuestionTimer) {
       pauseTotalTimer();
     }
-    
     // Update buyer test as completed
     await updateBuyerTest(true);
     
@@ -719,7 +728,7 @@ const PracticeExam: React.FC = () => {
     if (quizWithQuestionTimer) {
       pauseTotalTimer();
     }
-    
+    debugger;
     // Save progress before closing
     await updateBuyerTest(false);
     
@@ -1196,7 +1205,7 @@ const PracticeExam: React.FC = () => {
 
   // ===== FETCH INITIAL QUESTION DATA =====
   useEffect(() => {
-    if (!examLoaded || !testViewModel) return;
+    if (!examLoaded || !testViewModel || isExamOver) return;
     
     const currentQuestion = testViewModel.Questions?.[currentIndex];
     // Only fetch if the question doesn't have options loaded yet
