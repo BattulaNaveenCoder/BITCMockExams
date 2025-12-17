@@ -133,6 +133,7 @@ interface OptionVM {
 
 interface Question {
   PKTestQuestionId?: string;
+  QuestionId?: string; // Backend expects this field
   Description?: string;
   ImageUrl?: string;
   options: OptionVM[];
@@ -140,6 +141,7 @@ interface Question {
   Explanation?: string;
   QuestionStatus?: QuestionStatus;
   SelectedOptionId?: string;
+  MarksScoredForthisQuestion?: number; // Backend uses this for scoring
   isMarkedforReview?: boolean;
   Flag?: boolean;
   CourseURL?: string;
@@ -162,6 +164,7 @@ interface TestViewModel {
   PreviousQuestion?: Question;
   PassPercentage?: number;
   TotalMarksAllocated?: number;
+  MarksScored?: number;
   IsPaused?: boolean;
   TestType?: number;
   PriceInDollars?: number;
@@ -224,7 +227,7 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 
 const buildApiPayload = (viewModel: TestViewModel | null, currentIdx: number, previousQuestion?: Question) => {
   if (!viewModel) return null;
-  
+
   return {
     PKBuyerTestId: viewModel.PKBuyerTestId || '',
     FKTestId: viewModel.FKTestId || '',
@@ -251,26 +254,26 @@ const buildApiPayload = (viewModel: TestViewModel | null, currentIdx: number, pr
 
 // ===== MAIN COMPONENT =====
 const PracticeExam: React.FC = () => {
-  
+
   const navigate = useNavigate();
   const { PathId, Title, TestId } = useParams();
   const [searchParams] = useSearchParams();
   const modeParam = searchParams.get('mode') || '0';
-  
+
   const { user } = useAuth();
   const userId = useMemo(() => getUserIdFromClaims(user as any), [user]);
   const userName = useMemo(() => (user as any)?.name || (user as any)?.username || 'User', [user]);
   const userEmail = useMemo(() => {
     const claims = user as any;
     if (!claims) return '';
-    return claims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] 
-      || claims.email 
+    return claims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress']
+      || claims.email
       || '';
   }, [user]);
   const userRole = useMemo(() => (user as any)?.role || 'Student', [user]);
-  
+
   const { getTestSuiteByPathId, globalSearch } = useTestSuitesApi();
-  const { getTestViewModel, isTestSubscribed, getCurrentExamQuestion, getVideosLinkForQuestion } = useTestsApi() as any;
+  const { getTestViewModel, isTestSubscribed, getCurrentExamQuestion, getVideosLinkForQuestion, getBuyerTestById } = useTestsApi() as any;
   const { getUserCreditDetails, checkBDTSubscription } = useAuthApi();
   const { getWalletBalance } = useWalletApi();
 
@@ -284,7 +287,7 @@ const PracticeExam: React.FC = () => {
   const [testSuiteDetails, setTestSuiteDetails] = useState<any>(null);
   const [testTitle, setTestTitle] = useState<string>();
   const [testMode] = useState<TestMode>(parseInt(modeParam) as TestMode);
-  
+
   // Exam state
   const [testViewModel, setTestViewModel] = useState<TestViewModel | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -293,7 +296,7 @@ const PracticeExam: React.FC = () => {
   const [showAnswerClicked, setShowAnswerClicked] = useState(false);
   const [examLoaded, setExamLoaded] = useState(false);
   const [needCredits, setNeedCredits] = useState(0);
-  
+
   // Timer state
   const [minutesCounter, setMinutesCounter] = useState(0);
   const [secondsCounter, setSecondsCounter] = useState(0);
@@ -301,7 +304,7 @@ const PracticeExam: React.FC = () => {
   const [totalSecondsCounter, setTotalSecondsCounter] = useState(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const totalTimerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Comments state
   const [comments, setComments] = useState<CommentDTO[]>([]);
   const [commentText, setCommentText] = useState('');
@@ -319,17 +322,21 @@ const PracticeExam: React.FC = () => {
   const [commentedUser, setCommentedUser] = useState('');
   const [showReportModal, setShowReportModal] = useState(false);
   const [isCommentWhitespace, setIsCommentWhitespace] = useState(false);
-  
+
   // Review modal state
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [testHelpfulness, setTestHelpfulness] = useState('');
   const [testReview, setTestReview] = useState('');
-  
+
+  // Results summary state
+  const [showResultsModal, setShowResultsModal] = useState(false);
+  const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(new Set());
+
   // Payment modal state
   const [showUnlockModal, setShowUnlockModal] = useState(false);
-  
+
   const [loading, setLoading] = useState(true);
   const [isBDTCheckLoading, setIsBDTCheckLoading] = useState(true);
   const [isQuestionLoading, setIsQuestionLoading] = useState(false);
@@ -373,7 +380,7 @@ const PracticeExam: React.FC = () => {
   // ===== TIMER FUNCTIONS =====
   const startTimer = useCallback(() => {
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    
+
     timerIntervalRef.current = setInterval(() => {
       if (testMode === TestMode.Quiz) {
         setSecondsCounter(prev => {
@@ -417,7 +424,7 @@ const PracticeExam: React.FC = () => {
 
   const startTotalTimer = useCallback(() => {
     if (totalTimerIntervalRef.current) clearInterval(totalTimerIntervalRef.current);
-    
+
     totalTimerIntervalRef.current = setInterval(() => {
       setTotalSecondsCounter(prev => {
         if (prev > 0) {
@@ -468,55 +475,60 @@ const PracticeExam: React.FC = () => {
       console.log('Exam is paused, aborting');
       return;
     }
+    if (isExamOver) {
+      console.log('Exam is over, aborting API call');
+      return;
+    }
     if (!testViewModel) {
       console.log('No testViewModel, aborting');
       return;
     }
-    
+
     setIsQuestionLoading(true);
     setCurrentIndex(index);
     setShowAnswerClicked(false);
-    
+
     // Build proper payload for API
     const payload = buildApiPayload(testViewModel, index, testViewModel.Questions[currentIndex]);
-    
+
     if (!payload) {
       console.error('Failed to build payload');
       setIsQuestionLoading(false);
       return;
     }
-    
+
     // Fetch question details from API
     try {
       console.log('Fetching question details from API');
       const questionData = await getCurrentExamQuestion(isExamOver, false, payload, false);
       console.log('Question data received:', questionData);
-      
+
       if (questionData) {
         // Update the specific question in the Questions array with the fetched data
         const updatedQuestions = [...testViewModel.Questions];
         const existingQuestion = updatedQuestions[index];
-        
+
         // Determine the selected option IDs (prefer existing, then from API)
+        // Backend sends with trailing comma, so we need to handle that
         const selectedOptionId = existingQuestion?.SelectedOptionId ?? questionData.SelectedOptionId ?? '';
         const selectedIds = selectedOptionId.split(',').filter(Boolean);
-        
+
         // Get options from API response
         const apiOptions = questionData.options || questionData.Options || [];
-        
+
         // Merge options while setting selection state based on SelectedOptionId
         const mergedOptions = apiOptions.map((newOption: any, optIdx: number) => {
           const existingOption = existingQuestion?.options?.[optIdx];
           // Check if this option's ID is in the selected IDs
           const isSelected = selectedIds.includes(String(newOption.PKOptionId || newOption.pkOptionId || ''));
-          
+
           return {
             ...newOption,
             // Set selection based on SelectedOptionId, fallback to existing state
             isSelectedOption: isSelected || existingOption?.isSelectedOption || newOption.isSelectedOption || false
           };
         });
-        
+
         updatedQuestions[index] = {
           ...(existingQuestion || {}),
           Description: questionData.Description || existingQuestion?.Description,
@@ -532,7 +544,7 @@ const PracticeExam: React.FC = () => {
           SelectedOptionId: selectedOptionId,
           PKTestQuestionId: existingQuestion?.PKTestQuestionId ?? questionData.PKTestQuestionId
         };
-        
+
         setTestViewModel({
           ...testViewModel,
           Questions: updatedQuestions
@@ -543,7 +555,7 @@ const PracticeExam: React.FC = () => {
     } finally {
       setIsQuestionLoading(false);
     }
-  }, [questions.length, isPaused, testViewModel, currentIndex, getCurrentExamQuestion, isExamOver]);
+  }, [questions.length, isPaused, isExamOver, testViewModel, currentIndex, getCurrentExamQuestion]);
 
   const handleNext = useCallback(() => {
     if (currentIndex < questions.length - 1) {
@@ -568,9 +580,9 @@ const PracticeExam: React.FC = () => {
   // ===== OPTION SELECTION =====
   const handleOptionChange = useCallback(async (optionIndex: number) => {
     if (!currentQuestion || !testViewModel) return;
-    
+
     const newOptions = [...(currentQuestion.options || [])];
-    
+
     if (isCheckBox) {
       // Checkbox - toggle selection
       newOptions[optionIndex] = {
@@ -583,37 +595,40 @@ const PracticeExam: React.FC = () => {
         opt.isSelectedOption = idx === optionIndex;
       });
     }
-    
-    // Build SelectedOptionId string (comma-separated PKOptionIds)
-    const selectedOptionIds = newOptions
+
+    // Build SelectedOptionId string with trailing comma (backend expects this format)
+    const selectedIds = newOptions
       .filter((opt, idx) => opt.isSelectedOption)
       .map(opt => opt.PKOptionId)
       .filter(Boolean)
       .join(',');
     
+    const selectedOptionIds = selectedIds ? `${selectedIds},` : undefined;
+
     // Update question status
     const hasSelection = newOptions.some(o => o.isSelectedOption);
     const newStatus = currentQuestion.isMarkedforReview
       ? (hasSelection ? QuestionStatus.MarkedandAnswered : QuestionStatus.IsMarkedForReview)
       : (hasSelection ? QuestionStatus.IsAnswered : QuestionStatus.None);
-    
+
     // Update the question in the view model
     const updatedQuestions = [...testViewModel.Questions];
     updatedQuestions[currentIndex] = {
       ...updatedQuestions[currentIndex],
       options: newOptions,
       QuestionStatus: newStatus,
-      SelectedOptionId: selectedOptionIds || undefined
+      QuestionId: updatedQuestions[currentIndex].PKTestQuestionId || updatedQuestions[currentIndex].QuestionId,
+      SelectedOptionId: selectedOptionIds
     };
-    
+
     const updatedViewModel = {
       ...testViewModel,
       Questions: updatedQuestions,
       PreviousQuestion: testViewModel.Questions[currentIndex]
     };
-    
+
     setTestViewModel(updatedViewModel);
-    
+
     // Persist to backend with isUpdate=true
     try {
       const payload = buildApiPayload(updatedViewModel, currentIndex, updatedQuestions[currentIndex]);
@@ -628,19 +643,19 @@ const PracticeExam: React.FC = () => {
   // ===== MARK FOR REVIEW =====
   const handleMarkForReview = useCallback((checked: boolean) => {
     if (!testViewModel || !currentQuestion) return;
-    
+
     const hasSelection = currentQuestion.options?.some(o => o.isSelectedOption);
     const newStatus = checked
       ? (hasSelection ? QuestionStatus.MarkedandAnswered : QuestionStatus.IsMarkedForReview)
       : (hasSelection ? QuestionStatus.IsAnswered : QuestionStatus.None);
-    
+
     const updatedQuestions = [...testViewModel.Questions];
     updatedQuestions[currentIndex] = {
       ...updatedQuestions[currentIndex],
       isMarkedforReview: checked,
       QuestionStatus: newStatus
     };
-    
+
     setTestViewModel({
       ...testViewModel,
       Questions: updatedQuestions
@@ -650,18 +665,59 @@ const PracticeExam: React.FC = () => {
   // ===== UPDATE BUYER TEST =====
   const updateBuyerTest = useCallback(async (isFinish: boolean = false) => {
     if (!testViewModel) return;
-    
+
+    console.log('updateBuyerTest called with isFinish:', isFinish);
+
     const updatedViewModel = isFinish ? {
       ...testViewModel,
       Status: TestStatus.Completed
     } : testViewModel;
-    
-    const payload = buildApiPayload(updatedViewModel, currentIndex, testViewModel.Questions[currentIndex]);
-    
+
+    let payload = buildApiPayload(updatedViewModel, currentIndex, testViewModel.Questions[currentIndex]);
+
     if (!payload) return;
-    
+
+    // When finishing, add QuestionId mapping and fix SelectedOptionId for backend scoring
+    if (isFinish && payload.Questions) {
+      payload = {
+        ...payload,
+        Questions: payload.Questions.map((q: any) => {
+          // Rebuild SelectedOptionId from selected options with TRAILING COMMA (backend expects this)
+          const selectedIds = q.options
+            ?.filter((opt: any) => opt.isSelectedOption)
+            .map((opt: any) => opt.PKOptionId)
+            .filter(Boolean)
+            .join(',');
+          
+          // Add trailing comma if there are selected options (backend removes it with SkipLast(1))
+          const selectedOptionId = selectedIds ? `${selectedIds},` : '';
+
+          return {
+            ...q,
+            QuestionId: q.PKTestQuestionId || q.QuestionId || '',
+            SelectedOptionId: selectedOptionId || q.SelectedOptionId || '',
+            MarksScoredForthisQuestion: q.MarksScoredForthisQuestion || 0
+          };
+        }),
+        PreviousQuestion: payload.PreviousQuestion ? {
+          ...payload.PreviousQuestion,
+          QuestionId: (payload.PreviousQuestion as any).PKTestQuestionId || (payload.PreviousQuestion as any).QuestionId || '',
+          MarksScoredForthisQuestion: (payload.PreviousQuestion as any).MarksScoredForthisQuestion || 0
+        } : {}
+      };
+
+      console.log('Payload being sent to backend:', JSON.stringify(payload, null, 2));
+    }
+
     try {
-      const response = await getCurrentExamQuestion(isFinish,isFinish ? true : false, payload);
+      // When finishing: both isExamOver and isUpdate should be true
+      // When just saving: isExamOver=false, isUpdate=true
+      const isExamOver = isFinish;
+      const isUpdate = true;
+
+      console.log('Calling getCurrentExamQuestion with:', { isExamOver, isUpdate });
+
+      const response = await getCurrentExamQuestion(isExamOver, isUpdate, payload);
       if (isFinish && response) {
         setIsExamOver(true);
         setTestViewModel(response);
@@ -677,27 +733,40 @@ const PracticeExam: React.FC = () => {
     if (quizWithQuestionTimer) {
       pauseTotalTimer();
     }
-    
+
     // Update buyer test as completed
     await updateBuyerTest(true);
-    
-    // Show review modal
-    setShowReviewModal(true);
-  }, [pauseTimer, pauseTotalTimer, quizWithQuestionTimer, updateBuyerTest]);
+
+    // Fetch complete exam results by ID (matching old project implementation)
+    if (testViewModel?.PKBuyerTestId && getBuyerTestById) {
+      try {
+        console.log('Fetching exam results for buyer test ID:', testViewModel.PKBuyerTestId);
+        const examResults = await getBuyerTestById(testViewModel.PKBuyerTestId);
+        console.log('Exam results received:', examResults);
+
+        if (examResults) {
+          // Update testViewModel with the complete results
+          setTestViewModel(examResults);
+        }
+      } catch (error) {
+        console.error('Failed to fetch exam results:', error);
+      }
+    }
+
+    // Mark exam as over and navigate to results page
+    setIsExamOver(true);
+    setShowResultsModal(true);
+  }, [pauseTimer, pauseTotalTimer, quizWithQuestionTimer, updateBuyerTest, testViewModel, getBuyerTestById]);
 
   const handleSubmitReview = useCallback(async () => {
     // Submit review to API (to be implemented with actual API)
     console.log('Review submitted:', { rating, testHelpfulness, testReview });
-    
+
     setShowReviewModal(false);
-    
-    // Navigate to summary or exam list
-    if (testViewModel?.PKBuyerTestId) {
-      navigate(`/exams/summary/${testViewModel.PKBuyerTestId}`);
-    } else {
-      navigate(`/exams/${PathId}`);
-    }
-  }, [rating, testHelpfulness, testReview, testViewModel, navigate, PathId]);
+
+    // Navigate back to exam list
+    navigate(`/exams/${PathId}`);
+  }, [rating, testHelpfulness, testReview, navigate, PathId]);
 
   // ===== PAUSE/RESUME =====
   const handlePause = useCallback(() => {
@@ -719,10 +788,10 @@ const PracticeExam: React.FC = () => {
     if (quizWithQuestionTimer) {
       pauseTotalTimer();
     }
-    
+
     // Save progress before closing
     await updateBuyerTest(false);
-    
+
     // Navigate back to test suite details
     navigate(`/exams/${PathId}`);
   }, [pauseTimer, pauseTotalTimer, quizWithQuestionTimer, updateBuyerTest, navigate, PathId]);
@@ -741,18 +810,18 @@ const PracticeExam: React.FC = () => {
   // ===== COMMENTS FUNCTIONS =====
   const fetchComments = useCallback(async (questionId: string, pageIndex: number = 1) => {
     if (!questionId) return;
-    
+
     try {
       // TODO: Replace with actual API call
       // const response = await interviewQuestionService.GetAllCommentsandVotesById(questionId, pageIndex, userRole);
       const response: CommentDTO[] = []; // Placeholder
-      
+
       const processedComments = response.map(comment => ({
         ...comment,
         isExpanded: false,
         RepliesCount: comment.Replies?.length || 0
       }));
-      
+
       setComments(processedComments);
       setTotalCommentsCount(processedComments[0]?.TotalComments || 0);
     } catch (error) {
@@ -762,26 +831,26 @@ const PracticeExam: React.FC = () => {
 
   const handleAddComment = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!commentText || commentText.trim().length < 2) {
       alert('Comment must be more than one character');
       return;
     }
-    
+
     if (!userId || !userName || !currentQuestion?.PKTestQuestionId) return;
-    
+
     const newComment: CommentDTO = {
       Comment: commentText.trim(),
       FKInterviewQuestionId: currentQuestion.PKTestQuestionId,
       FKCommentedBy: userId,
       FkCommentedUser: userName
     };
-    
+
     try {
       // TODO: Replace with actual API call
       // const result = await interviewQuestionService.AddComment(newComment);
       const result = 1; // Placeholder
-      
+
       if (result === 1) {
         setCommentText('');
         setCurrentPageIndex(1);
@@ -800,29 +869,29 @@ const PracticeExam: React.FC = () => {
 
   const handleEditComment = useCallback((comment: CommentDTO) => {
     setOldComment(comment.Comment);
-    setComments(prev => prev.map(c => 
+    setComments(prev => prev.map(c =>
       c.PKCommentId === comment.PKCommentId ? { ...c, IsEdit: true } : c
     ));
   }, []);
 
   const handleUpdateComment = useCallback(async (comment: CommentDTO) => {
     if (comment.Comment === oldComment) {
-      setComments(prev => prev.map(c => 
+      setComments(prev => prev.map(c =>
         c.PKCommentId === comment.PKCommentId ? { ...c, IsEdit: false } : c
       ));
       return;
     }
-    
+
     if (comment.Comment.trim().length < 2) {
       alert('Your comment must be more than one character');
       return;
     }
-    
+
     try {
       // TODO: Replace with actual API call
       // await interviewQuestionService.UpdateComment(comment);
-      
-      setComments(prev => prev.map(c => 
+
+      setComments(prev => prev.map(c =>
         c.PKCommentId === comment.PKCommentId ? { ...c, IsEdit: false } : c
       ));
       alert('Your comment has been successfully updated');
@@ -833,7 +902,7 @@ const PracticeExam: React.FC = () => {
   }, [oldComment]);
 
   const handleCancelEdit = useCallback((comment: CommentDTO) => {
-    setComments(prev => prev.map(c => 
+    setComments(prev => prev.map(c =>
       c.PKCommentId === comment.PKCommentId ? { ...c, Comment: oldComment, IsEdit: false } : c
     ));
   }, [oldComment]);
@@ -845,13 +914,13 @@ const PracticeExam: React.FC = () => {
 
   const confirmDeleteComment = useCallback(async () => {
     if (!deleteCommentData || !currentQuestion) return;
-    
+
     try {
       // TODO: Replace with actual API call
       // await interviewQuestionService.DeleteComment(deleteCommentData.PKCommentId);
-      
+
       alert('Your comment has successfully deleted');
-      
+
       const newPageIndex = comments.length === 1 ? Math.max(currentPageIndex - 1, 1) : currentPageIndex;
       setCurrentPageIndex(newPageIndex);
       if (currentQuestion.PKTestQuestionId) {
@@ -867,7 +936,7 @@ const PracticeExam: React.FC = () => {
 
   const handleVoteComment = useCallback(async (comment: CommentDTO) => {
     if (!userId) return;
-    
+
     const userCommentVote: UserCommentVote = {
       FkCommentId: comment.PKCommentId,
       FkQuestionId: comment.FKInterviewQuestionId,
@@ -875,12 +944,12 @@ const PracticeExam: React.FC = () => {
       Vote: 1,
       PkvoterId: ''
     };
-    
+
     try {
       // TODO: Replace with actual API call
       // const result = await interviewQuestionService.AddVotesforComment(userCommentVote);
       const result = true; // Placeholder
-      
+
       if (result) {
         alert('Voted successfully');
         if (comment.FKInterviewQuestionId) {
@@ -900,9 +969,9 @@ const PracticeExam: React.FC = () => {
       alert('Comment must be more than one character');
       return;
     }
-    
+
     if (!userId || !userName || !currentQuestion?.PKTestQuestionId) return;
-    
+
     const newReply: CommentDTO = {
       Comment: replyComment.trim(),
       FKInterviewQuestionId: currentQuestion.PKTestQuestionId,
@@ -910,12 +979,12 @@ const PracticeExam: React.FC = () => {
       FkCommentedUser: userName,
       ParentCommentId: parentCommentId
     };
-    
+
     try {
       // TODO: Replace with actual API call
       // const result = await interviewQuestionService.AddComment(newReply);
       const result = 1; // Placeholder
-      
+
       if (result === 1) {
         alert('Replied Successfully');
         setIsVisiblePostComment(-1);
@@ -937,13 +1006,13 @@ const PracticeExam: React.FC = () => {
       alert('Comment must be more than one character');
       return;
     }
-    
+
     const updatedReply = { ...reply, Comment: editCommentField.trim() };
-    
+
     try {
       // TODO: Replace with actual API call
       // await interviewQuestionService.EditReply(updatedReply);
-      
+
       if (currentQuestion?.PKTestQuestionId) {
         await fetchComments(currentQuestion.PKTestQuestionId, currentPageIndex);
       }
@@ -959,7 +1028,7 @@ const PracticeExam: React.FC = () => {
     try {
       // TODO: Replace with actual API call
       // await interviewQuestionService.DeleteReply(replyId);
-      
+
       if (currentQuestion?.PKTestQuestionId) {
         await fetchComments(currentQuestion.PKTestQuestionId, currentPageIndex);
       }
@@ -971,7 +1040,7 @@ const PracticeExam: React.FC = () => {
 
   const handleReportComment = useCallback((commentId: string, commentedUserName: string) => {
     if (userRole === 'Admin') return;
-    
+
     setReportCommentId(commentId);
     setCommentedUser(commentedUserName);
     setShowReportModal(true);
@@ -979,7 +1048,7 @@ const PracticeExam: React.FC = () => {
 
   const confirmReportComment = useCallback(async () => {
     if (!userId) return;
-    
+
     const report: UsersCommentReport = {
       fkCommentId: reportCommentId,
       fkQuestionId: currentQuestion?.PKTestQuestionId,
@@ -987,12 +1056,12 @@ const PracticeExam: React.FC = () => {
       pkReportId: '',
       reportCount: 1
     };
-    
+
     try {
       // TODO: Replace with actual API call
       // const result = await interviewQuestionService.AddUsersCommentReport(report);
       const result = true; // Placeholder
-      
+
       if (result) {
         alert('Reported successfully');
       } else {
@@ -1007,14 +1076,14 @@ const PracticeExam: React.FC = () => {
   }, [reportCommentId, currentQuestion, userId]);
 
   const toggleCommentExpand = useCallback((index: number) => {
-    setComments(prev => prev.map((comment, idx) => 
+    setComments(prev => prev.map((comment, idx) =>
       idx === index ? { ...comment, isExpanded: !comment.isExpanded } : comment
     ));
   }, []);
 
   const handleCommentInputChange = useCallback((value: string, isReply: boolean = false) => {
     const trimmedValue = value.trim();
-    
+
     if (trimmedValue === '') {
       if (isReply) {
         setReplyComment('');
@@ -1034,18 +1103,18 @@ const PracticeExam: React.FC = () => {
 
   const paginateComments = useCallback(async (direction: 'next' | 'prev') => {
     if (!currentQuestion) return;
-    
+
     const commentsPerPage = 5;
     const totalPages = Math.ceil(totalCommentsCount / commentsPerPage);
-    
+
     let newPageIndex = currentPageIndex;
-    
+
     if (direction === 'next' && currentPageIndex < totalPages) {
       newPageIndex = currentPageIndex + 1;
     } else if (direction === 'prev' && currentPageIndex > 1) {
       newPageIndex = currentPageIndex - 1;
     }
-    
+
     if (newPageIndex !== currentPageIndex) {
       setCurrentPageIndex(newPageIndex);
       if (currentQuestion.PKTestQuestionId) {
@@ -1059,16 +1128,16 @@ const PracticeExam: React.FC = () => {
   // ===== FETCH TEST SUITE DETAILS =====
   useEffect(() => {
     let mounted = true;
-    
+
     const fetchSuiteDetails = async () => {
       if (!PathId || !userId) return;
-      
+
       try {
         console.log('Fetching test suite details for PathId:', PathId);
-        
+
         const suiteDetails = await getTestSuiteByPathId(PathId, userId);
         if (!mounted) return;
-        
+
         if (suiteDetails) {
           setTestSuiteDetails(suiteDetails);
           if (!testTitle) {
@@ -1079,30 +1148,30 @@ const PracticeExam: React.FC = () => {
         console.error('Error fetching suite details:', error);
       }
     };
-    
+
     fetchSuiteDetails();
-    
+
     return () => { mounted = false; };
   }, [PathId, userId]);
 
   // ===== CHECK SUBSCRIPTION AND CREDITS =====
   useEffect(() => {
     let mounted = true;
-    
+
     const checkSubscription = async () => {
       if (!testId || !userId) return;
-      
+
       try {
         setIsBDTCheckLoading(true);
         const subscribed = await isTestSubscribed(testId, userId, false);
         if (mounted) setIsSubscribed(subscribed);
-        
+
         // Check BDT subscription only if userEmail and testTitle are available
-          if (userEmail && testTitle) {
-            const bdtSub = await checkBDTSubscription(userEmail, testTitle);
+        if (userEmail && testTitle) {
+          const bdtSub = await checkBDTSubscription(userEmail, testTitle);
           if (mounted) setIsBDTUserSubscriber(bdtSub);
         }
-        
+
         const balance = await getWalletBalance(undefined, false);
         if (mounted) setWalletBalance(balance);
       } catch (error) {
@@ -1111,25 +1180,25 @@ const PracticeExam: React.FC = () => {
         if (mounted) setIsBDTCheckLoading(false);
       }
     };
-    
+
     checkSubscription();
-    
+
     return () => { mounted = false; };
   }, [testId, userId, userEmail, testTitle]);
 
   // ===== FETCH TEST VIEW MODEL =====
   useEffect(() => {
     let mounted = true;
-    
+
     const fetchTestViewModel = async () => {
       if (!testId || !userId) return;
-      
+
       try {
         setLoading(true);
         const vm = await getTestViewModel(testId, userId, testMode, undefined, false);
-        
+
         if (!mounted) return;
-        
+
         if (vm && vm.Questions) {
           // Shuffle questions for students with subscription if exam not started
           const hasAnyAnswer = vm.Questions.some((q: Question) => q.QuestionStatus === QuestionStatus.IsAnswered || q.QuestionStatus === QuestionStatus.MarkedandAnswered);
@@ -1137,25 +1206,29 @@ const PracticeExam: React.FC = () => {
           if (userRole === 'Student' && (isSubscribed || isBDTUserSubscriber) && !hasAnyAnswer) {
             vm.Questions = shuffleArray(vm.Questions);
           }
-          
+
           // Calculate need credits (20% of questions)
           const totalQuestions = vm.Questions.length;
           const creditsNeeded = Math.ceil(totalQuestions * 0.2);
           setNeedCredits(creditsNeeded);
-          
-          // Lock questions if not subscribed
+
+          // Lock questions if not subscribed and ensure QuestionId is set
           if (!isSubscribed && !isBDTUserSubscriber && userRole === 'Student') {
             vm.Questions = vm.Questions.map((q: Question, idx: number) => ({
               ...q,
+              QuestionId: q.PKTestQuestionId || q.QuestionId,
+              MarksScoredForthisQuestion: q.MarksScoredForthisQuestion || 0,
               Flag: idx < creditsNeeded
             }));
           } else {
             vm.Questions = vm.Questions.map((q: Question) => ({
               ...q,
+              QuestionId: q.PKTestQuestionId || q.QuestionId,
+              MarksScoredForthisQuestion: q.MarksScoredForthisQuestion || 0,
               Flag: true
             }));
           }
-          
+
           // Initialize timers
           if (vm.Mode === TestMode.Practice) {
             if (vm.TimeElapsedinSeconds === 0) {
@@ -1176,7 +1249,7 @@ const PracticeExam: React.FC = () => {
               setSecondsCounter((vm.DurationinSeconds! - vm.TimeElapsedinSeconds) % 60);
             }
           }
-          
+
           console.log('Test ViewModel loaded:', vm);
           setTestViewModel(vm);
           setCurrentIndex(vm.CurrentQuestionIndex || 0);
@@ -1188,61 +1261,61 @@ const PracticeExam: React.FC = () => {
         if (mounted) setLoading(false);
       }
     };
-    
+
     fetchTestViewModel();
-    
+
     return () => { mounted = false; };
   }, [testId, userId, testMode, isSubscribed, isBDTUserSubscriber, userRole]);
 
   // ===== FETCH INITIAL QUESTION DATA =====
   useEffect(() => {
-    if (!examLoaded || !testViewModel) return;
-    
+    if (!examLoaded || !testViewModel || isExamOver) return;
+
     const currentQuestion = testViewModel.Questions?.[currentIndex];
     // Only fetch if the question doesn't have options loaded yet
     if (currentQuestion?.options && currentQuestion.options.length > 0) {
       console.log('Question already has options, skipping fetch');
       return;
     }
-    
+
     const fetchInitialQuestion = async () => {
       try {
         const payload = buildApiPayload(testViewModel, currentIndex);
-        
+
         if (!payload) {
           console.error('Failed to build initial payload');
           return;
         }
-        
+
         console.log('Fetching initial question data for index:', currentIndex);
         const questionData = await getCurrentExamQuestion(false, false, payload, false);
         console.log('Initial question data received:', questionData);
-        
+
         if (questionData) {
           // Update the current question with the fetched data
           const updatedQuestions = [...testViewModel.Questions];
           const existingQuestion = updatedQuestions[currentIndex];
-          
+
           // Determine the selected option IDs (prefer existing, then from API)
           const selectedOptionId = existingQuestion?.SelectedOptionId ?? questionData.SelectedOptionId ?? '';
           const selectedIds = selectedOptionId.split(',').filter(Boolean);
-          
+
           // Get options from API response
           const apiOptions = questionData.options || questionData.Options || [];
-          
+
           // Merge options while setting selection state based on SelectedOptionId
           const mergedOptions = apiOptions.map((newOption: any, optIdx: number) => {
             const existingOption = existingQuestion?.options?.[optIdx];
             // Check if this option's ID is in the selected IDs
             const isSelected = selectedIds.includes(String(newOption.PKOptionId || newOption.pkOptionId || ''));
-            
+
             return {
               ...newOption,
               // Set selection based on SelectedOptionId, fallback to existing state
               isSelectedOption: isSelected || existingOption?.isSelectedOption || newOption.isSelectedOption || false
             };
           });
-          
+
           updatedQuestions[currentIndex] = {
             ...(existingQuestion || {}),
             Description: questionData.Description || existingQuestion?.Description,
@@ -1258,7 +1331,7 @@ const PracticeExam: React.FC = () => {
             SelectedOptionId: selectedOptionId,
             PKTestQuestionId: existingQuestion?.PKTestQuestionId ?? questionData.PKTestQuestionId
           };
-          
+
           setTestViewModel({
             ...testViewModel,
             Questions: updatedQuestions
@@ -1268,20 +1341,20 @@ const PracticeExam: React.FC = () => {
         console.error('Failed to fetch initial question:', error);
       }
     };
-    
+
     fetchInitialQuestion();
   }, [examLoaded, testViewModel, currentIndex, getCurrentExamQuestion]); // Re-run when exam loads or testViewModel/currentIndex changes
 
   // ===== START TIMERS =====
   useEffect(() => {
     if (!examLoaded || isPaused) return;
-    
+
     startTimer();
-    
+
     if (quizWithQuestionTimer) {
       startTotalTimer();
     }
-    
+
     return () => {
       pauseTimer();
       if (quizWithQuestionTimer) {
@@ -1294,7 +1367,7 @@ const PracticeExam: React.FC = () => {
   useEffect(() => {
     if (testMode !== TestMode.Quiz) return;
     if (isExamOver) return;
-    
+
     // Check for exam timeout
     if (testViewModel?.DefaultTimeinSecondsForEachQuestion === 0) {
       // No per-question timer, check total timer
@@ -1331,7 +1404,7 @@ const PracticeExam: React.FC = () => {
       if (testViewModel && !isExamOver) {
         // Save progress before leaving
         updateBuyerTest(false);
-        
+
         // Store reload flag
         localStorage.setItem('Reloaded', 'true');
         localStorage.setItem('CurrentTestMode', testMode.toString());
@@ -1339,7 +1412,7 @@ const PracticeExam: React.FC = () => {
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    
+
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
@@ -1431,7 +1504,7 @@ const PracticeExam: React.FC = () => {
                   <Skeleton className="h-7 w-48" />
                   <Skeleton className="h-10 w-24" />
                 </div>
-                
+
                 {/* Question Content */}
                 <div className="mb-6">
                   <Skeleton className="h-6 w-full mb-3" />
@@ -1485,11 +1558,353 @@ const PracticeExam: React.FC = () => {
     );
   }
 
+  // Show results page if exam is over
+  if (showResultsModal && testViewModel) {
+    const marksScored = testViewModel.MarksScored || 0;
+    const totalMarks = testViewModel.TotalMarksAllocated || 0;
+    const percentage = totalMarks > 0 ? Math.round((marksScored / totalMarks) * 100) : 0;
+    const passPercentage = testViewModel.PassPercentage || 50;
+    const isPassed = percentage >= passPercentage;
+
+    return (
+      <div className="w-full min-h-screen bg-gray-50">
+        <style>{htmlContentStyles}</style>
+        
+        <div className="p-4 max-w-7xl mx-auto">
+          {/* Breadcrumb Navigation */}
+          <nav className="mb-4">
+            <ol className="flex items-center gap-2 text-sm text-text-secondary">
+              <li>
+                <Link to="/" className="hover:text-primary-blue">Home</Link>
+              </li>
+              <li>/</li>
+              <li>
+                <Link to="/exams" className="hover:text-primary-blue">Tests</Link>
+              </li>
+              <li>/</li>
+              <li>
+                <Link to={`/exams/${PathId}`} className="hover:text-primary-blue">
+                  {testTitle}
+                </Link>
+              </li>
+              <li>/</li>
+              <li className="font-semibold text-text-primary">Results</li>
+            </ol>
+          </nav>
+
+          {/* Header Section */}
+          <div className={`bg-white rounded-xl shadow-md p-6 mb-6 border-l-4 ${isPassed ? 'border-green-500' : 'border-red-500'}`}>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-4">
+                <div className={`text-4xl ${isPassed ? 'text-green-500' : 'text-red-500'}`}>
+                  {isPassed ? '✓' : '✗'}
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                    {isPassed ? 'Congratulations! You Passed!' : 'You Did Not Pass'}
+                  </h1>
+                  <p className="text-gray-600">
+                    To Pass <span className="font-semibold">{passPercentage}% or higher</span>
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-600 mb-1">Grade</p>
+                <p className={`text-5xl font-bold ${isPassed ? 'text-green-600' : 'text-red-600'}`}>
+                  {percentage}%
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Test Info Section */}
+          <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              {testViewModel.Title || 'Practice Exam'}
+            </h2>
+            <p className="text-gray-700 text-lg">
+              Marks Scored: <span className="font-semibold">{marksScored}</span>
+            </p>
+          </div>
+
+          {/* Questions List */}
+          <div className="space-y-4 mb-6">
+            {testViewModel.Questions?.map((question, idx) => {
+              const isExpanded = expandedQuestions.has(idx);
+              const isCorrect = (question.MarksScoredForthisQuestion || 0) > 0;
+              const selectedIds = question.SelectedOptionId?.split(',').filter(Boolean) || [];
+
+              return (
+                <div
+                  key={idx}
+                  className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
+                >
+                  {/* Question Header */}
+                  <button
+                    onClick={() => {
+                      const newExpanded = new Set(expandedQuestions);
+                      if (isExpanded) {
+                        newExpanded.delete(idx);
+                      } else {
+                        newExpanded.add(idx);
+                      }
+                      setExpandedQuestions(newExpanded);
+                    }}
+                    className={`w-full p-4 flex items-center justify-between ${
+                      isCorrect ? 'bg-white hover:bg-gray-50' : 'bg-blue-50 hover:bg-blue-100'
+                    } transition-colors`}
+                  >
+                    <div className="flex items-center gap-3 flex-1 text-left">
+                      <span className="text-lg font-semibold text-gray-700">
+                        {idx + 1}.
+                      </span>
+                      <div 
+                        className="flex-1 text-gray-800 line-clamp-2"
+                        dangerouslySetInnerHTML={{ 
+                          __html: question.Description || 'Question' 
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {isCorrect ? (
+                        <FaCheck className="text-green-500 text-xl flex-shrink-0" />
+                      ) : (
+                        <FaTimes className="text-red-500 text-xl flex-shrink-0" />
+                      )}
+                      <span className="text-gray-400 text-2xl flex-shrink-0">
+                        {isExpanded ? '−' : '+'}
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* Question Details (Expanded) */}
+                  {isExpanded && (
+                    <div className="p-6 bg-gray-50 border-t border-gray-200">
+                      {/* Full Question */}
+                      <div className="mb-4">
+                        <p className="font-semibold text-gray-700 mb-2">Statement:</p>
+                        <div
+                          className="html-content text-gray-800"
+                          dangerouslySetInnerHTML={{ __html: question.Description || '' }}
+                        />
+                      </div>
+
+                      {/* Question Image */}
+                      {question.ImageUrl && (
+                        <div className="mb-4">
+                          <img
+                            src={question.ImageUrl}
+                            alt="Question"
+                            className="max-w-full rounded-lg shadow-md"
+                          />
+                        </div>
+                      )}
+
+                      {/* Options */}
+                      <div className="mb-4">
+                        <div className="space-y-2">
+                          {question.options?.map((option, optIdx) => {
+                            const isSelected = selectedIds.includes(option.PKOptionId || '');
+                            const isCorrectOption = option.IsCorrect;
+                            const optionLabel = alphabets[optIdx];
+
+                            return (
+                              <div
+                                key={optIdx}
+                                className={`p-3 rounded-lg border-2 ${
+                                  isCorrectOption && isSelected
+                                    ? 'bg-green-50 border-green-500'
+                                    : isSelected && !isCorrectOption
+                                    ? 'bg-red-50 border-red-500'
+                                    : isCorrectOption
+                                    ? 'bg-green-50 border-green-500'
+                                    : 'bg-white border-gray-200'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold">{optionLabel}.</span>
+                                  <div
+                                    className="flex-1"
+                                    dangerouslySetInnerHTML={{ __html: option.Description || '' }}
+                                  />
+                                  {isSelected && !isCorrectOption && (
+                                    <FaTimes className="text-red-500 flex-shrink-0" />
+                                  )}
+                                  {isCorrectOption && (
+                                    <FaCheck className="text-green-500 flex-shrink-0" />
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Status */}
+                      <div className="mb-4">
+                        <p className={`font-semibold text-lg ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                          {isCorrect ? '✓ Correct' : '✗ Wrong'}
+                        </p>
+                      </div>
+
+                      {/* Explanation */}
+                      {question.Explanation && (
+                        <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
+                          <p className="font-semibold text-gray-700 mb-2">Explanation</p>
+                          <div
+                            className="html-content text-gray-700"
+                            dangerouslySetInnerHTML={{ __html: question.Explanation }}
+                          />
+                          {question.CourseURL && (
+                            <div className="mt-3 pt-3 border-t border-gray-200">
+                              <p className="text-sm text-gray-600 mb-1">Reference:</p>
+                              <a
+                                href={question.CourseURL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline text-sm break-all"
+                              >
+                                {question.CourseURL}
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Comments Section */}
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-2">Comments</p>
+                        <textarea
+                          placeholder="Enter your comments here..."
+                          className="w-full border border-gray-300 rounded-lg p-3 text-sm min-h-[80px] focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Footer Actions */}
+          <div className="bg-white rounded-xl shadow-md p-6 flex justify-between items-center sticky bottom-0">
+            <Button
+              variant="secondary"
+              onClick={() => navigate(`/exams/${PathId}`)}
+            >
+              Back to Exams
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => setShowReviewModal(true)}
+            >
+              Submit Review
+            </Button>
+          </div>
+        </div>
+
+        {/* Review Modal */}
+        {showReviewModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-8 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <h2 className="text-2xl font-bold mb-6">Review</h2>
+
+              <div className="mb-6">
+                <p className="mb-3 font-semibold">
+                  How satisfied were you with this practice exam on a scale of 5?
+                </p>
+                <div className="flex gap-2 justify-center">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setRating(star)}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      className="text-3xl transition-colors"
+                    >
+                      <span className={star <= (hoverRating || rating) ? 'text-yellow-400' : 'text-gray-300'}>
+                        ★
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <p className="mb-3 font-semibold">
+                  How helpful will this test be for your Certification?
+                </p>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="helpfulness"
+                      value="Worth taking it"
+                      checked={testHelpfulness === 'Worth taking it'}
+                      onChange={(e) => setTestHelpfulness(e.target.value)}
+                    />
+                    <span>Worth taking it</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="helpfulness"
+                      value="Might be Helpful"
+                      checked={testHelpfulness === 'Might be Helpful'}
+                      onChange={(e) => setTestHelpfulness(e.target.value)}
+                    />
+                    <span>Might be Helpful</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="helpfulness"
+                      value="Not Much"
+                      checked={testHelpfulness === 'Not Much'}
+                      onChange={(e) => setTestHelpfulness(e.target.value)}
+                    />
+                    <span>Not Much</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <p className="mb-3 font-semibold">Describe your Experience</p>
+                <textarea
+                  value={testReview}
+                  onChange={(e) => setTestReview(e.target.value)}
+                  className="w-full border border-border rounded-lg p-3 min-h-[120px]"
+                  placeholder="Share your feedback..."
+                />
+              </div>
+
+              <div className="flex gap-4 justify-end">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowReviewModal(false)}
+                >
+                  Skip
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleSubmitReview}
+                  disabled={!rating}
+                >
+                  Submit Review
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={`w-full min-h-screen ${isPaused ? 'blur-sm' : ''}`}>
       {/* Inject CSS for HTML content */}
       <style>{htmlContentStyles}</style>
-     
+
       {/* Main Content */}
       <div className="p-4">
         {/* Breadcrumb Navigation */}
@@ -1504,7 +1919,7 @@ const PracticeExam: React.FC = () => {
             </li>
             <li>/</li>
             <li>
-              <button 
+              <button
                 onClick={handleClose}
                 className="hover:text-primary-blue"
               >
@@ -1551,7 +1966,7 @@ const PracticeExam: React.FC = () => {
                   <Skeleton className="h-7 w-48" />
                   <Skeleton className="h-10 w-32" />
                 </div>
-                
+
                 {/* Question Content Skeleton */}
                 <div className="mb-6">
                   <Skeleton className="h-6 w-full mb-3" />
@@ -1582,516 +1997,516 @@ const PracticeExam: React.FC = () => {
                 </div>
               </div>
             ) : (
-            <div className="bg-white rounded-xl shadow-md border border-border p-6">
-              {/* Question Header */}
-              <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-                <div className="flex items-center gap-4">
-                  <span className="text-lg font-semibold">
-                    Question: <span className="text-primary-blue">
-                      {String(currentIndex + 1).padStart(2, '0')} of {questions.length}
+              <div className="bg-white rounded-xl shadow-md border border-border p-6">
+                {/* Question Header */}
+                <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+                  <div className="flex items-center gap-4">
+                    <span className="text-lg font-semibold">
+                      Question: <span className="text-primary-blue">
+                        {String(currentIndex + 1).padStart(2, '0')} of {questions.length}
+                      </span>
                     </span>
-                  </span>
-                  <span className="text-sm bg-light-blue text-primary-blue px-3 py-1 rounded-md">
-                    <strong>Domain:</strong> {currentQuestion?.ModuleName || testTitle}
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full font-semibold">
-                    <FaClock />
-                    <span>
-                      {testMode === TestMode.Practice ? 'Time: ' : 
-                       testViewModel?.DefaultTimeinSecondsForEachQuestion ? 'Time for this Question: ' : 'Time Left: '}
-                      {formatTime(minutesCounter * 60 + secondsCounter)}
+                    <span className="text-sm bg-light-blue text-primary-blue px-3 py-1 rounded-md">
+                      <strong>Domain:</strong> {currentQuestion?.ModuleName || testTitle}
                     </span>
                   </div>
-                  
-                  {testMode === TestMode.Quiz && !quizWithQuestionTimer && (
-                    <button
-                      onClick={handlePause}
-                      className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
-                      title="Pause"
-                    >
-                      <FaPause className="text-gray-700" />
-                    </button>
-                  )}
-                  
-                  {testMode === TestMode.Practice && (
-                    <button
-                      onClick={handleClose}
-                      className="p-2 rounded-full bg-red-100 hover:bg-red-200 transition-colors"
-                      title="Close"
-                    >
-                      <FaTimes className="text-red-600" />
-                    </button>
-                  )}
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full font-semibold">
+                      <FaClock />
+                      <span>
+                        {testMode === TestMode.Practice ? 'Time: ' :
+                          testViewModel?.DefaultTimeinSecondsForEachQuestion ? 'Time for this Question: ' : 'Time Left: '}
+                        {formatTime(minutesCounter * 60 + secondsCounter)}
+                      </span>
+                    </div>
+
+                    {testMode === TestMode.Quiz && !quizWithQuestionTimer && (
+                      <button
+                        onClick={handlePause}
+                        className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
+                        title="Pause"
+                      >
+                        <FaPause className="text-gray-700" />
+                      </button>
+                    )}
+
+                    {testMode === TestMode.Practice && (
+                      <button
+                        onClick={handleClose}
+                        className="p-2 rounded-full bg-red-100 hover:bg-red-200 transition-colors"
+                        title="Close"
+                      >
+                        <FaTimes className="text-red-600" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Question Text */}
-              {currentQuestion?.Description ? (
-                <div 
-                  className="html-content prose prose-sm md:prose-base max-w-none mb-6"
-                  style={{
-                    wordWrap: 'break-word',
-                    overflowWrap: 'break-word'
-                  }}
-                  dangerouslySetInnerHTML={{ __html: currentQuestion.Description }}
-                />
-              ) : ''}
+                {/* Question Text */}
+                {currentQuestion?.Description ? (
+                  <div
+                    className="html-content prose prose-sm md:prose-base max-w-none mb-6"
+                    style={{
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word'
+                    }}
+                    dangerouslySetInnerHTML={{ __html: currentQuestion.Description }}
+                  />
+                ) : ''}
 
-              {/* Question Image */}
-              {currentQuestion?.ImageUrl && (
-                <img 
-                  src={currentQuestion.ImageUrl} 
-                  alt="Question" 
-                  className="max-w-full h-auto rounded-lg mb-6"
-                />
-              )}
+                {/* Question Image */}
+                {currentQuestion?.ImageUrl && (
+                  <img
+                    src={currentQuestion.ImageUrl}
+                    alt="Question"
+                    className="max-w-full h-auto rounded-lg mb-6"
+                  />
+                )}
 
-              {/* Options Instruction */}
-              <div className="bg-green-50 border-l-4 border-green-500 text-green-700 px-4 py-3 mb-4 rounded">
-                {isCheckBox ? 'Please select all correct answers' : 'Please select the correct answer'}
-              </div>
+                {/* Options Instruction */}
+                <div className="bg-green-50 border-l-4 border-green-500 text-green-700 px-4 py-3 mb-4 rounded">
+                  {isCheckBox ? 'Please select all correct answers' : 'Please select the correct answer'}
+                </div>
 
-              {/* Options */}
-              <div className="space-y-3 mb-6">
-                {currentQuestion?.options && currentQuestion.options.length > 0 ? (
-                  currentQuestion.options.map((option, idx) => {
-                    const isSelected = option.isSelectedOption;
-                    const isCorrect = showAnswerClicked && option.IsCorrect;
-                    const isWrong = showAnswerClicked && isSelected && !option.IsCorrect;
-                    
-                    return (
-                      <label
-                        key={idx}
-                        className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all
+                {/* Options */}
+                <div className="space-y-3 mb-6">
+                  {currentQuestion?.options && currentQuestion.options.length > 0 ? (
+                    currentQuestion.options.map((option, idx) => {
+                      const isSelected = option.isSelectedOption;
+                      const isCorrect = showAnswerClicked && option.IsCorrect;
+                      const isWrong = showAnswerClicked && isSelected && !option.IsCorrect;
+
+                      return (
+                        <label
+                          key={idx}
+                          className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all
                           ${isCorrect ? 'border-green-500 bg-green-50' : ''}
                           ${isWrong ? 'border-red-500 bg-red-50' : ''}
                           ${!showAnswerClicked && isSelected ? 'border-primary-blue bg-light-blue' : ''}
                           ${!showAnswerClicked && !isSelected ? 'border-border hover:border-primary-blue' : ''}
                         `}
-                      >
-                        <input
-                          type={isCheckBox ? 'checkbox' : 'radio'}
-                          checked={isSelected || false}
-                          onChange={() => handleOptionChange(idx)}
-                          disabled={isPaused || isExamOver}
-                          className="mt-1"
-                        />
-                        <div className="flex items-start gap-3 flex-1">
-                          <span className="font-semibold text-text-secondary flex-shrink-0">
-                            {alphabets[idx]}.
-                          </span>
-                          {option.Description ? (
-                            <div 
-                              className="html-content prose prose-sm max-w-none flex-1"
-                              style={{
-                                wordWrap: 'break-word',
-                                overflowWrap: 'break-word'
-                              }}
-                              dangerouslySetInnerHTML={{ __html: option.Description }}
-                            />
-                          ) : (
-                            <span className="flex-1">Option {alphabets[idx]}</span>
-                          )}
-                        </div>
-                        {option.ImageUrl && (
-                          <img 
-                            src={option.ImageUrl} 
-                            alt={`Option ${alphabets[idx]}`}
-                            className="max-w-xs h-auto rounded"
+                        >
+                          <input
+                            type={isCheckBox ? 'checkbox' : 'radio'}
+                            checked={isSelected || false}
+                            onChange={() => handleOptionChange(idx)}
+                            disabled={isPaused || isExamOver}
+                            className="mt-1"
                           />
-                        )}
-                      </label>
-                    );
-                  })
-                ) : ''}
-              </div>
-
-              {/* Show Answer Button (Practice Mode) */}
-              {testMode === TestMode.Practice && (
-                <div className="mb-6">
-                  <Button
-                    variant="secondary"
-                    onClick={() => setShowAnswerClicked(!showAnswerClicked)}
-                    className="w-full"
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      {showAnswerClicked ? (
-                        <>Hide Answer <FaMinus /></>
-                      ) : (
-                        <>Show Answer <FaPlus /></>
-                      )}
-                    </span>
-                  </Button>
-                </div>
-              )}
-
-              {/* Answer Explanation */}
-              {(testMode === TestMode.Practice || isExamOver) && showAnswerClicked && (
-                <div className="bg-gray-50 border border-border rounded-xl p-6 mb-6">
-                  <div className="mb-4">
-                    <strong className="text-lg">Correct Answer{isCheckBox ? 's' : ''}: </strong>
-                    <span className="text-primary-blue font-semibold">
-                      {currentQuestion?.options
-                        ?.map((opt, idx) => opt.IsCorrect ? alphabets[idx] : null)
-                        .filter(Boolean)
-                        .join(', ') || 'Not available'}
-                    </span>
-                  </div>
-                  
-                  {currentQuestion?.Explanation && (
-                    <div className="mt-4">
-                      <h4 className="font-semibold text-lg mb-3">Explanation:</h4>
-                      <div 
-                        className="html-content prose prose-sm md:prose-base max-w-none"
-                        style={{
-                          wordWrap: 'break-word',
-                          overflowWrap: 'break-word'
-                        }}
-                        dangerouslySetInnerHTML={{ __html: currentQuestion.Explanation }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Related Course */}
-                  {currentQuestion?.CourseURL && currentQuestion?.ThumbNailes && (
-                    <div className="mt-6">
-                      <h4 className="font-semibold mb-3">Related Courses:</h4>
-                      <a 
-                        href={currentQuestion.CourseURL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block max-w-xs"
-                      >
-                        <img 
-                          src={currentQuestion.ThumbNailes}
-                          alt="Course"
-                          className="w-full rounded-lg shadow-md hover:shadow-lg transition-shadow"
-                        />
-                        <p className="text-center mt-2 text-primary-blue font-semibold">
-                          {testTitle}
-                        </p>
-                      </a>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Navigation Buttons */}
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    size="small"
-                    onClick={handleFirst}
-                    disabled={currentIndex === 0 || isPaused || (testViewModel?.DefaultTimeinSecondsForEachQuestion !== 0 && testMode === TestMode.Quiz)}
-                  >
-                    <FaAngleDoubleLeft />
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="small"
-                    onClick={handlePrevious}
-                    disabled={currentIndex === 0 || isPaused || (testViewModel?.DefaultTimeinSecondsForEachQuestion !== 0 && testMode === TestMode.Quiz) || (!isBDTUserSubscriber && !isSubscribed && currentIndex > needCredits)}
-                  >
-                    <FaAngleLeft />
-                  </Button>
-                </div>
-
-                <Button
-                  variant="primary"
-                  onClick={handleFinish}
-                  disabled={isPaused}
-                  className="!bg-green-600 hover:!bg-green-700"
-                >
-                  Finish
-                </Button>
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    size="small"
-                    onClick={handleNext}
-                    disabled={currentIndex === questions.length - 1 || isPaused || (!isSubscribed && currentIndex >= needCredits - 1 && !isBDTUserSubscriber)}
-                  >
-                    <FaAngleRight />
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="small"
-                    onClick={handleLast}
-                    disabled={currentIndex === questions.length - 1 || isPaused || (testViewModel?.DefaultTimeinSecondsForEachQuestion !== 0 && testMode === TestMode.Quiz) || (!isSubscribed && !isBDTUserSubscriber)}
-                  >
-                    <FaAngleDoubleRight />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Comments Section Placeholder */}
-              <div className="mt-8 pt-6 border-t border-border">
-                <button
-                  onClick={() => setShowComments(!showComments)}
-                  className="text-primary-blue font-semibold hover:underline flex items-center gap-2 mb-4"
-                >
-                  <FaReply />
-                  {totalCommentsCount} Comment{totalCommentsCount !== 1 ? 's' : ''}
-                </button>
-
-                {/* Add Comment Form */}
-                <form onSubmit={handleAddComment} className="mb-6">
-                  <div className="flex flex-col gap-2">
-                    <textarea
-                      value={commentText}
-                      onChange={(e) => handleCommentInputChange(e.target.value, false)}
-                      placeholder="Enter your comment here..."
-                      className="w-full border border-border rounded-lg p-3 min-h-[80px] focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                      rows={3}
-                    />
-                    <div className="flex justify-end">
-                      <Button
-                        type="submit"
-                        variant="primary"
-                        size="small"
-                        disabled={!commentText || commentText.trim().length < 2 || isCommentWhitespace}
-                      >
-                        Submit
-                      </Button>
-                    </div>
-                  </div>
-                </form>
-
-                {/* Comments List */}
-                {showComments && (
-                  <div className="space-y-4">
-                    {comments.length > 0 ? (
-                      <>
-                        {comments.map((comment, commentIdx) => (
-                          <div key={comment.PKCommentId} className="bg-gray-50 rounded-lg p-4 border border-border">
-                            {/* Comment Content */}
-                            {!comment.IsEdit ? (
-                              <div>
-                                <div className="flex items-start gap-2 mb-2">
-                                  <FaReply className="text-primary-blue mt-1" />
-                                  <p className="flex-1 text-text-primary">{comment.Comment}</p>
-                                </div>
-                                <p className="text-xs text-text-secondary ml-6">
-                                  On {new Date(comment.CommentedDate || '').toLocaleDateString()} by {comment.FkCommentedUser}
-                                  {comment.FKCommentedBy === userId && (
-                                    <>
-                                      <button
-                                        onClick={() => handleEditComment(comment)}
-                                        className="ml-2 text-primary-blue hover:underline"
-                                      >
-                                        <FaEdit className="inline" />
-                                      </button>
-                                    </>
-                                  )}
-                                  {(comment.FKCommentedBy === userId || userRole === 'Admin') && (
-                                    <button
-                                      onClick={() => handleDeleteComment(comment)}
-                                      className="ml-2 text-red-600 hover:underline"
-                                    >
-                                      <FaTrash className="inline" />
-                                    </button>
-                                  )}
-                                </p>
-                              </div>
+                          <div className="flex items-start gap-3 flex-1">
+                            <span className="font-semibold text-text-secondary flex-shrink-0">
+                              {alphabets[idx]}.
+                            </span>
+                            {option.Description ? (
+                              <div
+                                className="html-content prose prose-sm max-w-none flex-1"
+                                style={{
+                                  wordWrap: 'break-word',
+                                  overflowWrap: 'break-word'
+                                }}
+                                dangerouslySetInnerHTML={{ __html: option.Description }}
+                              />
                             ) : (
-                              <div className="flex flex-col gap-2">
-                                <input
-                                  type="text"
-                                  value={comment.Comment}
-                                  onChange={(e) => {
-                                    const newComments = [...comments];
-                                    newComments[commentIdx].Comment = e.target.value;
-                                    setComments(newComments);
-                                  }}
-                                  className="border border-border rounded px-3 py-2"
-                                />
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="small"
-                                    variant="primary"
-                                    onClick={() => handleUpdateComment(comment)}
-                                  >
-                                    Save
-                                  </Button>
-                                  <Button
-                                    size="small"
-                                    variant="secondary"
-                                    onClick={() => handleCancelEdit(comment)}
-                                  >
-                                    Cancel
-                                  </Button>
-                                </div>
-                              </div>
+                              <span className="flex-1">Option {alphabets[idx]}</span>
                             )}
+                          </div>
+                          {option.ImageUrl && (
+                            <img
+                              src={option.ImageUrl}
+                              alt={`Option ${alphabets[idx]}`}
+                              className="max-w-xs h-auto rounded"
+                            />
+                          )}
+                        </label>
+                      );
+                    })
+                  ) : ''}
+                </div>
 
-                            {/* Comment Actions */}
-                            <div className="flex items-center gap-4 mt-3 ml-6 text-sm">
-                              <button
-                                onClick={() => handleVoteComment(comment)}
-                                className="flex items-center gap-1 text-text-secondary hover:text-primary-blue"
-                              >
-                                <FaThumbsUp /> {comment.Votes || 0}
-                              </button>
-                              <button
-                                onClick={() => setIsVisiblePostComment(isVisiblePostComment === commentIdx ? -1 : commentIdx)}
-                                className="flex items-center gap-1 text-text-secondary hover:text-primary-blue"
-                              >
-                                <FaReply /> {comment.RepliesCount || 0}
-                              </button>
-                              {comment.FKCommentedBy !== userId && userRole !== 'Admin' && (
-                                <button
-                                  onClick={() => handleReportComment(comment.PKCommentId || '', comment.FkCommentedUser)}
-                                  className="flex items-center gap-1 text-text-secondary hover:text-red-600"
-                                >
-                                  <FaFlag />
-                                  {userRole === 'Admin' && <span className="text-red-600">({comment.ReportCount})</span>}
-                                </button>
-                              )}
-                            </div>
+                {/* Show Answer Button (Practice Mode) */}
+                {testMode === TestMode.Practice && (
+                  <div className="mb-6">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setShowAnswerClicked(!showAnswerClicked)}
+                      className="w-full"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        {showAnswerClicked ? (
+                          <>Hide Answer <FaMinus /></>
+                        ) : (
+                          <>Show Answer <FaPlus /></>
+                        )}
+                      </span>
+                    </Button>
+                  </div>
+                )}
 
-                            {/* Expand/Collapse Replies */}
-                            {(comment.Replies?.length || 0) > 0 && (
-                              <button
-                                onClick={() => toggleCommentExpand(commentIdx)}
-                                className="ml-6 mt-2 text-sm text-primary-blue hover:underline flex items-center gap-1"
-                              >
-                                {comment.isExpanded ? <FaMinus /> : <FaPlus />}
-                                {comment.isExpanded ? 'Hide' : 'Show'} Replies
-                              </button>
-                            )}
+                {/* Answer Explanation */}
+                {(testMode === TestMode.Practice || isExamOver) && showAnswerClicked && (
+                  <div className="bg-gray-50 border border-border rounded-xl p-6 mb-6">
+                    <div className="mb-4">
+                      <strong className="text-lg">Correct Answer{isCheckBox ? 's' : ''}: </strong>
+                      <span className="text-primary-blue font-semibold">
+                        {currentQuestion?.options
+                          ?.map((opt, idx) => opt.IsCorrect ? alphabets[idx] : null)
+                          .filter(Boolean)
+                          .join(', ') || 'Not available'}
+                      </span>
+                    </div>
 
-                            {/* Replies */}
-                            {comment.isExpanded && comment.Replies && (
-                              <div className="ml-8 mt-3 space-y-3 border-l-2 border-gray-300 pl-4">
-                                {comment.Replies.map((reply, replyIdx) => (
-                                  <div key={reply.PKCommentId} className="bg-white rounded p-3">
-                                    <div className="flex items-start gap-2">
-                                      <span className="text-primary-blue">→</span>
-                                      <div className="flex-1">
-                                        {isVisibleEditReply !== replyIdx ? (
-                                          <>
-                                            <p className="text-text-primary">{reply.Comment}</p>
-                                            <p className="text-xs text-text-secondary mt-1">
-                                              On {new Date(reply.CommentedDate || '').toLocaleDateString()} by {reply.FkCommentedUser}
-                                              {reply.FKCommentedBy === userId && (
-                                                <button
-                                                  onClick={() => {
-                                                    setIsVisibleEditReply(replyIdx);
-                                                    setEditCommentField(reply.Comment);
-                                                  }}
-                                                  className="ml-2 text-primary-blue hover:underline"
-                                                >
-                                                  <FaEdit className="inline" />
-                                                </button>
-                                              )}
-                                              {(reply.FKCommentedBy === userId || userRole === 'Admin') && (
-                                                <button
-                                                  onClick={() => reply.PKCommentId && handleDeleteReply(reply.PKCommentId)}
-                                                  className="ml-2 text-red-600 hover:underline"
-                                                >
-                                                  <FaTrash className="inline" />
-                                                </button>
-                                              )}
-                                            </p>
-                                          </>
-                                        ) : (
-                                          <div className="flex flex-col gap-2">
-                                            <input
-                                              type="text"
-                                              value={editCommentField}
-                                              onChange={(e) => handleCommentInputChange(e.target.value, true)}
-                                              className="border border-border rounded px-3 py-2"
-                                            />
-                                            <div className="flex gap-2">
-                                              <Button
-                                                size="small"
-                                                variant="primary"
-                                                onClick={() => handleEditReply(reply)}
-                                                disabled={isCommentWhitespace}
-                                              >
-                                                Save
-                                              </Button>
-                                              <Button
-                                                size="small"
-                                                variant="secondary"
-                                                onClick={() => setIsVisibleEditReply(-1)}
-                                              >
-                                                Cancel
-                                              </Button>
-                                            </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
+                    {currentQuestion?.Explanation && (
+                      <div className="mt-4">
+                        <h4 className="font-semibold text-lg mb-3">Explanation:</h4>
+                        <div
+                          className="html-content prose prose-sm md:prose-base max-w-none"
+                          style={{
+                            wordWrap: 'break-word',
+                            overflowWrap: 'break-word'
+                          }}
+                          dangerouslySetInnerHTML={{ __html: currentQuestion.Explanation }}
+                        />
+                      </div>
+                    )}
+
+                    {/* Related Course */}
+                    {currentQuestion?.CourseURL && currentQuestion?.ThumbNailes && (
+                      <div className="mt-6">
+                        <h4 className="font-semibold mb-3">Related Courses:</h4>
+                        <a
+                          href={currentQuestion.CourseURL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block max-w-xs"
+                        >
+                          <img
+                            src={currentQuestion.ThumbNailes}
+                            alt="Course"
+                            className="w-full rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                          />
+                          <p className="text-center mt-2 text-primary-blue font-semibold">
+                            {testTitle}
+                          </p>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Navigation Buttons */}
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      onClick={handleFirst}
+                      disabled={currentIndex === 0 || isPaused || (testViewModel?.DefaultTimeinSecondsForEachQuestion !== 0 && testMode === TestMode.Quiz)}
+                    >
+                      <FaAngleDoubleLeft />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      onClick={handlePrevious}
+                      disabled={currentIndex === 0 || isPaused || (testViewModel?.DefaultTimeinSecondsForEachQuestion !== 0 && testMode === TestMode.Quiz) || (!isBDTUserSubscriber && !isSubscribed && currentIndex > needCredits)}
+                    >
+                      <FaAngleLeft />
+                    </Button>
+                  </div>
+
+                  <Button
+                    variant="primary"
+                    onClick={handleFinish}
+                    disabled={isPaused}
+                    className="!bg-green-600 hover:!bg-green-700"
+                  >
+                    Finish
+                  </Button>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      onClick={handleNext}
+                      disabled={currentIndex === questions.length - 1 || isPaused || (!isSubscribed && currentIndex >= needCredits - 1 && !isBDTUserSubscriber)}
+                    >
+                      <FaAngleRight />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      onClick={handleLast}
+                      disabled={currentIndex === questions.length - 1 || isPaused || (testViewModel?.DefaultTimeinSecondsForEachQuestion !== 0 && testMode === TestMode.Quiz) || (!isSubscribed && !isBDTUserSubscriber)}
+                    >
+                      <FaAngleDoubleRight />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Comments Section Placeholder */}
+                <div className="mt-8 pt-6 border-t border-border">
+                  <button
+                    onClick={() => setShowComments(!showComments)}
+                    className="text-primary-blue font-semibold hover:underline flex items-center gap-2 mb-4"
+                  >
+                    <FaReply />
+                    {totalCommentsCount} Comment{totalCommentsCount !== 1 ? 's' : ''}
+                  </button>
+
+                  {/* Add Comment Form */}
+                  <form onSubmit={handleAddComment} className="mb-6">
+                    <div className="flex flex-col gap-2">
+                      <textarea
+                        value={commentText}
+                        onChange={(e) => handleCommentInputChange(e.target.value, false)}
+                        placeholder="Enter your comment here..."
+                        className="w-full border border-border rounded-lg p-3 min-h-[80px] focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                        rows={3}
+                      />
+                      <div className="flex justify-end">
+                        <Button
+                          type="submit"
+                          variant="primary"
+                          size="small"
+                          disabled={!commentText || commentText.trim().length < 2 || isCommentWhitespace}
+                        >
+                          Submit
+                        </Button>
+                      </div>
+                    </div>
+                  </form>
+
+                  {/* Comments List */}
+                  {showComments && (
+                    <div className="space-y-4">
+                      {comments.length > 0 ? (
+                        <>
+                          {comments.map((comment, commentIdx) => (
+                            <div key={comment.PKCommentId} className="bg-gray-50 rounded-lg p-4 border border-border">
+                              {/* Comment Content */}
+                              {!comment.IsEdit ? (
+                                <div>
+                                  <div className="flex items-start gap-2 mb-2">
+                                    <FaReply className="text-primary-blue mt-1" />
+                                    <p className="flex-1 text-text-primary">{comment.Comment}</p>
                                   </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {/* Reply Form */}
-                            {isVisiblePostComment === commentIdx && (
-                              <div className="ml-8 mt-3">
+                                  <p className="text-xs text-text-secondary ml-6">
+                                    On {new Date(comment.CommentedDate || '').toLocaleDateString()} by {comment.FkCommentedUser}
+                                    {comment.FKCommentedBy === userId && (
+                                      <>
+                                        <button
+                                          onClick={() => handleEditComment(comment)}
+                                          className="ml-2 text-primary-blue hover:underline"
+                                        >
+                                          <FaEdit className="inline" />
+                                        </button>
+                                      </>
+                                    )}
+                                    {(comment.FKCommentedBy === userId || userRole === 'Admin') && (
+                                      <button
+                                        onClick={() => handleDeleteComment(comment)}
+                                        className="ml-2 text-red-600 hover:underline"
+                                      >
+                                        <FaTrash className="inline" />
+                                      </button>
+                                    )}
+                                  </p>
+                                </div>
+                              ) : (
                                 <div className="flex flex-col gap-2">
                                   <input
                                     type="text"
-                                    value={replyComment}
-                                    onChange={(e) => handleCommentInputChange(e.target.value, true)}
-                                    placeholder="Enter your reply here..."
+                                    value={comment.Comment}
+                                    onChange={(e) => {
+                                      const newComments = [...comments];
+                                      newComments[commentIdx].Comment = e.target.value;
+                                      setComments(newComments);
+                                    }}
                                     className="border border-border rounded px-3 py-2"
                                   />
                                   <div className="flex gap-2">
                                     <Button
                                       size="small"
                                       variant="primary"
-                                      onClick={() => comment.PKCommentId && handleReplyComment(comment.PKCommentId)}
-                                      disabled={!replyComment || replyComment.trim().length < 2 || isCommentWhitespace}
+                                      onClick={() => handleUpdateComment(comment)}
                                     >
-                                      Post
+                                      Save
+                                    </Button>
+                                    <Button
+                                      size="small"
+                                      variant="secondary"
+                                      onClick={() => handleCancelEdit(comment)}
+                                    >
+                                      Cancel
                                     </Button>
                                   </div>
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                              )}
 
-                        {/* Pagination */}
-                        {totalCommentsCount > 5 && (
-                          <div className="flex justify-center gap-4 mt-6">
-                            <Button
-                              variant="secondary"
-                              size="small"
-                              onClick={() => paginateComments('prev')}
-                              disabled={currentPageIndex === 1}
-                            >
-                              <FaAngleLeft />
-                            </Button>
-                            <span className="flex items-center text-text-secondary">
-                              Page {currentPageIndex}
-                            </span>
-                            <Button
-                              variant="secondary"
-                              size="small"
-                              onClick={() => paginateComments('next')}
-                              disabled={currentPageIndex >= Math.ceil(totalCommentsCount / 5)}
-                            >
-                              <FaAngleRight />
-                            </Button>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <p className="text-center text-text-secondary py-8">No comments available.</p>
-                    )}
-                  </div>
-                )}
+                              {/* Comment Actions */}
+                              <div className="flex items-center gap-4 mt-3 ml-6 text-sm">
+                                <button
+                                  onClick={() => handleVoteComment(comment)}
+                                  className="flex items-center gap-1 text-text-secondary hover:text-primary-blue"
+                                >
+                                  <FaThumbsUp /> {comment.Votes || 0}
+                                </button>
+                                <button
+                                  onClick={() => setIsVisiblePostComment(isVisiblePostComment === commentIdx ? -1 : commentIdx)}
+                                  className="flex items-center gap-1 text-text-secondary hover:text-primary-blue"
+                                >
+                                  <FaReply /> {comment.RepliesCount || 0}
+                                </button>
+                                {comment.FKCommentedBy !== userId && userRole !== 'Admin' && (
+                                  <button
+                                    onClick={() => handleReportComment(comment.PKCommentId || '', comment.FkCommentedUser)}
+                                    className="flex items-center gap-1 text-text-secondary hover:text-red-600"
+                                  >
+                                    <FaFlag />
+                                    {userRole === 'Admin' && <span className="text-red-600">({comment.ReportCount})</span>}
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Expand/Collapse Replies */}
+                              {(comment.Replies?.length || 0) > 0 && (
+                                <button
+                                  onClick={() => toggleCommentExpand(commentIdx)}
+                                  className="ml-6 mt-2 text-sm text-primary-blue hover:underline flex items-center gap-1"
+                                >
+                                  {comment.isExpanded ? <FaMinus /> : <FaPlus />}
+                                  {comment.isExpanded ? 'Hide' : 'Show'} Replies
+                                </button>
+                              )}
+
+                              {/* Replies */}
+                              {comment.isExpanded && comment.Replies && (
+                                <div className="ml-8 mt-3 space-y-3 border-l-2 border-gray-300 pl-4">
+                                  {comment.Replies.map((reply, replyIdx) => (
+                                    <div key={reply.PKCommentId} className="bg-white rounded p-3">
+                                      <div className="flex items-start gap-2">
+                                        <span className="text-primary-blue">→</span>
+                                        <div className="flex-1">
+                                          {isVisibleEditReply !== replyIdx ? (
+                                            <>
+                                              <p className="text-text-primary">{reply.Comment}</p>
+                                              <p className="text-xs text-text-secondary mt-1">
+                                                On {new Date(reply.CommentedDate || '').toLocaleDateString()} by {reply.FkCommentedUser}
+                                                {reply.FKCommentedBy === userId && (
+                                                  <button
+                                                    onClick={() => {
+                                                      setIsVisibleEditReply(replyIdx);
+                                                      setEditCommentField(reply.Comment);
+                                                    }}
+                                                    className="ml-2 text-primary-blue hover:underline"
+                                                  >
+                                                    <FaEdit className="inline" />
+                                                  </button>
+                                                )}
+                                                {(reply.FKCommentedBy === userId || userRole === 'Admin') && (
+                                                  <button
+                                                    onClick={() => reply.PKCommentId && handleDeleteReply(reply.PKCommentId)}
+                                                    className="ml-2 text-red-600 hover:underline"
+                                                  >
+                                                    <FaTrash className="inline" />
+                                                  </button>
+                                                )}
+                                              </p>
+                                            </>
+                                          ) : (
+                                            <div className="flex flex-col gap-2">
+                                              <input
+                                                type="text"
+                                                value={editCommentField}
+                                                onChange={(e) => handleCommentInputChange(e.target.value, true)}
+                                                className="border border-border rounded px-3 py-2"
+                                              />
+                                              <div className="flex gap-2">
+                                                <Button
+                                                  size="small"
+                                                  variant="primary"
+                                                  onClick={() => handleEditReply(reply)}
+                                                  disabled={isCommentWhitespace}
+                                                >
+                                                  Save
+                                                </Button>
+                                                <Button
+                                                  size="small"
+                                                  variant="secondary"
+                                                  onClick={() => setIsVisibleEditReply(-1)}
+                                                >
+                                                  Cancel
+                                                </Button>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Reply Form */}
+                              {isVisiblePostComment === commentIdx && (
+                                <div className="ml-8 mt-3">
+                                  <div className="flex flex-col gap-2">
+                                    <input
+                                      type="text"
+                                      value={replyComment}
+                                      onChange={(e) => handleCommentInputChange(e.target.value, true)}
+                                      placeholder="Enter your reply here..."
+                                      className="border border-border rounded px-3 py-2"
+                                    />
+                                    <div className="flex gap-2">
+                                      <Button
+                                        size="small"
+                                        variant="primary"
+                                        onClick={() => comment.PKCommentId && handleReplyComment(comment.PKCommentId)}
+                                        disabled={!replyComment || replyComment.trim().length < 2 || isCommentWhitespace}
+                                      >
+                                        Post
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+
+                          {/* Pagination */}
+                          {totalCommentsCount > 5 && (
+                            <div className="flex justify-center gap-4 mt-6">
+                              <Button
+                                variant="secondary"
+                                size="small"
+                                onClick={() => paginateComments('prev')}
+                                disabled={currentPageIndex === 1}
+                              >
+                                <FaAngleLeft />
+                              </Button>
+                              <span className="flex items-center text-text-secondary">
+                                Page {currentPageIndex}
+                              </span>
+                              <Button
+                                variant="secondary"
+                                size="small"
+                                onClick={() => paginateComments('next')}
+                                disabled={currentPageIndex >= Math.ceil(totalCommentsCount / 5)}
+                              >
+                                <FaAngleRight />
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-center text-text-secondary py-8">No comments available.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
             )}
           </div>
 
@@ -2122,7 +2537,7 @@ const PracticeExam: React.FC = () => {
                   const isMarked = status === QuestionStatus.IsMarkedForReview || status === QuestionStatus.MarkedandAnswered;
                   const isCurrent = idx === currentIndex;
                   const isLocked = !q.Flag;
-                  
+
                   return (
                     <button
                       key={idx}
@@ -2182,7 +2597,7 @@ const PracticeExam: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl p-8 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-6">Review</h2>
-            
+
             <div className="mb-6">
               <p className="mb-3 font-semibold">
                 How satisfied were you with this practice exam on a scale of 5?
@@ -2272,100 +2687,109 @@ const PracticeExam: React.FC = () => {
       )}
 
       {/* Unlock Modal */}
-      {showUnlockModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-8 shadow-2xl max-w-lg w-full">
-            <h2 className="text-2xl font-bold mb-4">Unlock Questions</h2>
-            <p className="mb-6">
-              You have a balance of <strong>{walletBalance}</strong> credits and{' '}
-              <strong>{testSuiteDetails?.TotalPriceInDollars || 0}</strong> credit(s) will be deducted from your credits.
-            </p>
-            <p className="text-sm text-text-secondary mb-6">
-              To continue learning from exam dumps, purchase the exam bundle!
-            </p>
-            <div className="flex gap-4">
-              <Button
-                variant="secondary"
-                onClick={() => setShowUnlockModal(false)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleConfirmUnlock}
-                className="flex-1"
-                disabled={walletBalance < (testSuiteDetails?.TotalPriceInDollars || 0)}
-              >
-                Confirm Purchase
-              </Button>
+      {
+        showUnlockModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-8 shadow-2xl max-w-lg w-full">
+              <h2 className="text-2xl font-bold mb-4">Unlock Questions</h2>
+              <p className="mb-6">
+                You have a balance of <strong>{walletBalance}</strong> credits and{' '}
+                <strong>{testSuiteDetails?.TotalPriceInDollars || 0}</strong> credit(s) will be deducted from your credits.
+              </p>
+              <p className="text-sm text-text-secondary mb-6">
+                To continue learning from exam dumps, purchase the exam bundle!
+              </p>
+              <div className="flex gap-4">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowUnlockModal(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleConfirmUnlock}
+                  className="flex-1"
+                  disabled={walletBalance < (testSuiteDetails?.TotalPriceInDollars || 0)}
+                >
+                  Confirm Purchase
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Delete Comment Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-8 shadow-2xl max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-4">Delete Comment</h2>
-            <p className="mb-6">Are you sure you want to delete this comment?</p>
-            <div className="flex gap-4 justify-center">
-              <Button
-                variant="primary"
-                onClick={confirmDeleteComment}
-              >
-                Yes
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setDeleteCommentData(null);
-                }}
-              >
-                No
-              </Button>
+      {
+        showDeleteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-8 shadow-2xl max-w-md w-full">
+              <h2 className="text-2xl font-bold mb-4">Delete Comment</h2>
+              <p className="mb-6">Are you sure you want to delete this comment?</p>
+              <div className="flex gap-4 justify-center">
+                <Button
+                  variant="primary"
+                  onClick={confirmDeleteComment}
+                >
+                  Yes
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDeleteCommentData(null);
+                  }}
+                >
+                  No
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Report Comment Modal */}
-      {showReportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-8 shadow-2xl max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-4">Report Comment</h2>
-            <p className="mb-6">
-              Is the comment made by <strong>{commentedUser}</strong> Spam or Abusive?
-            </p>
-            <div className="flex gap-4 justify-end">
-              <Button
-                variant="primary"
-                onClick={confirmReportComment}
-              >
-                Yes
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setShowReportModal(false)}
-              >
-                No
-              </Button>
+      {
+        showReportModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-8 shadow-2xl max-w-md w-full">
+              <h2 className="text-2xl font-bold mb-4">Report Comment</h2>
+              <p className="mb-6">
+                Is the comment made by <strong>{commentedUser}</strong> Spam or Abusive?
+              </p>
+              <div className="flex gap-4 justify-end">
+                <Button
+                  variant="primary"
+                  onClick={confirmReportComment}
+                >
+                  Yes
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowReportModal(false)}
+                >
+                  No
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Network Offline Warning */}
-      {!isOfflineOrOnlineStatus && (
-        <div className="fixed bottom-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">
-          <p className="font-semibold">⚠️ No Internet Connection</p>
-          <p className="text-sm">Please check your network and try again</p>
-        </div>
-      )}
+      {
+        !isOfflineOrOnlineStatus && (
+          <div className="fixed bottom-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+            <p className="font-semibold">⚠️ No Internet Connection</p>
+            <p className="text-sm">Please check your network and try again</p>
+          </div>
+        )
+      }
     </div>
   );
 };
 
 export default PracticeExam;
+

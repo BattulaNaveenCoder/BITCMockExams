@@ -285,7 +285,7 @@ export const teamMembers: TeamMember[] = [
         name: 'Mr. Sandeep Soni',
         title: 'Founder & CEO',
         bio: '29+ years of experience',
-        image: 'https://www.deccansoft.com/assets/img/team/Sandeep%20Soni%20Dss%20Home%20page.jpg',
+        image: 'https://www.deccansoft.com/images/Our-Team/sandeep-soni.webp',
         experience: 'Trained 300000+ students',
         linkedin: 'https://www.linkedin.com/in/sandeepsoni123/'
     },
@@ -295,7 +295,7 @@ export const teamMembers: TeamMember[] = [
         title: 'CTO',
         bio: '29+ years of experience',
         experience: 'Trained 250000+ students',
-        image: 'https://www.deccansoft.com/assets/img/team/Our-Team/Rahul%20sir%20DSS.png',
+        image: 'https://www.deccansoft.com/images/Our-Team/rahul-rampurkar.webp',
         linkedin: 'https://www.linkedin.com/in/rahulrampurkar/'
     },
     {
@@ -304,7 +304,7 @@ export const teamMembers: TeamMember[] = [
         title: 'Director',
         bio: '25+ years of experience',
         experience: 'Trained 200000+ students',
-        image: 'https://www.deccansoft.com/assets/img/team/VandanaMadam450.jpg',
+        image: 'https://www.deccansoft.com/images/Our-Team/vandana-soni.webp',
         linkedin: 'https://www.linkedin.com/in/vandana-soni-85a29475/'
     },
 ];
