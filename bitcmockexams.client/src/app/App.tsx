@@ -4,6 +4,7 @@ import Layout from '@shared/components/layout/Layout';
 import Home from '../pages/Home';
 import About from '../pages/About';
 import MockExams from '../pages/MockExams';
+import CertificationExams from '../pages/CertificationExams';
 import ExamTopics from '../pages/ExamTopics';
 import Practice from '../pages/PracticeExam';
 import Contact from '../pages/Contact';
@@ -16,6 +17,7 @@ import ProtectedRoute from '@features/auth/components/ProtectedRoute';
 import { LoginModalProvider } from '@features/auth/context/LoginModalContext';
 import LoginModal from '../components/auth/LoginModal';
 import PracticeExam from '../pages/PracticeExam';
+import { TestSuitesProvider } from '@shared/contexts/TestSuitesContext';
 
 function ScrollToTop() {
     const { pathname } = useLocation();
@@ -29,10 +31,12 @@ function App() {
             <Router>
                 <LoginModalProvider>
                     <AuthProvider>
-                        <Loader />
-                        <ScrollToTop />
-                        <LoginModal />
-                        <AuthRoutes />
+                        <TestSuitesProvider>
+                            <Loader />
+                            <ScrollToTop />
+                            <LoginModal />
+                            <AuthRoutes />
+                        </TestSuitesProvider>
                     </AuthProvider>
                 </LoginModalProvider>
             </Router>
@@ -58,6 +62,7 @@ function AuthRoutes() {
         <Routes>
             <Route path="/" element={<Layout><Home /></Layout>} />
             <Route path="/about" element={<Layout><About /></Layout>} />
+            <Route path="/certification-exams" element={<Layout><CertificationExams /></Layout>} />
             <Route
                 path="/dashboard"
                 element={

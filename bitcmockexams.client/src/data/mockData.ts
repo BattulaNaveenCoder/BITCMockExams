@@ -5,42 +5,42 @@ export const services: Service[] = [
         id: 1,
         title: 'Cloud Certification Training',
         description: 'Expert-led live training for AWS, Azure, and Google Cloud certifications.',
-        icon: '☁️',
+        icon: '??',
         features: ['Live Online Classes', 'Hands-on Labs', 'Expert Instructors', 'Flexible Schedule']
     },
     {
         id: 2,
         title: 'Mock Exams & Practice Tests',
         description: 'Comprehensive practice exams that simulate real certification tests.',
-        icon: '📝',
+        icon: '??',
         features: ['Real Exam Questions', 'Detailed Explanations', 'Performance Analytics', 'Unlimited Attempts']
     },
     {
         id: 3,
         title: 'Certification Guidance',
         description: 'Personalized roadmap and mentorship for your certification journey.',
-        icon: '🎯',
+        icon: '??',
         features: ['Career Counseling', 'Study Plans', 'Resource Recommendations', 'One-on-One Support']
     },
     {
         id: 4,
         title: 'Interview Preparation',
         description: 'Technical interview prep with real-world scenarios and questions.',
-        icon: '💼',
+        icon: '??',
         features: ['Mock Interviews', 'Technical Questions', 'Behavioral Prep', 'Resume Review']
     },
     {
         id: 5,
         title: 'Corporate Training',
         description: 'Customized training programs for teams and organizations.',
-        icon: '🏢',
+        icon: '??',
         features: ['Custom Curriculum', 'On-site/Remote', 'Team Assessments', 'Progress Tracking']
     },
     {
         id: 6,
         title: 'Technology Consulting',
         description: 'Strategic consulting for cloud migration and digital transformation.',
-        icon: '🚀',
+        icon: '??',
         features: ['Architecture Design', 'Migration Planning', 'Best Practices', 'Cost Optimization']
     }
 ];
@@ -349,24 +349,24 @@ export const companyValues: CompanyValue[] = [
         id: 1,
         title: 'Excellence',
         description: 'We strive for excellence in everything we do, from course content to student support.',
-        icon: '⭐'
+        icon: '?'
     },
     {
         id: 2,
         title: 'Innovation',
         description: 'Continuously updating our content and methods to reflect the latest industry trends.',
-        icon: '💡'
+        icon: '??'
     },
     {
         id: 3,
         title: 'Integrity',
         description: 'We maintain the highest standards of honesty and ethical practices in all our operations.',
-        icon: '🤝'
+        icon: '??'
     },
     {
         id: 4,
         title: 'Student Success',
         description: 'Your success is our success. We are committed to helping you achieve your career goals.',
-        icon: '🎓'
+        icon: '??'
     }
 ];

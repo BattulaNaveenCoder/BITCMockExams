@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@features/auth/context/AuthContext';
 import { useTestsApi, type UserTestSubscription } from '@shared/api/tests';
-import { useTestSuitesApi, type TestSuite } from '@shared/api/testSuites';
+import { useTestSuites } from '@shared/contexts/TestSuitesContext';
 import { getUserIdFromClaims, normalizeClaims } from '@shared/utils/auth';
 
 const tabs = [
@@ -81,7 +81,7 @@ export default function Dashboard() {
   const [active, setActive] = useState('subscription');
   const { user } = useAuth();
   const { getTestsByUserId } = useTestsApi();
-  const { getAllTestSuitesByUserId } = useTestSuitesApi();
+  const { suites } = useTestSuites(); // Use shared context
   
   const [subs, setSubs] = useState<SubscriptionView[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -100,12 +100,11 @@ export default function Dashboard() {
     setError(null);
     (async () => {
       try {
-        const [rows, suites] = await Promise.all([
-          getTestsByUserId(userId, email),
-          getAllTestSuitesByUserId(userId)
-        ]);
+        const rows = await getTestsByUserId(userId, email);
+        
+        // Use suites from context
         const map: Record<string, string> = {};
-        (suites || []).forEach((s: TestSuite) => {
+        (suites || []).forEach((s) => {
           if (s.PathId && s.PKTestSuiteId) map[s.PathId] = s.PKTestSuiteId;
         });
         setSuiteMap(map);
