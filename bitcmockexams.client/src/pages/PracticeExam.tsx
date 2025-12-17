@@ -665,9 +665,13 @@ const PracticeExam: React.FC = () => {
   // ===== UPDATE BUYER TEST =====
   const updateBuyerTest = useCallback(async (isFinish: boolean = false) => {
     if (!testViewModel) return;
-
-    console.log('updateBuyerTest called with isFinish:', isFinish);
-
+    
+    // Prevent API calls if exam is already over (unless we're finishing it now)
+    if (isExamOver && !isFinish) {
+      console.log('Exam already over, skipping updateBuyerTest');
+      return;
+    }
+    
     const updatedViewModel = isFinish ? {
       ...testViewModel,
       Status: TestStatus.Completed
@@ -725,7 +729,7 @@ const PracticeExam: React.FC = () => {
     } catch (error) {
       console.error('Failed to update buyer test:', error);
     }
-  }, [testViewModel, currentIndex, getCurrentExamQuestion]);
+  }, [testViewModel, currentIndex, getCurrentExamQuestion, isExamOver]);
 
   // ===== FINISH EXAM =====
   const handleFinish = useCallback(async () => {
@@ -788,7 +792,7 @@ const PracticeExam: React.FC = () => {
     if (quizWithQuestionTimer) {
       pauseTotalTimer();
     }
-
+    debugger;
     // Save progress before closing
     await updateBuyerTest(false);
 

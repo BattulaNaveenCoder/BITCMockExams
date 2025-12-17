@@ -2,17 +2,18 @@ import { useAxiosInstance } from '@config/axios';
 
 export const useApiService = () => {
   const axios = useAxiosInstance();
-  type RequestOptions = boolean | { showGlobalLoader?: boolean; skipAuth?: boolean; headers?: Record<string, string> };
+  type RequestOptions = boolean | { showGlobalLoader?: boolean; skipAuth?: boolean; headers?: Record<string, string>; timeout?: number };
 
   const buildConfig = (opts?: RequestOptions) => {
     if (typeof opts === 'boolean' || typeof opts === 'undefined') {
       return { showGlobalLoader: opts as any } as any;
     }
-    const { showGlobalLoader, skipAuth, headers } = opts || {};
+    const { showGlobalLoader, skipAuth, headers, timeout } = opts || {};
     const cfg: any = {};
     if (typeof showGlobalLoader !== 'undefined') cfg.showGlobalLoader = showGlobalLoader;
     if (typeof skipAuth !== 'undefined') cfg.skipAuth = skipAuth;
     if (headers) cfg.headers = headers;
+    if (timeout) cfg.timeout = timeout;
     return cfg;
   };
 
