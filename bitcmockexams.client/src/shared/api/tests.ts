@@ -177,6 +177,20 @@ export const useTestsApi = () => {
     }
   };
 
+  // Get Buyer Test By ID - fetches complete exam results after finishing
+  // GET: /api/BuyerTest/GetBuyerTestById/{buyerTestId}
+  const getBuyerTestById = async (buyerTestId: string, showGlobalLoader: boolean = true): Promise<any | null> => {
+    const base = isDev ? `${window.location.origin}/a2z-tests` : 'https://a2z-tests.azurewebsites.net';
+    const endpoint = `${base}/api/BuyerTest/GetBuyerTestById/${buyerTestId}`;
+    try {
+      const data = await api.get(endpoint, showGlobalLoader);
+      return (data as any)?.data ?? data ?? null;
+    } catch (error) {
+      console.error('Failed to fetch buyer test by ID:', { buyerTestId, error });
+      return null;
+    }
+  };
+
   return {
     getTestsByUserId,
     getTestViewModel,
@@ -185,5 +199,6 @@ export const useTestsApi = () => {
     getCurrentExamQuestion,
     getVideosLinkForQuestion,
     activateTestBuyerSubscription,
+    getBuyerTestById,
   };
 };
