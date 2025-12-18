@@ -3,7 +3,8 @@ import { useLoader } from '@shared/contexts/LoadingContext';
 
 const createAxiosInstance = (showLoader: () => void, hideLoader: () => void) => {
   const instance = axios.create({
-    baseURL: 'https://a2z-identity.azurewebsites.net/',
+    // No baseURL in development - let Vite proxy handle routing
+    // In production, absolute URLs will be used from environment config
     timeout: 100000,
   });
 

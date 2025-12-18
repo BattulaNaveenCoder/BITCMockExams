@@ -51,7 +51,7 @@ export interface Testimonial {
     role: string;
     content: string;
     rating: number;
-    image: string;
+    // image: string;
 }
 
 export interface Stat {

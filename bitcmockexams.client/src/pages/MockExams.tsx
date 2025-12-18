@@ -93,10 +93,20 @@ const MockExams = () => {
     const filteredExams = useMemo(() => {
         let list = mappedExams;
 
-        // Filter by exact code
+        // Filter by code - more flexible matching
         if (code) {
-            const c = code.toLowerCase();
-            list = list.filter((e) => e.code.toLowerCase() === c);
+            const c = code.toLowerCase().trim();
+            list = list.filter((e) => {
+                const examCode = e.code.toLowerCase().trim();
+                // Try exact match first
+                if (examCode === c) return true;
+                // Try if exam code starts with search code (e.g., "AZ-900" matches "AZ-900:...")
+                if (examCode.startsWith(c)) return true;
+                // Try if exam code is contained in the title
+                const titleCode = e.title.toLowerCase().match(/[a-z]+-\d{2,3}/);
+                if (titleCode && titleCode[0] === c) return true;
+                return false;
+            });
         }
 
         // Text query search when no explicit code
@@ -119,7 +129,15 @@ const MockExams = () => {
         // Ensure exact code match, if present, appears first
         if (code) {
             const c = code.toLowerCase();
-            list = [...list].sort((a, b) => (a.code.toLowerCase() === c ? -1 : b.code.toLowerCase() === c ? 1 : 0));
+            list = [...list].sort((a, b) => {
+                const aCode = a.code.toLowerCase();
+                const bCode = b.code.toLowerCase();
+                if (aCode === c) return -1;
+                if (bCode === c) return 1;
+                if (aCode.startsWith(c)) return -1;
+                if (bCode.startsWith(c)) return 1;
+                return 0;
+            });
         }
 
         return list;
