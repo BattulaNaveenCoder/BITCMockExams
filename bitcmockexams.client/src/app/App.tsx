@@ -17,6 +17,7 @@ import ProtectedRoute from '@features/auth/components/ProtectedRoute';
 import { LoginModalProvider } from '@features/auth/context/LoginModalContext';
 import LoginModal from '../components/auth/LoginModal';
 import PracticeExam from '../pages/PracticeExam';
+import ExamReview from '../components/exam/ExamReview';
 import { TestSuitesProvider } from '@shared/contexts/TestSuitesContext';
 
 function ScrollToTop() {
@@ -83,6 +84,10 @@ function AuthRoutes() {
             <Route
                 path="/exams/:PathId/:Title/:TestId"
                 element={<Layout><PracticeExam /></Layout>}
+            />
+            <Route
+                path="/exam-review/:buyerTestId"
+                element={<Layout><ExamReview /></Layout>}
             />
             <Route
                 path="/contact"

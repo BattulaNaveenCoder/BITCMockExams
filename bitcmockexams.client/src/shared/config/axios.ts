@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useLoader } from '@shared/contexts/LoadingContext';
+import { useRef } from 'react';
 
 const createAxiosInstance = (showLoader: () => void, hideLoader: () => void) => {
   const instance = axios.create({
@@ -58,5 +59,9 @@ const createAxiosInstance = (showLoader: () => void, hideLoader: () => void) => 
 
 export const useAxiosInstance = () => {
   const { showLoader, hideLoader } = useLoader();
-  return createAxiosInstance(showLoader, hideLoader);
+  const instanceRef = useRef<any>(null);
+  if (!instanceRef.current) {
+    instanceRef.current = createAxiosInstance(showLoader, hideLoader);
+  }
+  return instanceRef.current;
 };
