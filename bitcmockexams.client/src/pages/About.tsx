@@ -1,5 +1,5 @@
 
-import { FaLinkedinIn } from 'react-icons/fa';
+import { FaLinkedinIn, FaTrophy, FaLightbulb, FaShieldAlt, FaUserGraduate } from 'react-icons/fa';
 import Card from '@shared/components/ui/Card';
 import { teamMembers, companyValues } from '../data/mockData';
 
@@ -57,13 +57,24 @@ const About = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8">
-                        {companyValues.map((value) => (
-                            <Card key={value.id}>
-                                <div className="text-5xl mb-4">{value.icon}</div>
-                                <h3 className="text-xl font-bold mb-2">{value.title}</h3>
-                                <p className="text-text-secondary">{value.description}</p>
-                            </Card>
-                        ))}
+                        {companyValues.map((value) => {
+                            const IconComponent = 
+                                value.title === 'Excellence' ? FaTrophy :
+                                value.title === 'Innovation' ? FaLightbulb :
+                                value.title === 'Integrity' ? FaShieldAlt :
+                                value.title === 'Student Success' ? FaUserGraduate :
+                                FaTrophy;
+                            
+                            return (
+                                <Card key={value.id}>
+                                    <div className="text-5xl mb-4 text-primary-blue">
+                                        <IconComponent />
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-2">{value.title}</h3>
+                                    <p className="text-text-secondary">{value.description}</p>
+                                </Card>
+                            );
+                        })}
                     </div>
                 </div>
             </section>
@@ -85,8 +96,7 @@ const About = () => {
                                     <img
                                         src={member.image}
                                         alt={member.name}
-                                        className="w-full h-full"
-                                        style={{ objectFit: 'contain' }}
+                                        className="w-full h-full object-contain"
                                     />
                                 </div>
                                 <h3 className="text-xl font-bold mb-1 text-center">{member.name}</h3>

@@ -25,22 +25,22 @@ const Footer = () => {
                             Your trusted partner for cloud certification training, mock exams, and technology consulting services.
                         </p>
                         <div className="flex gap-4">
-                            <a href="https://www.facebook.com/azurea2z" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="Facebook">
+                            <a href="https://www.facebook.com/DeccansoftAcademy" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="Facebook">
                                 <FaFacebookF />
                             </a>
                             <a href="https://x.com/deccansoft" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="Twitter">
                                 <FaTwitter />
                             </a>
-                            <a href="https://www.instagram.com/best.it.courses/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="Instagram">
+                            <a href="https://www.instagram.com/best.it.courses" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="Instagram">
                                 <FaInstagram />
                             </a>
-                            <a href="https://www.linkedin.com/company/azurea2z" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="LinkedIn">
+                            <a href="https://www.linkedin.com/showcase/bestitcourses" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="LinkedIn">
                                 <FaLinkedinIn />
                             </a>
                             <a href="https://www.youtube.com/user/Deccansoft123" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="YouTube">
                                 <FaYoutube />
                             </a>
-                            <a href="https://api.whatsapp.com/send?phone=9347458388&text=Hello%20AzureA2Z!" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="WhatsApp">
+                            <a href="https://api.whatsapp.com/send?phone=8555823343&text=Hello%20BestITCourses!" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="WhatsApp">
                                 <FaWhatsapp />
                             </a>
                         </div>
@@ -49,19 +49,19 @@ const Footer = () => {
                     <div className="flex flex-col gap-4">
                         <h4 className="text-lg font-bold mb-4 text-white">Quick Links</h4>
                         <ul className="list-none p-0 m-0 flex flex-col gap-2">
-                            <li><Link to="/" className="text-white/80 no-underline transition-colors duration-150 hover:text-accent-blue hover:pl-2 inline-block">Home</Link></li>
-                            <li><Link to="/about" className="text-white/80 no-underline transition-colors duration-150 hover:text-accent-blue hover:pl-2 inline-block">About Us</Link></li>
-                            <li><Link to="/mock-exams" className="text-white/80 no-underline transition-colors duration-150 hover:text-accent-blue hover:pl-2 inline-block">Mock Exams</Link></li>
-                            <li><Link to="/contact" className="text-white/80 no-underline transition-colors duration-150 hover:text-accent-blue hover:pl-2 inline-block">Contact</Link></li>
+                            <li><Link to="/" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Home</Link></li>
+                            <li><Link to="/about" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">About Us</Link></li>
+                            <li><Link to="/mock-exams" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Mock Exams</Link></li>
+                            <li><Link to="/contact" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Contact</Link></li>
                         </ul>
                     </div>
 
                     <div className="flex flex-col gap-4">
                         <h4 className="text-lg font-bold mb-4 text-white">Mock Exams</h4>
                         <ul className="list-none p-0 m-0 flex flex-col gap-2">
-                            <li><Link to="/mock-exams?difficulty=beginner" className="text-white/80 no-underline transition-colors duration-150 hover:text-accent-blue hover:pl-2 inline-block">Fundamentals</Link></li>
-                            <li><Link to="/mock-exams?difficulty=intermediate" className="text-white/80 no-underline transition-colors duration-150 hover:text-accent-blue hover:pl-2 inline-block">Role Based</Link></li>
-                            <li><Link to="/mock-exams?difficulty=advanced" className="text-white/80 no-underline transition-colors duration-150 hover:text-accent-blue hover:pl-2 inline-block">Speciality</Link></li>
+                            <li><Link to="/mock-exams?difficulty=beginner" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Fundamentals</Link></li>
+                            <li><Link to="/mock-exams?difficulty=intermediate" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Role Based</Link></li>
+                            <li><Link to="/mock-exams?difficulty=advanced" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Speciality</Link></li>
                         </ul>
                     </div>
 
@@ -113,7 +113,7 @@ const Footer = () => {
                         © {currentYear} BITCMockExams. All rights reserved.
                     </p>
                     <div className="flex gap-4 items-center md:flex-wrap md:justify-center">
-                        <a href="https://www.bestitcourses.com/pdf/NewprivacyagreementBDT.pdf" target="_blank" rel="noopener noreferrer" className="text-white/60 no-underline transition-colors duration-150 hover:text-accent-blue">Privacy Policy</a>
+                        <a href="https://bdtmaterial.blob.core.windows.net/shared/WebsiteRewamp/Documents/NewprivacyagreementBITC.pdf" target="_blank" rel="noopener noreferrer" className="text-white/60 no-underline transition-colors duration-150 hover:text-accent-blue">Privacy Policy</a>
                         <span className="text-white/30">|</span>
                         <a href="https://bestitcourses-hgb4dhd3cmfnd5gn.z01.azurefd.net/shared/Blogs/termandconditions.pdf" target="_blank" rel="noopener noreferrer" className="text-white/60 no-underline transition-colors duration-150 hover:text-accent-blue">Terms and Conditions</a>
                         <span className="text-white/30">|</span>

@@ -26,39 +26,48 @@ const Header = () => {
     const { suites, loading } = useTestSuites();
 
     const handleMockEnter = () => {
-        if (mockHoverCloseTimer.current) {
-            clearTimeout(mockHoverCloseTimer.current);
-            mockHoverCloseTimer.current = null;
+        if (window.innerWidth >= 768) {
+            if (mockHoverCloseTimer.current) {
+                clearTimeout(mockHoverCloseTimer.current);
+                mockHoverCloseTimer.current = null;
+            }
+            setMockMenuOpen(true);
         }
-        setMockMenuOpen(true);
     };
 
     const handleMockLeave = () => {
-        if (mockHoverCloseTimer.current) {
-            clearTimeout(mockHoverCloseTimer.current);
+        if (window.innerWidth >= 768) {
+            if (mockHoverCloseTimer.current) {
+                clearTimeout(mockHoverCloseTimer.current);
+            }
+            mockHoverCloseTimer.current = window.setTimeout(() => {
+                setMockMenuOpen(false);
+                mockHoverCloseTimer.current = null;
+            }, 200); // small delay to allow moving into dropdown
         }
-        mockHoverCloseTimer.current = window.setTimeout(() => {
-            setMockMenuOpen(false);
-            mockHoverCloseTimer.current = null;
-        }, 200); // small delay to allow moving into dropdown
     };
 
     const handleCertEnter = () => {
-        if (certHoverCloseTimer.current) {
-            clearTimeout(certHoverCloseTimer.current);
-            certHoverCloseTimer.current = null;
+        if (window.innerWidth >= 768) {
+            if (certHoverCloseTimer.current) {
+                clearTimeout(certHoverCloseTimer.current);
+                certHoverCloseTimer.current = null;
+            }
+            setCertMenuOpen(true);
         }
-        setCertMenuOpen(true);
     };
 
     const handleCertLeave = () => {
-        if (certHoverCloseTimer.current) {
-            clearTimeout(certHoverCloseTimer.current);
+        if (window.innerWidth >= 768) {
+            if (certHoverCloseTimer.current) {
+                clearTimeout(certHoverCloseTimer.current);
+            }
+            certHoverCloseTimer.current = window.setTimeout(() => {
+                setCertMenuOpen(false);
+                setActiveSubmenu(null);
+                certHoverCloseTimer.current = null;
+            }, 200);
         }
-        certHoverCloseTimer.current = window.setTimeout(() => {
-            setCertMenuOpen(false);
-            certHoverCloseTimer.current = null;
-        }, 200);
     };
 
     useEffect(() => {
@@ -260,8 +269,8 @@ const Header = () => {
                         <span className="text-2xl font-extrabold text-text-primary tracking-tighter">BITC<span className="text-primary-blue">MockExams</span></span>
                     </Link>
 
-                    <nav id="primary-navigation" className={`fixed top-0 w-4/5 max-w-[300px] h-screen bg-white flex flex-col items-start p-8 pt-20 shadow-xl transition-all duration-250 gap-4 md:static md:w-auto md:max-w-none md:h-auto md:bg-transparent md:flex-row md:items-center md:p-0 md:shadow-none md:gap-8 ${isMobileMenuOpen ? 'right-0' : '-right-full'}`}>
-                        <ul className="flex flex-col items-start gap-4 w-full list-none m-0 p-0 md:flex-row md:items-center md:gap-8 md:w-auto">
+                    <nav id="primary-navigation" className={`fixed top-0 w-4/5 max-w-[320px] h-screen bg-white flex flex-col items-center p-6 pt-20 shadow-xl transition-all duration-250 gap-4 md:static md:w-auto md:max-w-none md:h-auto md:bg-transparent md:flex-row md:items-center md:p-0 md:shadow-none md:gap-8 ${isMobileMenuOpen ? 'right-0' : '-right-full'}`}>
+                        <ul className="flex flex-col items-center gap-2 w-full list-none m-0 p-0 md:flex-row md:items-center md:gap-8 md:w-auto">
                             {navLinks.map((link) => {
                                 const isMock = link.path === '/mock-exams';
                                 const isCert = link.path === '/certification-exams';
@@ -271,10 +280,10 @@ const Header = () => {
                                         <li key={link.path} className="relative w-full md:w-auto">
                                             <Link
                                                 to={link.path}
-                                                className={`block w-full py-3 text-lg text-text-primary no-underline font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base group ${isActive(link.path) ? 'text-primary-blue' : ''}`}
+                                                className={`block w-full py-3 text-center text-lg text-text-primary no-underline font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base md:text-left group ${isActive(link.path) ? 'text-primary-blue' : ''}`}
                                             >
                                                 {link.label}
-                                                <span className={`absolute bottom-0 left-0 h-0.5 bg-primary-blue transition-all duration-250 ${isActive(link.path) ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                                                <span className={`absolute bottom-0 left-1/2 md:left-0 -translate-x-1/2 md:translate-x-0 h-0.5 bg-primary-blue transition-all duration-250 ${isActive(link.path) ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                                             </Link>
                                         </li>
                                     );
@@ -290,17 +299,21 @@ const Header = () => {
                                         >
                                             <button
                                                 type="button"
-                                                className={`block w-full py-3 text-lg text-text-primary font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base bg-transparent border-none cursor-pointer ${isActive(link.path) ? 'text-primary-blue' : ''}`}
-                                                onClick={() => setCertMenuOpen((o) => !o)}
+                                                className={`block w-full py-3 text-center text-lg text-text-primary font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base md:text-left bg-transparent border-none cursor-pointer ${isActive(link.path) ? 'text-primary-blue' : ''}`}
+                                                onClick={() => {
+                                                    if (window.innerWidth < 768) {
+                                                        setCertMenuOpen((o) => !o);
+                                                    }
+                                                }}
                                                 aria-haspopup="menu"
                                                 aria-controls="cert-dropdown"
                                             >
                                                 {link.label}
-                                                <span className={`absolute bottom-0 left-0 h-0.5 bg-primary-blue transition-all duration-250 ${isActive(link.path) ? 'w-full' : 'w-0'}`}></span>
+                                                <span className={`absolute bottom-0 left-1/2 md:left-0 -translate-x-1/2 md:translate-x-0 h-0.5 bg-primary-blue transition-all duration-250 ${isActive(link.path) ? 'w-full' : 'w-0'}`}></span>
                                             </button>
                                             <div
                                                 id="cert-dropdown"
-                                                className={`absolute left-0 md:left-auto md:right-0 top-full mt-2 min-w-[280px] bg-white shadow-2xl border border-gray-200 overflow-visible transition-all duration-200 z-[1100] ${certMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                                                className={`static md:absolute left-0 md:left-auto md:right-0 md:top-full md:mt-2 w-full md:min-w-[280px] bg-white md:shadow-2xl md:border md:border-gray-200 overflow-visible transition-all duration-200 md:z-[1100] ${certMenuOpen ? 'block opacity-100 pointer-events-auto' : 'hidden md:block md:opacity-0 md:pointer-events-none'}`}
                                                 onMouseEnter={handleCertEnter}
                                                 onMouseLeave={handleCertLeave}
                                             >
@@ -312,44 +325,59 @@ const Header = () => {
                                                         <div
                                                             className="relative"
                                                             onMouseEnter={() => {
-                                                                console.log(`🎯 Hovering over ${category}, courses:`, categorizedCourses[category]?.length, categorizedCourses[category]);
-                                                                setActiveSubmenu(category);
+                                                                if (window.innerWidth >= 768) {
+                                                                    console.log(`🎯 Hovering over ${category}, courses:`, categorizedCourses[category]?.length, categorizedCourses[category]);
+                                                                    setActiveSubmenu(category);
+                                                                }
                                                             }}
                                                             onMouseLeave={() => {
-                                                                console.log(`👋 Leaving ${category}`);
-                                                                setActiveSubmenu(null);
+                                                                if (window.innerWidth >= 768) {
+                                                                    console.log(`👋 Leaving ${category}`);
+                                                                    setActiveSubmenu(null);
+                                                                }
                                                             }}
                                                         >
                                                             <button
                                                                 className="w-full text-left px-5 py-3.5 hover:bg-blue-100 bg-white border-none cursor-pointer flex items-center justify-between group transition-all duration-150 border-b border-gray-100"
-                                                                onClick={() => { 
+                                                                onClick={(e) => { 
                                                                     console.log(`🖱️ Clicked ${category}, courses:`, categorizedCourses[category]);
-                                                                    setCertMenuOpen(false); 
-                                                                    setActiveSubmenu(null); 
-                                                                    navigate(`/certification-exams?category=${encodeURIComponent(category)}`); 
+                                                                    // On mobile, toggle submenu
+                                                                    if (window.innerWidth < 768) {
+                                                                        e.preventDefault();
+                                                                        setActiveSubmenu(activeSubmenu === category ? null : category);
+                                                                    } else {
+                                                                        // On desktop, navigate to category page
+                                                                        setCertMenuOpen(false); 
+                                                                        setActiveSubmenu(null); 
+                                                                        navigate(`/certification-exams?category=${encodeURIComponent(category)}`); 
+                                                                    }
                                                                 }}
                                                             >
                                                                 <span className="flex-1 text-primary-blue group-hover:text-blue-700 font-medium text-sm transition-colors">
                                                                     {category} Certification Dumps
                                                                 </span>
-                                                                <span className="text-base text-gray-400 group-hover:text-blue-700 ml-2 transition-colors">›</span>
+                                                                <span className={`text-base text-gray-400 group-hover:text-blue-700 ml-2 transition-all duration-200 md:rotate-0 ${activeSubmenu === category ? 'rotate-90' : ''}`}>›</span>
                                                             </button>
                                                             {categorizedCourses[category]?.length > 0 && activeSubmenu === category && (
                                                                 <div 
-                                                                    className="absolute left-full top-0 w-72 bg-white shadow-2xl border border-gray-200 overflow-hidden max-h-[500px] overflow-y-auto z-[1120]"
+                                                                    className="static md:absolute md:left-full md:top-0 w-full md:w-72 bg-gray-50 md:bg-white md:shadow-2xl md:border md:border-gray-200 overflow-hidden max-h-[400px] md:max-h-[500px] overflow-y-auto md:z-[1120] pl-4 md:pl-0"
                                                                     onMouseEnter={() => {
                                                                         console.log(`📋 Submenu showing for ${category}`);
-                                                                        setActiveSubmenu(category);
+                                                                        if (window.innerWidth >= 768) {
+                                                                            setActiveSubmenu(category);
+                                                                        }
                                                                     }}
                                                                     onMouseLeave={() => {
                                                                         console.log(`📋 Submenu closing for ${category}`);
-                                                                        setActiveSubmenu(null);
+                                                                        if (window.innerWidth >= 768) {
+                                                                            setActiveSubmenu(null);
+                                                                        }
                                                                     }}
                                                                 >
                                                                     {categorizedCourses[category].map((course, courseIdx) => (
                                                                         <button
                                                                             key={course.pathId}
-                                                                            className="w-full text-left px-5 py-3.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 bg-white border-none cursor-pointer transition-all duration-150 border-b border-gray-100 last:border-b-0 group"
+                                                                            className="w-full text-left px-4 md:px-5 py-3 md:py-3.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 bg-transparent md:bg-white border-none cursor-pointer transition-all duration-150 border-b border-gray-200 last:border-b-0 group"
                                                                             onClick={() => {
                                                                                 setCertMenuOpen(false);
                                                                                 setActiveSubmenu(null);
@@ -371,9 +399,9 @@ const Header = () => {
                                                                         >
                                                                             <div className="flex items-center justify-between gap-2">
                                                                                 <div className="flex-1">
-                                                                                    <div className="text-xs font-semibold text-primary-blue group-hover:text-gray-800 leading-snug transition-colors">{course.title}</div>
+                                                                                    <div className="text-[11px] md:text-xs font-semibold text-primary-blue group-hover:text-gray-800 leading-snug transition-colors">{course.title}</div>
                                                                                 </div>
-                                                                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
+                                                                                <span className={`text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
                                                                                     course.difficulty === 'Beginner' ? 'bg-green-100 text-green-700' :
                                                                                     course.difficulty === 'Intermediate' ? 'bg-blue-100 text-blue-700' :
                                                                                     'bg-purple-100 text-purple-700'
@@ -405,18 +433,22 @@ const Header = () => {
                                         {/* Trigger: do not navigate on click, just toggle dropdown */}
                                         <button
                                             type="button"
-                                            className={`block w-full py-3 text-lg text-text-primary font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base bg-transparent border-none cursor-pointer ${isActive(link.path) ? 'text-primary-blue' : ''}`}
-                                            onClick={() => setMockMenuOpen((o) => !o)}
+                                            className={`block w-full py-3 text-center text-lg text-text-primary font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base md:text-left bg-transparent border-none cursor-pointer ${isActive(link.path) ? 'text-primary-blue' : ''}`}
+                                            onClick={() => {
+                                                if (window.innerWidth < 768) {
+                                                    setMockMenuOpen((o) => !o);
+                                                }
+                                            }}
                                             aria-haspopup="menu"
                                             aria-controls="mock-dropdown"
                                         >
                                             {link.label}
-                                            <span className={`absolute bottom-0 left-0 h-0.5 bg-primary-blue transition-all duration-250 ${isActive(link.path) ? 'w-full' : 'w-0'}`}></span>
+                                            <span className={`absolute bottom-0 left-1/2 md:left-0 -translate-x-1/2 md:translate-x-0 h-0.5 bg-primary-blue transition-all duration-250 ${isActive(link.path) ? 'w-full' : 'w-0'}`}></span>
                                         </button>
                                         {/* Dropdown: visible when mockMenuOpen */}
                                         <div
                                             id="mock-dropdown"
-                                            className={`absolute left-0 md:left-auto md:right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-border overflow-hidden transition-opacity duration-200 z-[1100] ${mockMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                                            className={`static md:absolute left-0 md:left-auto md:right-0 md:top-full md:mt-2 w-full md:w-56 bg-white md:rounded-xl md:shadow-xl md:border md:border-border overflow-hidden transition-opacity duration-200 md:z-[1100] ${mockMenuOpen ? 'block opacity-100 pointer-events-auto' : 'hidden md:block md:opacity-0 md:pointer-events-none'}`}
                                             onMouseEnter={handleMockEnter}
                                             onMouseLeave={handleMockLeave}
                                         >
@@ -447,13 +479,13 @@ const Header = () => {
                             })}
                         </ul>
 
-                        <div className="flex flex-col w-full gap-3 mt-4 pt-4 border-t border-border md:flex-row md:w-auto md:gap-4 md:mt-0 md:pt-0 md:border-t-0">
+                        <div className="flex flex-col w-full items-center gap-3 mt-6 pt-6 border-t border-border md:flex-row md:w-auto md:gap-4 md:mt-0 md:pt-0 md:border-t-0 md:items-stretch">
                             {!isAuthenticated ? (
-                                <a target="_blank" rel="noopener noreferrer" onClick={() => open(location.pathname + location.search + location.hash)} className="w-full md:w-auto">
+                                <a target="_blank" rel="noopener noreferrer" onClick={() => open(location.pathname + location.search + location.hash)} className="w-full max-w-[200px] md:max-w-none md:w-auto">
                                     <Button variant="primary" size="small" className="w-full md:w-auto">Login</Button>
                                 </a>
                             ) : (
-                                <div className="relative">
+                                <div className="relative w-full md:w-auto flex justify-center md:justify-start">
                                     <button
                                         className="flex items-center gap-2 bg-transparent border-none cursor-pointer text-text-primary font-semibold"
                                         onClick={() => setMenuOpen((o) => !o)}

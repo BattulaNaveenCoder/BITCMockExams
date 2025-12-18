@@ -1,6 +1,12 @@
 import { useApiService } from '@shared/api/api';
 import environment from '@shared/config/environment';
 
+export interface CountryCode {
+    name: string;
+    code: string;
+    pattern: string;
+}
+
 export interface ContactUsVM {
     Name: string;
     EmailId: string;        // Changed from Email to EmailId
@@ -16,6 +22,17 @@ export interface ContactUsResponse {
 
 export const useContactApi = () => {
     const api = useApiService();
+
+    const getCountryCodes = async (): Promise<CountryCode[]> => {
+        const endpoint = `${environment.identityUrl}/UserProfile/GetCountryCodes`;
+        try {
+            const response = await api.get(endpoint, false);
+            return response || [];
+        } catch (error) {
+            console.error('Failed to fetch country codes:', error);
+            return [];
+        }
+    };
 
     const submitContactForm = async (data: ContactUsVM): Promise<ContactUsResponse> => {
         const endpoint = `${environment.identityUrl}/UserProfile/ContactUs`;
@@ -37,5 +54,5 @@ export const useContactApi = () => {
         }
     };
 
-    return { submitContactForm };
+    return { getCountryCodes, submitContactForm };
 };

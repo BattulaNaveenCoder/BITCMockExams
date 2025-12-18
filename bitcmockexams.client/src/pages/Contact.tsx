@@ -1,187 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 import Button from '@shared/components/ui/Button';
 import Input from '@shared/components/ui/Input';
 import Modal from '@shared/components/ui/Modal';
-import { useContactApi } from '@shared/api/contact';
-
-const countryCodes = [
-    { code: '+93', name: 'Afghanistan' },
-    { code: '+355', name: 'Albania' },
-    { code: '+213', name: 'Algeria' },
-    { code: '+1', name: 'United States' },
-    { code: '+376', name: 'Andorra' },
-    { code: '+244', name: 'Angola' },
-    { code: '+54', name: 'Argentina' },
-    { code: '+374', name: 'Armenia' },
-    { code: '+61', name: 'Australia' },
-    { code: '+43', name: 'Austria' },
-    { code: '+994', name: 'Azerbaijan' },
-    { code: '+973', name: 'Bahrain' },
-    { code: '+880', name: 'Bangladesh' },
-    { code: '+375', name: 'Belarus' },
-    { code: '+32', name: 'Belgium' },
-    { code: '+501', name: 'Belize' },
-    { code: '+229', name: 'Benin' },
-    { code: '+975', name: 'Bhutan' },
-    { code: '+591', name: 'Bolivia' },
-    { code: '+387', name: 'Bosnia and Herzegovina' },
-    { code: '+267', name: 'Botswana' },
-    { code: '+55', name: 'Brazil' },
-    { code: '+673', name: 'Brunei' },
-    { code: '+359', name: 'Bulgaria' },
-    { code: '+226', name: 'Burkina Faso' },
-    { code: '+257', name: 'Burundi' },
-    { code: '+855', name: 'Cambodia' },
-    { code: '+237', name: 'Cameroon' },
-    { code: '+1', name: 'Canada' },
-    { code: '+238', name: 'Cape Verde' },
-    { code: '+236', name: 'Central African Republic' },
-    { code: '+235', name: 'Chad' },
-    { code: '+56', name: 'Chile' },
-    { code: '+86', name: 'China' },
-    { code: '+57', name: 'Colombia' },
-    { code: '+269', name: 'Comoros' },
-    { code: '+242', name: 'Congo' },
-    { code: '+506', name: 'Costa Rica' },
-    { code: '+385', name: 'Croatia' },
-    { code: '+53', name: 'Cuba' },
-    { code: '+357', name: 'Cyprus' },
-    { code: '+420', name: 'Czech Republic' },
-    { code: '+45', name: 'Denmark' },
-    { code: '+253', name: 'Djibouti' },
-    { code: '+593', name: 'Ecuador' },
-    { code: '+20', name: 'Egypt' },
-    { code: '+503', name: 'El Salvador' },
-    { code: '+240', name: 'Equatorial Guinea' },
-    { code: '+291', name: 'Eritrea' },
-    { code: '+372', name: 'Estonia' },
-    { code: '+251', name: 'Ethiopia' },
-    { code: '+679', name: 'Fiji' },
-    { code: '+358', name: 'Finland' },
-    { code: '+33', name: 'France' },
-    { code: '+241', name: 'Gabon' },
-    { code: '+220', name: 'Gambia' },
-    { code: '+995', name: 'Georgia' },
-    { code: '+49', name: 'Germany' },
-    { code: '+233', name: 'Ghana' },
-    { code: '+30', name: 'Greece' },
-    { code: '+502', name: 'Guatemala' },
-    { code: '+224', name: 'Guinea' },
-    { code: '+245', name: 'Guinea-Bissau' },
-    { code: '+592', name: 'Guyana' },
-    { code: '+509', name: 'Haiti' },
-    { code: '+504', name: 'Honduras' },
-    { code: '+852', name: 'Hong Kong' },
-    { code: '+36', name: 'Hungary' },
-    { code: '+354', name: 'Iceland' },
-    { code: '+91', name: 'India' },
-    { code: '+62', name: 'Indonesia' },
-    { code: '+98', name: 'Iran' },
-    { code: '+964', name: 'Iraq' },
-    { code: '+353', name: 'Ireland' },
-    { code: '+972', name: 'Israel' },
-    { code: '+39', name: 'Italy' },
-    { code: '+225', name: 'Ivory Coast' },
-    { code: '+81', name: 'Japan' },
-    { code: '+962', name: 'Jordan' },
-    { code: '+7', name: 'Kazakhstan' },
-    { code: '+254', name: 'Kenya' },
-    { code: '+965', name: 'Kuwait' },
-    { code: '+996', name: 'Kyrgyzstan' },
-    { code: '+856', name: 'Laos' },
-    { code: '+371', name: 'Latvia' },
-    { code: '+961', name: 'Lebanon' },
-    { code: '+266', name: 'Lesotho' },
-    { code: '+231', name: 'Liberia' },
-    { code: '+218', name: 'Libya' },
-    { code: '+423', name: 'Liechtenstein' },
-    { code: '+370', name: 'Lithuania' },
-    { code: '+352', name: 'Luxembourg' },
-    { code: '+853', name: 'Macau' },
-    { code: '+389', name: 'Macedonia' },
-    { code: '+261', name: 'Madagascar' },
-    { code: '+265', name: 'Malawi' },
-    { code: '+60', name: 'Malaysia' },
-    { code: '+960', name: 'Maldives' },
-    { code: '+223', name: 'Mali' },
-    { code: '+356', name: 'Malta' },
-    { code: '+222', name: 'Mauritania' },
-    { code: '+230', name: 'Mauritius' },
-    { code: '+52', name: 'Mexico' },
-    { code: '+373', name: 'Moldova' },
-    { code: '+377', name: 'Monaco' },
-    { code: '+976', name: 'Mongolia' },
-    { code: '+382', name: 'Montenegro' },
-    { code: '+212', name: 'Morocco' },
-    { code: '+258', name: 'Mozambique' },
-    { code: '+95', name: 'Myanmar' },
-    { code: '+264', name: 'Namibia' },
-    { code: '+977', name: 'Nepal' },
-    { code: '+31', name: 'Netherlands' },
-    { code: '+64', name: 'New Zealand' },
-    { code: '+505', name: 'Nicaragua' },
-    { code: '+227', name: 'Niger' },
-    { code: '+234', name: 'Nigeria' },
-    { code: '+850', name: 'North Korea' },
-    { code: '+47', name: 'Norway' },
-    { code: '+968', name: 'Oman' },
-    { code: '+92', name: 'Pakistan' },
-    { code: '+970', name: 'Palestine' },
-    { code: '+507', name: 'Panama' },
-    { code: '+675', name: 'Papua New Guinea' },
-    { code: '+595', name: 'Paraguay' },
-    { code: '+51', name: 'Peru' },
-    { code: '+63', name: 'Philippines' },
-    { code: '+48', name: 'Poland' },
-    { code: '+351', name: 'Portugal' },
-    { code: '+974', name: 'Qatar' },
-    { code: '+40', name: 'Romania' },
-    { code: '+7', name: 'Russia' },
-    { code: '+250', name: 'Rwanda' },
-    { code: '+966', name: 'Saudi Arabia' },
-    { code: '+221', name: 'Senegal' },
-    { code: '+381', name: 'Serbia' },
-    { code: '+248', name: 'Seychelles' },
-    { code: '+232', name: 'Sierra Leone' },
-    { code: '+65', name: 'Singapore' },
-    { code: '+421', name: 'Slovakia' },
-    { code: '+386', name: 'Slovenia' },
-    { code: '+252', name: 'Somalia' },
-    { code: '+27', name: 'South Africa' },
-    { code: '+82', name: 'South Korea' },
-    { code: '+211', name: 'South Sudan' },
-    { code: '+34', name: 'Spain' },
-    { code: '+94', name: 'Sri Lanka' },
-    { code: '+249', name: 'Sudan' },
-    { code: '+597', name: 'Suriname' },
-    { code: '+268', name: 'Swaziland' },
-    { code: '+46', name: 'Sweden' },
-    { code: '+41', name: 'Switzerland' },
-    { code: '+963', name: 'Syria' },
-    { code: '+886', name: 'Taiwan' },
-    { code: '+992', name: 'Tajikistan' },
-    { code: '+255', name: 'Tanzania' },
-    { code: '+66', name: 'Thailand' },
-    { code: '+228', name: 'Togo' },
-    { code: '+216', name: 'Tunisia' },
-    { code: '+90', name: 'Turkey' },
-    { code: '+993', name: 'Turkmenistan' },
-    { code: '+256', name: 'Uganda' },
-    { code: '+380', name: 'Ukraine' },
-    { code: '+971', name: 'United Arab Emirates' },
-    { code: '+44', name: 'United Kingdom' },
-    { code: '+598', name: 'Uruguay' },
-    { code: '+998', name: 'Uzbekistan' },
-    { code: '+58', name: 'Venezuela' },
-    { code: '+84', name: 'Vietnam' },
-    { code: '+967', name: 'Yemen' },
-    { code: '+260', name: 'Zambia' },
-    { code: '+263', name: 'Zimbabwe' }
-];
+import { useContactApi, CountryCode } from '@shared/api/contact';
 
 const Contact = () => {
-    const { submitContactForm } = useContactApi();
+    const { submitContactForm, getCountryCodes } = useContactApi();
+    const [countryCodes, setCountryCodes] = useState<CountryCode[]>([]);
+    const [isLoadingCountries, setIsLoadingCountries] = useState(true);
     const [formData, setFormData] = useState({
         name: '',
         countryCode: '+91',
@@ -199,14 +26,63 @@ const Contact = () => {
         message: string;
     }>({ isOpen: false, type: 'success', title: '', message: '' });
 
+    // Fetch country codes on component mount
+    useEffect(() => {
+        const fetchCountryCodes = async () => {
+            setIsLoadingCountries(true);
+            const codes = await getCountryCodes();
+            setCountryCodes(codes);
+            
+            // Set India as default if it exists in the codes
+            const india = codes.find(c => c.code === '+91');
+            if (india) {
+                setFormData(prev => ({
+                    ...prev,
+                    countryCode: india.code
+                }));
+            }
+            
+            setIsLoadingCountries(false);
+        };
+        fetchCountryCodes();
+    }, []);
+
+    // Get the current country's phone pattern
+    const getCurrentPhonePattern = (): string | null => {
+        const country = countryCodes.find(c => c.code === formData.countryCode);
+        return country?.pattern || null;
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+        
+        // If country code is changing and there's a phone number, validate it with new pattern
+        if (name === 'countryCode' && formData.phone.trim()) {
+            const newCountry = countryCodes.find(c => c.code === value);
+            if (newCountry?.pattern) {
+                const regex = new RegExp(newCountry.pattern);
+                if (!regex.test(formData.phone)) {
+                    setErrors(prev => ({
+                        ...prev,
+                        phone: `Invalid phone number format for ${newCountry.name}`
+                    }));
+                } else {
+                    // Clear phone error if now valid
+                    setErrors(prev => ({
+                        ...prev,
+                        phone: ''
+                    }));
+                }
+            }
+        }
+        
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
-        // Clear error when user starts typing
-        if (errors[name]) {
+        
+        // Clear error when user starts typing (except for countryCode which we handle above)
+        if (errors[name] && name !== 'countryCode') {
             setErrors(prev => ({
                 ...prev,
                 [name]: ''
@@ -228,8 +104,15 @@ const Contact = () => {
             case 'phone':
                 if (!value.trim()) {
                     newErrors.phone = 'Phone number is required';
-                } else if (!/^[0-9]{10,15}$/.test(value)) {
-                    newErrors.phone = 'Phone number must be between 10 and 15 digits';
+                } else {
+                    const pattern = getCurrentPhonePattern();
+                    if (pattern) {
+                        const regex = new RegExp(pattern);
+                        if (!regex.test(value)) {
+                            const country = countryCodes.find(c => c.code === formData.countryCode);
+                            newErrors.phone = `Invalid phone number format for ${country?.name || 'selected country'}`;
+                        }
+                    }
                 }
                 break;
             case 'email':
@@ -267,8 +150,15 @@ const Contact = () => {
 
         if (!formData.phone.trim()) {
             newErrors.phone = 'Phone number is required';
-        } else if (!/^[0-9]{10,15}$/.test(formData.phone)) {
-            newErrors.phone = 'Phone number must be between 10 and 15 digits';
+        } else {
+            const pattern = getCurrentPhonePattern();
+            if (pattern) {
+                const regex = new RegExp(pattern);
+                if (!regex.test(formData.phone)) {
+                    const country = countryCodes.find(c => c.code === formData.countryCode);
+                    newErrors.phone = `Invalid phone number format for ${country?.name || 'selected country'}`;
+                }
+            }
         }
 
         if (!formData.email.trim()) {
@@ -389,7 +279,7 @@ const Contact = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                     <div className="md:col-span-1">
                                         <div className="mb-6">
-                                            <label className="block text-sm font-medium text-text-primary mb-2">
+                                            <label className="block text-sm font-bold text-text-primary mb-2">
                                                 Country Code <span className="text-red-500">*</span>
                                             </label>
                                             <select
@@ -399,6 +289,7 @@ const Contact = () => {
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-all duration-200"
                                                 aria-label="Country Code"
                                                 required
+                                                disabled={isLoadingCountries}
                                             >
                                                 {countryCodes.map((country) => (
                                                     <option key={`${country.code}-${country.name}`} value={country.code}>
@@ -408,7 +299,7 @@ const Contact = () => {
                                             </select>
                                         </div>
                                     </div>
-                                    <div className="md:col-span-3">
+                                    <div className="md:col-span-3 mt-1">
                                         <Input
                                             label="Phone Number"
                                             type="tel"
@@ -448,7 +339,7 @@ const Contact = () => {
                                 />
 
                                 <div className="mb-4">
-                                    <label className="block text-sm font-medium text-text-primary mb-2">
+                                    <label className="block text-sm font-bold text-text-primary mb-2">
                                         How did you find us? <span className="text-red-500">*</span>
                                     </label>
                                     <select

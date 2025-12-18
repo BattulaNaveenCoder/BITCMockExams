@@ -17,6 +17,7 @@ export const useTestsApi = () => {
   const api = useApiService();
 
   const getTestsByUserId = async (userId: string, email: string): Promise<UserTestSubscription[]> => {
+    
     const base = isDev ? `${window.location.origin}/a2z-tests` : 'https://a2z-tests.azurewebsites.net';
     const endpoint = `${base}/api/TestBuyerSubscription/GetUsersTestSubscriptionsByUserId/${encodeURIComponent(userId)}/${encodeURIComponent(email)}/User`;
     try {

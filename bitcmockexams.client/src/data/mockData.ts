@@ -92,10 +92,25 @@ export const mockExams: MockExam[] = [
         students: 20000,
         image: 'https://images.unsplash.com/photo-1517433456452-f9633a875f6f?q=80&w=1200&auto=format&fit=crop'
     },
+    // {
+    //     id: 4,
+    //     title: 'Microsoft 365 Fundamentals',
+    //     code: 'MS-900',
+    //     vendor: 'Microsoft',
+    //     category: 'Fundamentals',
+    //     description: 'Master the basics',
+    //     questions: 40,
+    //     duration: 60,
+    //     difficulty: 'Beginner',
+    //     price: 19.99,
+    //     rating: 4.6,
+    //     students: 15000,
+    //     image: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1200&auto=format&fit=crop'
+    // },
     {
-        id: 4,
-        title: 'Microsoft 365 Fundamentals',
-        code: 'MS-900',
+        id: 11,
+        title: 'Power Platform Fundamentals',
+        code: 'PL-900',
         vendor: 'Microsoft',
         category: 'Fundamentals',
         description: 'Master the basics',
@@ -103,9 +118,9 @@ export const mockExams: MockExam[] = [
         duration: 60,
         difficulty: 'Beginner',
         price: 19.99,
-        rating: 4.6,
-        students: 15000,
-        image: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1200&auto=format&fit=crop'
+        rating: 4.7,
+        students: 17000,
+        image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop'
     },
     // Role-Based
     {
@@ -170,39 +185,24 @@ export const mockExams: MockExam[] = [
     },
     // Speciality
     {
-        id: 9,
-        title: 'Azure for SAP Workloads',
-        code: 'AZ-120',
+        id: 12,
+        title: 'Azure AI Engineer Associate',
+        code: 'AI-102',
         vendor: 'Microsoft',
         category: 'Speciality',
         description: 'Deepen your technical skills and manage industry solutions',
         questions: 50,
         duration: 120,
-        difficulty: 'Advanced',
-        price: 39.99,
-        rating: 4.7,
-        students: 8000,
-        image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1200&auto=format&fit=crop'
-    },
-    {
-        id: 10,
-        title: 'Azure Virtual Desktop',
-        code: 'AZ-140',
-        vendor: 'Microsoft',
-        category: 'Speciality',
-        description: 'Deepen your technical skills and manage industry solutions',
-        questions: 50,
-        duration: 120,
-        difficulty: 'Advanced',
+        difficulty: 'Intermediate',
         price: 39.99,
         rating: 4.8,
-        students: 9500,
-        image: 'https://images.unsplash.com/photo-1589149098258-3e9102cd63d3?q=80&w=1200&auto=format&fit=crop'
+        students: 16500,
+        image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=1200&auto=format&fit=crop'
     },
     {
-        id: 11,
-        title: 'Azure Cosmos DB',
-        code: 'DP-420',
+        id: 13,
+        title: 'Power Platform Solution Architect',
+        code: 'PL-600',
         vendor: 'Microsoft',
         category: 'Speciality',
         description: 'Deepen your technical skills and manage industry solutions',
@@ -211,9 +211,69 @@ export const mockExams: MockExam[] = [
         difficulty: 'Advanced',
         price: 39.99,
         rating: 4.9,
-        students: 7500,
-        image: 'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=1200&auto=format&fit=crop'
-    }
+        students: 12000,
+        image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop'
+    },
+    // {
+    //     id: 14,
+    //     title: 'Azure Security Engineer Associate',
+    //     code: 'AZ-500',
+    //     vendor: 'Microsoft',
+    //     category: 'Speciality',
+    //     description: 'Deepen your technical skills and manage industry solutions',
+    //     questions: 50,
+    //     duration: 120,
+    //     difficulty: 'Intermediate',
+    //     price: 39.99,
+    //     rating: 4.9,
+    //     students: 19000,
+    //     image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=1200&auto=format&fit=crop'
+    // },
+    // {
+    //     id: 9,
+    //     title: 'Azure for SAP Workloads',
+    //     code: 'AZ-120',
+    //     vendor: 'Microsoft',
+    //     category: 'Speciality',
+    //     description: 'Deepen your technical skills and manage industry solutions',
+    //     questions: 50,
+    //     duration: 120,
+    //     difficulty: 'Advanced',
+    //     price: 39.99,
+    //     rating: 4.7,
+    //     students: 8000,
+    //     image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1200&auto=format&fit=crop'
+    // },
+    // {
+    //     id: 10,
+    //     title: 'Azure Virtual Desktop',
+    //     code: 'AZ-140',
+    //     vendor: 'Microsoft',
+    //     category: 'Speciality',
+    //     description: 'Deepen your technical skills and manage industry solutions',
+    //     questions: 50,
+    //     duration: 120,
+    //     difficulty: 'Advanced',
+    //     price: 39.99,
+    //     rating: 4.8,
+    //     students: 9500,
+    //     image: 'https://images.unsplash.com/photo-1589149098258-3e9102cd63d3?q=80&w=1200&auto=format&fit=crop'
+    // },
+    // {
+    //     id: 11,
+    //     title: 'Azure Cosmos DB',
+    //     code: 'DP-420',
+    //     vendor: 'Microsoft',
+    //     category: 'Speciality',
+    //     description: 'Deepen your technical skills and manage industry solutions',
+    //     questions: 50,
+    //     duration: 120,
+    //     difficulty: 'Advanced',
+    //     price: 39.99,
+    //     rating: 4.9,
+    //     students: 7500,
+    //     image: 'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=1200&auto=format&fit=crop'
+    // }
 ];
 
 export const blogPosts: BlogPost[] = [
@@ -312,32 +372,48 @@ export const teamMembers: TeamMember[] = [
 export const testimonials: Testimonial[] = [
     {
         id: 1,
-        name: 'Robert Martinez',
-        role: 'Cloud Engineer at Tech Corp',
-        content: 'The mock exams were incredibly helpful! They closely mirrored the actual AWS exam and helped me pass on my first attempt.',
+        name: 'Vanil Seenarayan',
+        role: 'Cloud Engineer',
+        content: 'I successfully passed the AZ-900 exam by watching the training videos and using the practice tests. The content was well-structured and easy to understand, which helped me build a strong foundation in Azure fundamentals. Thank you, Deccansoft, for the excellent support.',
         rating: 5,
-        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80'
+        //image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80'
     },
     {
         id: 2,
-        name: 'Jennifer Lee',
+        name: 'Syed Aslam Ali',
         role: 'DevOps Engineer',
-        content: 'Excellent training program with knowledgeable instructors. The hands-on labs were particularly valuable.',
+        content: 'Thank you for the excellent service, which helped me achieve a high score in the exam. I sincerely appreciate your support; the session was extremely helpful in clearing the exam.',
         rating: 5,
-        image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80'
+        //image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80'
     },
     {
         id: 3,
-        name: 'David Thompson',
+        name: 'B Ravichand',
         role: 'Solutions Architect',
-        content: 'Best investment I made in my career. Passed three certifications with their guidance and practice tests.',
+        content: 'The questions were designed to encourage critical thinking and in-depth analysis of cloud concepts, which is extremely valuable for certification preparation. The practice tests closely aligned with real exam scenarios and significantly improved my confidence.',
         rating: 5,
-        image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80'
+        //image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80'
+    },
+    {
+        id: 4,
+        name: 'Abhishek Bhargava',
+        role: 'Software Developer',
+        content: 'All the questions were highly practical and closely aligned with the real certification exam. I am very satisfied with the assessment experience.Thankyou',
+        rating: 4,
+        //image: 'https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?w=400&q=80'
+    },
+        {
+        id: 5,
+        name: 'Ravikiran Reddy',
+        role: 'Cloud Developer',
+        content: 'I recommend that everyone sign up this portal before attempting the exam. The course is well-structured and helped me gain valuable knowledge. It is an excellent platform for assessing one’s skills after completing the training sessions.',
+        rating: 4,
+        //image: 'https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?w=400&q=80'
     }
 ];
 
 export const stats: Stat[] = [
-    { label: 'Years Training Experience', value: '28+' },
+    { label: 'Years Training Experience', value: '29+' },
     { label: 'Student Careers', value: '500,000+' },
     { label: 'Online Training Batches', value: '10,000+' },
     { label: 'Corporate Trainings', value: '500+' },

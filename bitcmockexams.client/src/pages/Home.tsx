@@ -5,6 +5,7 @@ import Card from '@shared/components/ui/Card';
 import { mockExams, testimonials, stats } from '../data/mockData';
 import { useTestSuitesApi, type TestSuite } from '@shared/api/testSuites';
 import { useEffect, useRef, useState } from 'react';
+import type { Testimonial } from '../types';
 
 const Home = () => {
     const navigate = useNavigate();
@@ -56,7 +57,7 @@ const Home = () => {
         if (m2) return m2[0];
         return null;
     };
-    const featuredCodes = ['AZ-900', 'DP-900', 'AI-900', 'SC-900', 'PL-900', 'MB-910', 'MB-920', 'MS-900', 'AI-102', 'AZ-102'];
+    const featuredCodes = ['AZ-900','AI-900','DP-900', 'PL-900','AZ-104','AZ-204'];
     const badgeByCategory: Record<string, string> = {
         Fundamentals: 'https://www.getmicrosoftcertification.com/lib/images/fundamentals.png',
         'Role-Based': 'https://www.getmicrosoftcertification.com/lib/images/expert.png',
@@ -139,7 +140,7 @@ const Home = () => {
                                             />
                                             <div>
                                                 <div className="text-primary-blue font-semibold">{(item.title || (item as TestSuite).TestSuiteTitle)}</div>
-                                                <div className="text-text-secondary text-sm">{item.description || (item as TestSuite).FKContributorName}</div>
+                                                {/* <div className="text-text-secondary text-sm">{item.description || (item as TestSuite).FKContributorName}</div> */}
                                             </div>
                                         </button>
                                     ))}
@@ -303,8 +304,7 @@ const Home = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {/* Infrastructure */}
-                        <Link to="/mock-exams?category=infrastructure" className="block">
-                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer">
+                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg">
                             <div className="flex items-start justify-between mb-4">
                                 <h3 className="text-xl font-bold text-primary-blue">INFRASTRUCTURE</h3>
                                 <FaServer className="text-primary-blue text-3xl" aria-hidden="true" />
@@ -313,11 +313,9 @@ const Home = () => {
                                 Certifications for infrastructure technologies like Azure, Windows Server, and DevOps.
                             </p>
                         </div>
-                        </Link>
 
                         {/* Data and AI */}
-                        <Link to="/mock-exams?category=data-ai" className="block">
-                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer">
+                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg">
                             <div className="flex items-start justify-between mb-4">
                                 <h3 className="text-xl font-bold text-primary-blue">DATA AND AI</h3>
                                 <FaDatabase className="text-primary-blue text-3xl" aria-hidden="true" />
@@ -326,11 +324,9 @@ const Home = () => {
                                 Certifications covering data engineering, data science, and artificial intelligence.
                             </p>
                         </div>
-                        </Link>
 
                         {/* Digital Innovation */}
-                        <Link to="/mock-exams?category=digital-innovation" className="block">
-                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer">
+                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg">
                             <div className="flex items-start justify-between mb-4">
                                 <h3 className="text-xl font-bold text-primary-blue">DIGITAL INNOVATION</h3>
                                 <FaLightbulb className="text-primary-blue text-3xl" aria-hidden="true" />
@@ -339,11 +335,9 @@ const Home = () => {
                                 Certifications for app development and innovative technologies.
                             </p>
                         </div>
-                        </Link>
 
                         {/* Modern Work */}
-                        <Link to="/mock-exams?category=modern-work" className="block">
-                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer">
+                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg">
                             <div className="flex items-start justify-between mb-4">
                                 <h3 className="text-xl font-bold text-primary-blue">MODERN WORK</h3>
                                 <FaUsers className="text-primary-blue text-3xl" aria-hidden="true" />
@@ -352,11 +346,9 @@ const Home = () => {
                                 Certifications focused on modern workplace technologies and collaboration tools.
                             </p>
                         </div>
-                        </Link>
 
                         {/* Business Applications */}
-                        <Link to="/mock-exams?category=business-applications" className="block">
-                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer">
+                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg">
                             <div className="flex items-start justify-between mb-4">
                                 <h3 className="text-xl font-bold text-primary-blue">BUSINESS APPLICATIONS</h3>
                                 <FaThLarge className="text-primary-blue text-3xl" aria-hidden="true" />
@@ -365,11 +357,9 @@ const Home = () => {
                                 Certifications related to Dynamics 365 and business applications.
                             </p>
                         </div>
-                        </Link>
 
                         {/* Security */}
-                        <Link to="/mock-exams?category=security" className="block">
-                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg cursor-pointer">
+                        <div className="bg-white border border-border rounded-xl p-6 shadow-md transition-shadow hover:shadow-lg">
                             <div className="flex items-start justify-between mb-4">
                                 <h3 className="text-xl font-bold text-primary-blue">SECURITY</h3>
                                 <FaShieldAlt className="text-primary-blue text-3xl" aria-hidden="true" />
@@ -378,7 +368,6 @@ const Home = () => {
                                 Certifications related to cybersecurity, identity, and compliance.
                             </p>
                         </div>
-                        </Link>
                     </div>
                 </div>
             </section>
@@ -460,20 +449,20 @@ const Home = () => {
                                     <img
                                         src={badgeByCategory[exam.category] || badgeByCategory['Fundamentals']}
                                         alt={`${exam.category} badge`}
-                                        className="w-10 h-10 rounded-full object-contain shrink-0"
+                                        className="w-12 h-12 rounded-full object-contain shrink-0"
                                     />
-                                    <div>
-                                        <Link to={`/mock-exams?code=${exam.code}`} className="text-primary-blue font-semibold hover:underline">
+                                    <div className="flex-1">
+                                        <h3 className="text-lg font-bold text-primary-blue mb-2">
                                             {exam.code}: {exam.title}
-                                        </Link>
-                                        <p className="mt-2 text-text-secondary text-sm">
+                                        </h3>
+                                        <p className="text-text-secondary text-sm leading-relaxed">
                                             Practice questions and structured prep to master {exam.title}.
                                         </p>
                                     </div>
                                 </div>
-                                <div className="mt-auto text-center">
+                                <div className="mt-auto">
                                     <Link to={`/mock-exams?code=${exam.code}`} className="inline-block">
-                                        <Button variant="secondary" size="small">Get Certified</Button>
+                                        <Button variant="outline" size="small">Get Certified</Button>
                                     </Link>
                                 </div>
                             </div>
@@ -483,7 +472,7 @@ const Home = () => {
             </section>
 
             {/* Testimonials */}
-            <section className="py-16 bg-white">
+            <section className="py-16 bg-white overflow-hidden">
                 <div className="container mx-auto px-4">
                     <div className="mb-12 text-center">
                         <h2 className="text-4xl font-bold mb-4">What Our Students Say</h2>
@@ -492,29 +481,7 @@ const Home = () => {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-8">
-                        {testimonials.map((testimonial) => (
-                            <Card key={testimonial.id}>
-                                <div className="flex gap-1 mb-4">
-                                    {[...Array(testimonial.rating)].map((_, i) => (
-                                        <FaStar key={i} className="text-warning" />
-                                    ))}
-                                </div>
-                                <p className="italic text-text-secondary mb-6 leading-relaxed">"{testimonial.content}"</p>
-                                <div className="flex items-center gap-4 mt-auto">
-                                    <img
-                                        src={testimonial.image}
-                                        alt={testimonial.name}
-                                        className="w-[50px] h-[50px] rounded-full object-cover"
-                                    />
-                                    <div>
-                                        <h4 className="text-base font-semibold mb-1">{testimonial.name}</h4>
-                                        <p className="text-sm text-text-light m-0">{testimonial.role}</p>
-                                    </div>
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
+                    <TestimonialCarousel testimonials={testimonials} />
                 </div>
             </section>
 
@@ -597,6 +564,78 @@ const AnimatedStat: React.FC<{ label: string; value: string }> = ({ label, value
                 {formatNumberWithCommas(display)}{suffix}
             </h3>
             <p className="text-base text-text-secondary m-0">{label}</p>
+        </div>
+    );
+};
+
+const TestimonialCarousel: React.FC<{ testimonials: Testimonial[] }> = ({ testimonials }) => {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [isPaused, setIsPaused] = useState(false);
+
+    useEffect(() => {
+        const scrollContainer = scrollRef.current;
+        if (!scrollContainer) return;
+
+        let animationId: number;
+        const scrollSpeed = 0.5; // pixels per frame
+
+        const autoScroll = () => {
+            if (!isPaused && scrollContainer) {
+                scrollContainer.scrollLeft += scrollSpeed;
+                
+                // Reset to beginning when reaching the end
+                if (scrollContainer.scrollLeft >= scrollContainer.scrollWidth - scrollContainer.clientWidth) {
+                    scrollContainer.scrollLeft = 0;
+                }
+            }
+            animationId = requestAnimationFrame(autoScroll);
+        };
+
+        animationId = requestAnimationFrame(autoScroll);
+
+        return () => {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        };
+    }, [isPaused]);
+
+    // Duplicate testimonials for infinite scroll effect
+    const duplicatedTestimonials = [...testimonials, ...testimonials, ...testimonials];
+
+    return (
+        <div 
+            className="relative"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+        >
+            <div 
+                ref={scrollRef}
+                className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth"
+            >
+                {duplicatedTestimonials.map((testimonial, index) => (
+                    <div key={`${testimonial.id}-${index}`} className="flex-shrink-0 w-[320px] md:w-[380px]">
+                        <Card>
+                            <div className="flex gap-1 mb-4">
+                                {[...Array(testimonial.rating)].map((_, i) => (
+                                    <FaStar key={i} className="text-warning" />
+                                ))}
+                            </div>
+                            <p className="italic text-text-secondary mb-6 leading-relaxed">"{testimonial.content}"</p>
+                            <div className="flex items-center gap-4 mt-auto">
+                                <div>
+                                    <h4 className="text-base font-semibold mb-1">{testimonial.name}</h4>
+                                    <p className="text-sm text-text-light m-0">{testimonial.role}</p>
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+                ))}
+            </div>
+            
+            {/* Fade gradients on edges */}
+            <div className="absolute top-0 left-0 bottom-0 w-12 bg-gradient-to-r from-white to-transparent pointer-events-none" />
+            <div className="absolute top-0 right-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
         </div>
     );
 };
