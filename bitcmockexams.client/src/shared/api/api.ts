@@ -1,4 +1,5 @@
 import { useAxiosInstance } from '@config/axios';
+import { useMemo } from 'react';
 
 export const useApiService = () => {
   const axios = useAxiosInstance();
@@ -41,7 +42,7 @@ export const useApiService = () => {
     }
   };
 
-  return {
+  return useMemo(() => ({
     get: async (endpoint: string, options: RequestOptions = true) => {
       try {
         const response = await axios.get(endpoint, buildConfig(options));
@@ -106,5 +107,5 @@ export const useApiService = () => {
         throw error;
       }
     }
-  };
+  }), [axios]);
 };
