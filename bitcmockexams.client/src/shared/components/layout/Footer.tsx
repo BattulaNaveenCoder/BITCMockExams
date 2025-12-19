@@ -116,8 +116,7 @@ const Footer = () => {
                         <a href="https://bdtmaterial.blob.core.windows.net/shared/WebsiteRewamp/Documents/NewprivacyagreementBITC.pdf" target="_blank" rel="noopener noreferrer" className="text-white/60 no-underline transition-colors duration-150 hover:text-accent-blue">Privacy Policy</a>
                         <span className="text-white/30">|</span>
                         <a href="https://bestitcourses-hgb4dhd3cmfnd5gn.z01.azurefd.net/shared/Blogs/termandconditions.pdf" target="_blank" rel="noopener noreferrer" className="text-white/60 no-underline transition-colors duration-150 hover:text-accent-blue">Terms and Conditions</a>
-                        <span className="text-white/30">|</span>
-                        <Link to="/cookies" className="text-white/60 no-underline transition-colors duration-150 hover:text-accent-blue">Cookie Policy</Link>
+                        
                     </div>
                 </div>
             </div>

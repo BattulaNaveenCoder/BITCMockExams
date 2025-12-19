@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@features/auth/context/AuthContext';
-import { useTestsApi, type UserTestSubscription } from '@shared/api/tests';
+import { useTestsApi } from '@shared/api/tests';
 import { useTestSuites } from '@shared/contexts/TestSuitesContext';
 import { getUserIdFromClaims, normalizeClaims } from '@shared/utils/auth';
+import Skeleton from '@shared/components/ui/Skeleton';
 
-const tabs = [
-  { key: 'subscription', label: 'Subscription' },
-  { key: 'reports', label: 'Exam Reports' },
-];
+// Removed tabs and reports; Dashboard now shows subscriptions only.
 
 type SubscriptionView = { code: string; title: string; start: string; end: string; pathId?: string; suiteId?: string };
 
@@ -78,7 +76,6 @@ function CertificationCard({ code, title, start, end, pathId, suiteId }: { code:
 }
 
 export default function Dashboard() {
-  const [active, setActive] = useState('subscription');
   const { user } = useAuth();
   const { getTestsByUserId } = useTestsApi();
   const { suites } = useTestSuites(); // Use shared context
@@ -86,7 +83,6 @@ export default function Dashboard() {
   const [subs, setSubs] = useState<SubscriptionView[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [suiteMap, setSuiteMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const normalized = normalizeClaims(user as any);
@@ -107,7 +103,6 @@ export default function Dashboard() {
         (suites || []).forEach((s) => {
           if (s.PathId && s.PKTestSuiteId) map[s.PathId] = s.PKTestSuiteId;
         });
-        setSuiteMap(map);
         const mapped: SubscriptionView[] = rows.map((r) => ({
           code: r.PathId ?? r.TestId,
           title: r.TestName,
@@ -126,127 +121,60 @@ export default function Dashboard() {
   }, [user]);
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex gap-4 mb-6">
-        {tabs.map(t => (
-          <button
-            key={t.key}
-            onClick={() => setActive(t.key)}
-            className={`px-6 py-2 rounded-full border ${active === t.key ? 'bg-primary-blue text-white border-primary-blue' : 'bg-white text-text-primary border-border'}`}
-          >
-            {t.label}
-          </button>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading && (
+          <>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SubscriptionCardSkeleton key={i} />
+            ))}
+          </>
+        )}
+        {error && <div className="col-span-full text-center text-red-600">{error}</div>}
+        {!loading && !error && subs.length === 0 && (
+          <div className="col-span-full text-center text-[#6b7280]">No subscriptions found.</div>
+        )}
+        {subs.map((s: SubscriptionView, i: number) => (
+          <CertificationCard key={i} code={s.code} title={s.title} start={s.start} end={s.end} pathId={s.pathId} suiteId={s.suiteId} />
         ))}
       </div>
-
-      {active === 'subscription' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {loading && <div className="col-span-full text-center">Loading...</div>}
-          {error && <div className="col-span-full text-center text-red-600">{error}</div>}
-          {!loading && !error && subs.length === 0 && (
-            <div className="col-span-full text-center text-[#6b7280]">No subscriptions found.</div>
-          )}
-          {subs.map((s: SubscriptionView, i: number) => (
-            <CertificationCard key={i} code={s.code} title={s.title} start={s.start} end={s.end} pathId={s.pathId} suiteId={s.suiteId} />
-          ))}
-        </div>
-      )}
-
-      {active === 'reports' && (
-        <ReportsTab />
-      )}
     </div>
   );
 }
 
-function Badge({ children, variant = 'default' }: { children: React.ReactNode; variant?: 'default' | 'warning' | 'danger' | 'mode' }) {
-  const styles = {
-    default: 'bg-[#fff] text-[#111827] border border-[#e5e7eb]',
-    warning: 'bg-[#fff7e6] text-[#92400e] border border-[#fde68a]',
-    danger: 'bg-[#fee2e2] text-[#991b1b] border border-[#fecaca]',
-    mode: 'bg-[#e0f2ff] text-[#1e88e5] border border-[#bae6fd]',
-  } as const;
+function SubscriptionCardSkeleton() {
   return (
-    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-xl text-sm font-semibold ${styles[variant]}`}>
-      {children}
-    </span>
-  );
-}
-
-function IconDocument({ className = 'w-5 h-5' }: { className?: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" opacity="0.2" />
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm0 2.5L18.5 7H14V4.5zM8 12h8v2H8v-2zm0 4h8v2H8v-2z" />
-    </svg>
-  );
-}
-
-function IconStopwatch({ className = 'w-5 h-5' }: { className?: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M13 3V1h-2v2H8v2h8V3h-3z" />
-      <path d="M12 6a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm1 8.27 3.2 1.85-.98 1.7L12 16v-6h1v4.27z" />
-    </svg>
-  );
-}
-
-function IconChart({ className = 'w-5 h-5' }: { className?: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M5 3h2v18H5V3zm6 6h2v12h-2V9zm6-4h2v16h-2V5z" />
-    </svg>
-  );
-}
-
-const reportRows = [
-  { id: 1, name: 'Perform solution envisioning and requirement analysis', date: 'May 31, 2025 02:04 PM (IST)', timeTaken: '0:0', marks: 0, percentage: 0, mode: 'Practice' },
-  { id: 2, name: 'Azure Virtual Networking (Day1)', date: 'February 04, 2025 05:53 PM (IST)', timeTaken: '0:0', marks: 0, percentage: 0, mode: 'Practice' },
-  { id: 3, name: 'Design, implement, and manage connectivity services', date: 'December 31, 2024 01:43 PM (IST)', timeTaken: '0:0', marks: 0, percentage: 0, mode: 'Practice' },
-  { id: 4, name: 'Prepare about the data', date: 'December 13, 2024 10:47 AM (IST)', timeTaken: '1:0', marks: 5, percentage: 8, mode: 'Practice' },
-];
-
-function ReportsTab() {
-  return (
-    <div>
-      
-      <div className="rounded-3xl overflow-hidden shadow-sm border border-[#cfe6ff]">
-        <div className="bg-[#0ea5e9] text-white px-6 py-4 flex items-center rounded-t-3xl">
-          <div className="grid grid-cols-12 w-full gap-4 text-sm font-semibold">
-            <div className="col-span-1">S.NO</div>
-            <div className="col-span-4">NAME OF EXAM</div>
-            <div className="col-span-3">DATE</div>
-            <div className="col-span-1">TIME TAKEN</div>
-            <div className="col-span-1">MARKS OBTAINED</div>
-            <div className="col-span-1">MODE</div>
-            <div className="col-span-1">RESULT</div>
+    <div className="relative rounded-3xl border border-[#cfe6ff] bg-gradient-to-b from-[#eaf4ff] via-[#e1f0ff] to-[#d7ecff] shadow-sm p-6">
+      <div className="mb-2">
+        <Skeleton className="h-4 w-24 bg-[#d0e8ff]" rounded="rounded-full" />
+      </div>
+      <div className="mt-3">
+        <Skeleton className="h-8 w-3/4 bg-[#d0e8ff]" rounded="rounded-xl" />
+      </div>
+      <div className="mt-6 grid grid-cols-2 gap-4">
+        <div className="rounded-2xl bg-white/70 backdrop-blur-sm border border-border/60 p-4">
+          <Skeleton className="h-3 w-20 bg-gray-200/80" rounded="rounded-md" />
+          <div className="mt-2">
+            <Skeleton className="h-5 w-28 bg-gray-200/80" rounded="rounded-md" />
           </div>
         </div>
-        <div className="bg-gradient-to-b from-[#eaf4ff] via-[#e1f0ff] to-[#d7ecff] p-0">
-          {reportRows.map((row, idx) => (
-            <div key={row.id} className={`px-6 py-4 ${idx !== 0 ? 'border-t border-[#dbeafe]' : ''} flex items-center`}>
-              <div className="grid grid-cols-12 w-full gap-4 items-center">
-                <div className="col-span-1 text-[#1e88e5] font-bold">{row.id}</div>
-                <div className="col-span-4 text-[#111827]">{row.name}</div>
-                <div className="col-span-3 text-[#6b7280]">{row.date}</div>
-                <div className="col-span-1">
-                  <Badge variant="warning"><IconStopwatch className="w-4 h-4" /> <span>{row.timeTaken}</span></Badge>
-                </div>
-                <div className="col-span-1">
-                  <Badge variant={row.percentage === 0 ? 'danger' : 'default'}><IconChart className="w-4 h-4" /> <span>{row.marks} ({row.percentage}%)</span></Badge>
-                </div>
-                <div className="col-span-1">
-                  <Badge variant="mode">{row.mode}</Badge>
-                </div>
-                <div className="col-span-1">
-                  <button className="inline-flex items-center justify-center w-9 h-9 rounded-xl border-2 border-[#0ea5e9] bg-white text-[#0ea5e9] shadow-sm" aria-label="View report">
-                    <IconDocument className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="rounded-2xl bg-white/70 backdrop-blur-sm border border-border/60 p-4">
+          <Skeleton className="h-3 w-20 bg-gray-200/80" rounded="rounded-md" />
+          <div className="mt-2">
+            <Skeleton className="h-5 w-28 bg-gray-200/80" rounded="rounded-md" />
+          </div>
+        </div>
+      </div>
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2">
+          <Skeleton className="h-4 w-20 bg-gray-200/80" rounded="rounded-md" />
+          <Skeleton className="h-4 w-10 bg-gray-200/80" rounded="rounded-md" />
+        </div>
+        <div className="h-3 w-full rounded-full bg-[#d0e8ff] overflow-hidden">
+          <Skeleton className="h-3 w-2/3 bg-gradient-to-r from-[#64b5f6] via-[#1e88e5] to-[#1565c0]" rounded="rounded-full" />
         </div>
       </div>
     </div>
   );
 }
+
+// Reports UI removed

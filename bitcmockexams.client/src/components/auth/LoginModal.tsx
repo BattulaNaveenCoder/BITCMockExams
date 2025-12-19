@@ -138,7 +138,7 @@ const LoginModal: React.FC = () => {
         <div className="p-6 md:p-8">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold mb-1">Welcome Back</h2>
-            <p className="text-text-secondary m-0">Login using BestITcourses credentials</p>
+            <p className="text-text-secondary m-0">Login using BestITCourses credentials</p>
           </div>
 
           <form onSubmit={handleSubmit} className="mb-5">
@@ -196,14 +196,14 @@ const LoginModal: React.FC = () => {
            
           </div>
 
-          {/* <div className="text-center pt-4 border-t border-border">
+          <div className="text-center pt-4 border-t border-border">
             <p className="text-text-secondary m-0">
               Don't have an account?{' '}
               <a href="https://www.bestitcourses.com/" target="_blank" rel="noopener noreferrer" className="text-primary-blue font-semibold">
                 Sign up
               </a>
             </p>
-          </div> */}
+          </div>
         </div>
       </div>
     </div>

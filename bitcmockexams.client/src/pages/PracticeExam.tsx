@@ -2,13 +2,14 @@ import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import Button from '@shared/components/ui/Button';
 import Skeleton from '@shared/components/ui/Skeleton';
-import { FaClock, FaTimes, FaPause, FaPlay, FaThumbsUp, FaFlag, FaEdit, FaTrash, FaReply, FaPlus, FaMinus, FaAngleLeft, FaAngleRight, FaAngleDoubleLeft, FaAngleDoubleRight, FaLock, FaCheck } from 'react-icons/fa';
+import { FaClock, FaTimes, FaPause, FaPlay, FaThumbsUp, FaFlag, FaEdit, FaTrash, FaReply, FaPlus, FaMinus, FaAngleLeft, FaAngleRight, FaAngleDoubleLeft, FaAngleDoubleRight, FaLock, FaCheck, FaPhone, FaWhatsapp, FaEnvelope, FaUser } from 'react-icons/fa';
 import { useTestSuitesApi } from '@shared/api/testSuites';
 import { useTestsApi } from '@shared/api/tests';
 import { useAuth } from '@features/auth/context/AuthContext';
 import { useAuthApi } from '@shared/api/auth';
 import { useWalletApi } from '@shared/api/wallet';
 import { getUserIdFromClaims, normalizeClaims } from '@shared/utils/auth';
+import { encryptPayload } from '@shared/utils/crypto';
 
 // CSS for HTML content rendering
 const htmlContentStyles = `
@@ -351,6 +352,12 @@ const PracticeExam: React.FC = () => {
     console.log('Current question:', q);
     return q;
   }, [testViewModel, currentIndex]);
+
+  // WhatsApp prefilled message with dynamic test title
+  const supportMessage = useMemo(() => {
+    const title = testTitle?.trim() || 'BITC';
+    return encodeURIComponent(`Hello ${title} Mock Exam Support`);
+  }, [testTitle]);
 
   // Debug logging
   useEffect(() => {
@@ -747,7 +754,18 @@ const PracticeExam: React.FC = () => {
     // Navigate to Exam Review with BuyerTestId
     const buyerTestId = testViewModel?.PKBuyerTestId;
     if (buyerTestId) {
-      navigate(`/exam-review/${buyerTestId}`);
+      try {
+        const suitePayload = {
+          PathId,
+          TestSuiteTitle: testSuiteDetails?.TestSuiteTitle || 'Exam',
+        };
+        const token = await encryptPayload(suitePayload);
+        console.log('Navigating to ExamReview with suite token:', token?.slice(0, 48));
+        navigate(`/exam-review/${buyerTestId}?suite=${encodeURIComponent(token)}`);
+      } catch {
+        console.warn('Failed to encrypt suite payload; navigating without token');
+        navigate(`/exam-review/${buyerTestId}`);
+      }
     } else {
       console.warn('BuyerTestId not available; returning to exam list');
       navigate(`/exams/${PathId}`);
@@ -1571,7 +1589,7 @@ const PracticeExam: React.FC = () => {
             </li>
             <li>/</li>
             <li>
-              <Link to="/exams" className="hover:text-primary-blue">Tests</Link>
+              <Link to="/mock-exams" className="hover:text-primary-blue">Tests</Link>
             </li>
             <li>/</li>
             <li>
@@ -2137,6 +2155,144 @@ const PracticeExam: React.FC = () => {
           </div>
         )
       }
+
+      {/* Unlock Questions - Contact Modal */}
+      {showUnlockModal && (
+        <div
+          className="fixed inset-0 pt-10 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowUnlockModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl p-8 shadow-2xl max-w-xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <h2 className="text-2xl font-bold">Unlock Questions</h2>
+              <button
+                aria-label="Close"
+                className="p-2 rounded-full hover:bg-gray-100"
+                onClick={() => setShowUnlockModal(false)}
+              >
+                <FaTimes className="text-gray-600" />
+              </button>
+            </div>
+
+            <p className="text-text-secondary mb-6">
+              To unlock full access, please contact our support team.
+            </p>
+
+            <div className="space-y-4">
+              <div className="flex items-start gap-4 p-4 border border-border rounded-lg">
+                <div className="w-10 h-10 rounded-md bg-light-blue text-primary-blue flex items-center justify-center">
+                  <FaUser />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold">Contact Persons</div>
+
+                  {/* Shubham Mishra - First */}
+                  <div className="mt-2">
+                    <div className="font-medium">Mr. Shubham Mishra</div>
+                    <div className="text-sm text-text-secondary">Mobile / WhatsApp: +91 81438 05923</div>
+                    <div className="text-sm">
+                      <a
+                        className="text-primary-blue underline"
+                        href="mailto:info@bestitcourses.com"
+                      >
+                        info@bestitcourses.com
+                      </a>
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      <a
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
+                        href={`https://wa.me/918143805923?text=${supportMessage}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <FaWhatsapp /> WhatsApp Chat
+                      </a>
+                      <a
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 text-text-primary hover:bg-gray-200"
+                        href="tel:+918143805923"
+                      >
+                        <FaPhone /> Call
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-border my-4" />
+
+                  {/* Kashmira Shah - Second */}
+                  <div>
+                    <div className="font-medium">Mrs. Kashmira Shah</div>
+                    <div className="text-sm text-text-secondary">Mobile / WhatsApp: +91 93474 58388</div>
+                    <div className="text-sm">
+                      <a
+                        className="text-primary-blue underline"
+                        href="mailto:kashmira.shah@deccansoft.com"
+                      >
+                        kashmira.shah@deccansoft.com
+                      </a>
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      <a
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
+                        href={`https://wa.me/919347458388?text=${supportMessage}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <FaWhatsapp /> WhatsApp Chat
+                      </a>
+                      <a
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 text-text-primary hover:bg-gray-200"
+                        href="tel:+919347458388"
+                      >
+                        <FaPhone /> Call
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 p-4 border border-border rounded-lg">
+                <div className="w-10 h-10 rounded-md bg-light-blue text-primary-blue flex items-center justify-center">
+                  <FaEnvelope />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold">Support Email</div>
+                  <a
+                    className="text-primary-blue underline text-sm"
+                    href="mailto:support@bestitcourses.com"
+                  >
+                    support@bestitcourses.com
+                  </a>
+                </div>
+              </div>
+
+              {/* <div className="flex items-start gap-4 p-4 border border-border rounded-lg">
+                <div className="w-10 h-10 rounded-md bg-light-blue text-primary-blue flex items-center justify-center">
+                  <FaEnvelope />
+                </div>
+                <div>
+                  <div className="font-semibold">Support Email</div>
+                  <a
+                    className="text-primary-blue underline text-sm"
+                    href="mailto:support@bestitcourses.com"
+                  >
+                    support@bestitcourses.com
+                  </a>
+                </div>
+              </div> */}
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <Button variant="primary" onClick={() => setShowUnlockModal(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Network Offline Warning */}
       {
