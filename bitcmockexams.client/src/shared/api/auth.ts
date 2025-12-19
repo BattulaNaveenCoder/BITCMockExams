@@ -11,6 +11,8 @@ export const useAuthApi = () => {
   const login = (payload: LoginRequest, showGlobalLoader: boolean = true) => {
     const base = process.env.NODE_ENV === 'development' ? `${window.location.origin}/a2z-identity` : 'https://a2z-identity.azurewebsites.net';
     const url = `${base}/api/AuthAPI/Login`;
+    //const url = `https://a2z-identity.azurewebsites.net/api/AuthAPI/Login`;
+
     const rawUser = (payload as any)?.userName
       ?? (payload as any)?.UserName
       ?? (payload as any)?.username

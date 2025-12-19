@@ -1,9 +1,13 @@
-import React, { useEffect, useMemo, useState, useId } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState, useId, useCallback, useRef } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTestsApi } from '@shared/api/tests';
+import { useTestSuitesApi } from '@shared/api/testSuites';
 import Button from '@shared/components/ui/Button';
 import Skeleton from '@shared/components/ui/Skeleton';
-import { FaCheck, FaTimes, FaDownload, FaShareAlt, FaInfoCircle, FaPlus, FaMinus } from 'react-icons/fa';
+import { FaCheck, FaTimes, FaDownload, FaShareAlt, FaInfoCircle, FaPlus, FaMinus, FaFileAlt, FaQuestionCircle, FaTimesCircle } from 'react-icons/fa';
+import { decryptPayload } from '@shared/utils/crypto';
+import { useAuth } from '@features/auth/context/AuthContext';
+import { getUserIdFromClaims } from '@shared/utils/auth';
 
 type ResultType = 'PASSED' | 'FAILED';
 
@@ -109,6 +113,71 @@ const StatPill: React.FC<{ label: string; value: React.ReactNode; tone?: 'succes
 
 // Removed Question Navigator; using accordion instead
 
+// New metric card aligned to the attached design
+const MetricCard: React.FC<{ icon: React.ReactNode; value: React.ReactNode; label: string; tone?: 'success' | 'error' | 'warning' | 'default' }> = ({ icon, value, label, tone = 'default' }) => {
+	const tones = {
+		success: 'text-green-600',
+		error: 'text-red-600',
+		warning: 'text-amber-600',
+		default: 'text-primary-blue'
+	} as const;
+	return (
+		<div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 flex items-center gap-4">
+			<div className={`w-10 h-10 grid place-items-center rounded-full bg-light-blue ${tones[tone]}`}>{icon}</div>
+			<div>
+				<div className="text-2xl font-extrabold tracking-tight">{value}</div>
+				<div className="text-xs font-semibold text-text-secondary uppercase mt-1">{label}</div>
+			</div>
+		</div>
+	);
+};
+
+// Performance summary card with progress bar and required marker
+const PerformanceSummary: React.FC<{ percent: number; required: number; result: ResultType | null }> = ({ percent, required, result }) => {
+	const clamped = Math.max(0, Math.min(100, percent || 0));
+	const requiredPct = Math.max(0, Math.min(100, required || 0));
+	const isPass = result === 'PASSED';
+	// Use theme colors (blue gradient) for the banner regardless of result
+	const bannerClass = 'bg-gradient-to-r from-primary-blue to-secondary-blue';
+	// Message pill styled to match theme, avoiding red
+	const pillClass = 'inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold bg-white/10 text-white border border-white/20';
+	return (
+		<div className={`rounded-2xl overflow-hidden shadow-sm ${bannerClass} text-white`}> 
+			<div className="px-6 py-6 md:px-8 md:py-8">
+				<div className="flex items-start justify-between">
+					<div>
+						<div className="text-white/90 font-semibold">Overall Performance</div>
+						<div className="text-xs opacity-90">Required: {requiredPct}% to pass</div>
+					</div>
+					<FaTimesCircle className="opacity-90" />
+				</div>
+
+				<div className="mt-4 flex items-center gap-4">
+					<div className="text-5xl font-extrabold tracking-tight">{Number(clamped).toFixed(1)}%</div>
+					<span className={pillClass}>
+						{isPass ? <FaCheck /> : <FaTimes />}
+						{isPass ? 'Congratulations! You Passed!' : 'Commiserations! Try Again!'}
+					</span>
+				</div>
+
+				{/* Progress bar */}
+				<div className="mt-6">
+					<div className="relative h-3 rounded-full bg-white/30">
+						<div className="absolute left-0 top-0 h-3 rounded-full bg-white/70" style={{ width: `${clamped}%` }} />
+						{/* Required marker */}
+						<div className="absolute -top-1 h-5 w-[2px] bg-white/90" style={{ left: `${requiredPct}%` }} />
+					</div>
+					<div className="mt-2 flex justify-between text-xs">
+						<span>0%</span>
+						<span>Required: {requiredPct}%</span>
+						<span>100%</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+};
+
 const AnswerChip: React.FC<{ state: 'correct' | 'chosen-correct' | 'chosen-incorrect' | 'neutral'; children: React.ReactNode }>
 	= ({ state, children }) => {
 	const styles: Record<string, string> = {
@@ -122,6 +191,132 @@ const AnswerChip: React.FC<{ state: 'correct' | 'chosen-correct' | 'chosen-incor
 		<div className={`flex items-center gap-3 p-4 border rounded-lg transition-colors ${styles[state]}`}>
 			<div className="flex-1">{children}</div>
 			{icon}
+		</div>
+	);
+};
+
+// Lightweight confetti overlay using canvas (no external deps)
+const ConfettiOverlay: React.FC<{ active: boolean; duration?: number }> = ({ active, duration = 4000 }) => {
+	const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+	useEffect(() => {
+		if (!active) return;
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		let animationFrame = 0;
+		let running = true;
+
+		const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+		const resize = () => {
+			const w = window.innerWidth;
+			const h = window.innerHeight;
+			canvas.width = w * dpr;
+			canvas.height = h * dpr;
+			canvas.style.width = w + 'px';
+			canvas.style.height = h + 'px';
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+		};
+		resize();
+		const onResize = () => resize();
+		window.addEventListener('resize', onResize);
+
+		const colors = ['#0078D4', '#50E6FF', '#1E90FF', '#00B7C3', '#7DD3FC', '#93C5FD'];
+		type Particle = {
+			x: number; y: number; vx: number; vy: number;
+			size: number; color: string; rotation: number; rotationSpeed: number;
+			shape: 'rect' | 'circle'; life: number;
+		};
+		const particles: Particle[] = [];
+		const createBurst = (x: number, y: number, count: number) => {
+			for (let i = 0; i < count; i++) {
+				const angle = Math.random() * Math.PI * 2;
+				const speed = 6 + Math.random() * 4;
+				particles.push({
+					x, y,
+					vx: Math.cos(angle) * speed,
+					vy: Math.sin(angle) * speed - 3,
+					size: 6 + Math.random() * 6,
+					color: colors[Math.floor(Math.random() * colors.length)],
+					rotation: Math.random() * Math.PI,
+					rotationSpeed: (Math.random() - 0.5) * 0.2,
+					shape: Math.random() < 0.6 ? 'rect' : 'circle',
+					life: 0,
+				});
+			}
+		};
+
+		// Initial bursts
+		const w = window.innerWidth;
+		const h = window.innerHeight;
+		createBurst(w * 0.25, h * 0.25, 80);
+		createBurst(w * 0.75, h * 0.25, 80);
+		const lateBurst = setTimeout(() => createBurst(w * 0.5, h * 0.2, 120), 300);
+
+		const gravity = 0.15;
+		const drag = 0.003;
+		const fade = 0.002;
+		const maxLife = duration;
+
+		const start = performance.now();
+		const render = (now: number) => {
+			if (!running) return;
+			const t = now - start;
+			ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+			for (let i = particles.length - 1; i >= 0; i--) {
+				const p = particles[i];
+				p.life += 16;
+				p.vy += gravity;
+				p.vx *= (1 - drag);
+				p.vy *= (1 - drag);
+				p.x += p.vx;
+				p.y += p.vy;
+				p.rotation += p.rotationSpeed;
+
+				if (p.y - p.size > window.innerHeight + 20 || p.life > maxLife + 1000) {
+					particles.splice(i, 1);
+					continue;
+				}
+				const alpha = Math.max(0, 1 - (t * fade) / duration);
+				ctx.globalAlpha = alpha;
+				ctx.fillStyle = p.color;
+				ctx.save();
+				ctx.translate(p.x, p.y);
+				ctx.rotate(p.rotation);
+				if (p.shape === 'rect') {
+					ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+				} else {
+					ctx.beginPath();
+					ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+					ctx.fill();
+				}
+				ctx.restore();
+				ctx.globalAlpha = 1;
+			}
+			animationFrame = requestAnimationFrame(render);
+		};
+		animationFrame = requestAnimationFrame(render);
+
+		const stopTimer = setTimeout(() => {
+			running = false;
+			cancelAnimationFrame(animationFrame);
+		}, duration + 800);
+
+		return () => {
+			running = false;
+			cancelAnimationFrame(animationFrame);
+			clearTimeout(stopTimer);
+			clearTimeout(lateBurst);
+			window.removeEventListener('resize', onResize);
+		};
+	}, [active, duration]);
+
+	if (!active) return null;
+	return (
+		<div className="fixed inset-0 pointer-events-none z-50">
+			<canvas ref={canvasRef} />
 		</div>
 	);
 };
@@ -141,12 +336,16 @@ const computeStatus = (q: ReviewQuestion): 'correct' | 'incorrect' | 'unanswered
 const ExamReview: React.FC = () => {
 	const { buyerTestId } = useParams<{ buyerTestId: string }>();
 	const { getBuyerTestById, getAllExamQuestionsById, getAllOptionsWithQuestionId } = useTestsApi() as any;
+	const { globalSearch, getTestSuiteByPathId } = useTestSuitesApi();
+	const navigate = useNavigate();
 	const [buyerTest, setBuyerTest] = useState<any | null>(null);
 	const [vm, setVm] = useState<any | null>(null);
 	const [examQuestions, setExamQuestions] = useState<any[] | null>(null);
 	const [optionsMap, setOptionsMap] = useState<Record<string, ReviewOption[]>>({});
     const [questionsLoading, setQuestionsLoading] = useState<boolean>(false);
     const [optionsLoading, setOptionsLoading] = useState<Record<string, boolean>>({});
+	const { user } = useAuth();
+	const userId = useMemo(() => getUserIdFromClaims(user as any), [user]);
 
 	useEffect(() => {
 		let mounted = true;
@@ -184,7 +383,10 @@ const ExamReview: React.FC = () => {
 		return () => { mounted = false; };
 	}, [vm, getAllExamQuestionsById]);
 
-	// Derived loading state to control initial skeletons and avoid flashing wrong status
+
+	
+	// D
+	// erived loading state to control initial skeletons and avoid flashing wrong status
 	const isInitialLoading = !vm || examQuestions === null;
 
 	// Static data mapping for summary once available
@@ -207,6 +409,18 @@ const ExamReview: React.FC = () => {
 	const result: ResultType | null = !isInitialLoading && hasScoreTargets
 		? (scoreRounded >= (passMark as number) ? 'PASSED' : 'FAILED')
 		: null;
+
+	// Celebration: show confetti overlay when the user passes
+	const [celebrate, setCelebrate] = useState(false);
+	useEffect(() => {
+		if (!isInitialLoading && result === 'PASSED') {
+			setCelebrate(true);
+			const t = setTimeout(() => setCelebrate(false), 5000);
+			return () => clearTimeout(t);
+		} else if (!isInitialLoading) {
+			setCelebrate(false);
+		}
+	}, [result, isInitialLoading]);
 	// Map real exam questions (if available) to review format
 	const mappedQuestions: ReviewQuestion[] | null = useMemo(() => {
 		if (!examQuestions || !vm?.Questions) return null;
@@ -237,6 +451,112 @@ const ExamReview: React.FC = () => {
 	const questions: ReviewQuestion[] = mappedQuestions ?? [];
 	const total = questions.length;
 	console.log('ExamReview rendered with data:', { buyerTestId, buyerTest, vm, questions });
+
+	// Read encrypted suite details from query string and decrypt
+	const location = useLocation();
+	const [suiteMeta, setSuiteMeta] = useState<any | null>(null);
+	useEffect(() => {
+		const qs = new URLSearchParams(location.search);
+		const token = qs.get('suite');
+		console.log('ExamReview query parsed. Has suite token?', !!token);
+		if (!token) return;
+		(async () => {
+			console.log('Decrypting suite token...');
+			const meta = await decryptPayload(token);
+			console.log('Decrypted suite meta:', meta);
+			if (meta && typeof meta === 'object') setSuiteMeta(meta);
+		})();
+	}, [location.search]);
+
+	// Helpers: resolve PathId and navigation handlers
+	const resolvePathId = useCallback(async (): Promise<string | null> => {
+		// Prefer PathId from decrypted suite metadata
+		const enc = (suiteMeta as any)?.PathId || null;
+		if (enc && typeof enc === 'string' && enc.trim()) return enc.trim();
+		// Prefer explicit PathId if present anywhere in payloads
+		const direct = (vm as any)?.PathId || (buyerTest as any)?.PathId || null;
+		if (direct && typeof direct === 'string' && direct.trim()) return direct.trim();
+		// Try to extract exam code like AZ-204 from title
+		const title: string = (vm as any)?.Title || (buyerTest as any)?.Title || '';
+		const m = title.match(/\b([A-Z]{2,3}-\d{2,3})\b/);
+		const code = m?.[1];
+		if (!code) return null;
+		try {
+			const suites = await globalSearch(code, 0, 5);
+			const found = suites?.find((s: any) => (s?.PathId || '').toUpperCase().startsWith(code.toUpperCase()));
+			return found?.PathId || null;
+		} catch {
+			return null;
+		}
+	}, [suiteMeta, vm, buyerTest, globalSearch]);
+
+	const handleRetake = useCallback(async () => {
+		if (typeof window !== 'undefined' && window.history.length > 1) {
+			navigate(-1);
+			return;
+		}
+		// Fallback when there's no history (e.g., direct open)
+		const pathId = (suiteMeta as any)?.PathId || await resolvePathId();
+		navigate(pathId ? `/exams/${pathId}` : '/mock-exams');
+	}, [navigate, suiteMeta, resolvePathId]);
+
+	// Compute next topic/test route inside current suite
+	const [nextRoute, setNextRoute] = useState<string | null>(null);
+	const [topicsPathId, setTopicsPathId] = useState<string | null>(null);
+	useEffect(() => {
+		let mounted = true;
+		const compute = async () => {
+			try {
+				const currentTestId: string | null = vm?.FKTestId || vm?.TestId || vm?.FKTestID || null;
+				if (!currentTestId) { if (mounted) setNextRoute(null); return; }
+				const pathId = (suiteMeta as any)?.PathId || await resolvePathId();
+				if (!pathId) { if (mounted) setNextRoute(null); return; }
+				if (mounted) setTopicsPathId(pathId);
+				const details = await getTestSuiteByPathId(pathId, userId);
+				const tests: any[] = details?.TestsDetailsDTO || [];
+				const idx = tests.findIndex(t => (t?.PKTestId || t?.TestId) === currentTestId);
+				if (idx >= 0 && idx + 1 < tests.length) {
+					const next = tests[idx + 1];
+					const encodedTitle = encodeURIComponent(next?.Title || 'Next');
+					const route = `/exams/${pathId}/${encodedTitle}/${next?.PKTestId || next?.TestId}`;
+					if (mounted) setNextRoute(route);
+				} else {
+					if (mounted) setNextRoute(null);
+				}
+			} catch (e) {
+				if (mounted) setNextRoute(null);
+			}
+		};
+		compute();
+		return () => { mounted = false; };
+	}, [vm, suiteMeta, resolvePathId, getTestSuiteByPathId, userId]);
+
+	const handleNextTopic = useCallback(async () => {
+		if (nextRoute) {
+			navigate(nextRoute);
+			return;
+		}
+		const pathId = topicsPathId || (await resolvePathId());
+		navigate(pathId ? `/exams/${pathId}` : '/mock-exams');
+	}, [nextRoute, navigate, topicsPathId, resolvePathId]);
+
+	// Intercept browser back to route to ExamTopics
+	useEffect(() => {
+		debugger;
+		const onPopState = async () => {
+			try {
+				const pathId = (suiteMeta as any)?.PathId || await resolvePathId();
+				console.log('Browser back intercepted. Navigating to topics:', pathId);
+				navigate(pathId ? `/exams/${pathId}` : '/mock-exams', { replace: true });
+			} catch {
+				navigate('/mock-exams', { replace: true });
+			}
+		};
+		window.addEventListener('popstate', onPopState);
+		return () => window.removeEventListener('popstate', onPopState);
+	}, [suiteMeta, resolvePathId, navigate]);
+
+    // Next Topic functionality intentionally disabled; button kept for UI consistency
 	// Track expanded questions for accordion; load options on demand
 	const [expanded, setExpanded] = useState<Set<string>>(new Set());
 	const toggleExpanded = async (qid: string) => {
@@ -284,6 +604,12 @@ const ExamReview: React.FC = () => {
 						<Button variant="primary" onClick={onShare} icon={<FaShareAlt />}>
 							Share Results
 						</Button> */}
+						<Button variant="secondary" size="medium" onClick={handleRetake}>
+							Retake Exam
+						</Button>
+						<Button variant="primary" size="medium" onClick={handleNextTopic} disabled={false}>
+							Next Topic
+						</Button>
 					</div>
 				</div>
 			</div>
@@ -292,31 +618,30 @@ const ExamReview: React.FC = () => {
 			<div className="w-full px-4 sm:px-6 py-6 grid grid-cols-12 gap-6">
 				{/* Main column */}
 				<div className="col-span-12 flex flex-col gap-6">
-					{/* Score Card (Existing) */}
-					<div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-						<div className="px-6 pb-6 pt-6 flex flex-col items-center md:flex-row md:items-center md:justify-between gap-6">
-							{isInitialLoading ? (
-								<div className="grid grid-cols-2 md:flex md:flex-1 w-full gap-4">
-									{Array.from({ length: 5 }).map((_, i) => (
-										<div key={i} className="flex-1 rounded-xl border border-gray-200 p-5">
-											<Skeleton className="h-8 w-24 mb-2" />
-											<Skeleton className="h-4 w-28" />
-										</div>
-									))}
+					{/* Metrics row per attached design */}
+					{isInitialLoading ? (
+						<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+							{Array.from({ length: 5 }).map((_, i) => (
+								<div key={i} className="rounded-2xl border border-gray-200 p-5">
+									<Skeleton className="h-6 w-6 rounded-full mb-3" />
+									<Skeleton className="h-8 w-24 mb-2" />
+									<Skeleton className="h-4 w-28" />
 								</div>
-							) : (
-								<div className="grid grid-cols-2 md:flex md:flex-1 w-full gap-4">
-									<StatPill label="Marks Scored" value={marksScored} tone="success" />
-									<StatPill label="Incorrect" value={computedCounts.incorrect} tone="error" />
-									<StatPill label="Total Marks" value={totalMarksAllocated} tone="default" />
-									<StatPill label="Unanswered" value={computedCounts.unanswered} tone="warning" />
-									<StatPill label="Total Questions" value={computedCounts.total} />
-								</div>
-							)}
+							))}
 						</div>
-					</div>
+					) : (
+						<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+							{/* Confetti celebration overlay */}
+							<ConfettiOverlay active={celebrate} duration={4200} />
+							<MetricCard icon={<FaCheck />} value={marksScored} label="Marks Scored" tone="success" />
+							<MetricCard icon={<FaTimes />} value={computedCounts.incorrect} label="Incorrect" tone="error" />
+							<MetricCard icon={<FaFileAlt />} value={totalMarksAllocated} label="Total Marks" tone="default" />
+							<MetricCard icon={<FaQuestionCircle />} value={computedCounts.unanswered} label="Unanswered" tone="warning" />
+							<MetricCard icon={<FaFileAlt />} value={computedCounts.total} label="Total Questions" tone="default" />
+						</div>
+					)}
 
-					{/* Score Card (New summary) */}
+					{/* Performance summary per attached design */}
 					{isInitialLoading ? (
 						<div className="rounded-2xl overflow-hidden shadow-sm bg-slate-200">
 							<div className="px-6 py-6 md:px-8 md:py-8">
@@ -326,42 +651,7 @@ const ExamReview: React.FC = () => {
 							</div>
 						</div>
 					) : (
-						<div
-							className={`rounded-2xl overflow-hidden shadow-sm ${result === 'PASSED' ? 'bg-emerald-400' : result === 'FAILED' ? 'bg-red-400' : 'bg-slate-400'}`}
-						>
-							<div className="px-6 py-6 md:px-8 md:py-8 flex items-center justify-between text-white">
-								<div>
-									<div className="text-white/90 font-semibold">Overall Performance</div>
-									<div className="mt-2 text-4xl md:text-5xl font-extrabold tracking-tight">{scorePercentDisplay}%</div>
-									<div className="mt-3 text-sm">
-										{result === 'PASSED' ? (
-											<span className="inline-flex items-center gap-2"><FaCheck className="opacity-90" /> Congratulations! You Passed!</span>
-										) : result === 'FAILED' ? (
-											<span className="inline-flex items-center gap-2"><FaTimes className="opacity-90" /> Commiserations! Try Again!</span>
-										) : (
-											<span className="inline-flex items-center gap-2"><FaInfoCircle className="opacity-90" /> Results unavailable</span>
-										)}
-										<span className="mx-2">|</span>
-										<span>Required: {passMark != null ? `${passMark}%` : '—'}</span>
-									</div>
-								</div>
-								{/* Centered big message in the banner */}
-								<div className="hidden md:block flex-1 text-center">
-									<div className="text-4xl font-extrabold tracking-tight">
-										{result === 'PASSED' ? 'Congratulations! You Passed!' : result === 'FAILED' ? 'Commiserations! Try Again!' : '—'}
-									</div>
-								</div>
-								<div className="opacity-90">
-									{result === 'PASSED' ? (
-										<FaCheck className="text-white" size={56} />
-									) : result === 'FAILED' ? (
-										<FaTimes className="text-white" size={56} />
-									) : (
-										<FaInfoCircle className="text-white" size={56} />
-									)}
-								</div>
-							</div>
-						</div>
+						<PerformanceSummary percent={scorePercent} required={passMark ?? 0} result={result} />
 					)}
 
 					{/* Accordion list of questions */}

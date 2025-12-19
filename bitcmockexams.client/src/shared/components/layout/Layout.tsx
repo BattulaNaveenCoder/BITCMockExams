@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Header from './Header';
 import Footer from './Footer';
+import WhatsAppFab from './WhatsAppFab';
 
 const Layout = ({ children }: { children: ReactNode }) => {
     return (
@@ -9,6 +10,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
             <main className="main-content">
                 {children}
             </main>
+            <WhatsAppFab />
             <Footer />
         </div>
     );

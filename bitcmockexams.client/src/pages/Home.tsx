@@ -67,18 +67,18 @@ const Home = () => {
     return (
         <div className="home">
             {/* Hero Section */}
-            <section className="relative min-h-[600px] display flex items-center justify-center bg-gradient-to-br from-primary-blue via-secondary-blue to-dark-blue text-white md:min-h-[500px]">
+            <section className="relative min-h-[400px] display flex items-center justify-center bg-gradient-to-br from-primary-blue via-secondary-blue to-dark-blue text-white md:min-h-[300px]">
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80')] bg-cover bg-center opacity-10"></div>
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-blue/90 to-secondary-blue/80"></div>
                 <div className="container mx-auto px-4 relative z-[100] py-16">
                     <div className="max-w-[800px] animate-fadeIn text-center mx-auto">
-                        <h1 className="text-5xl font-extrabold mb-6 leading-tight text-white md:text-3xl">
+                        {/* <h1 className="text-5xl font-extrabold mb-6 leading-tight text-white md:text-3xl">
                             Transform Your Cloud Journey
                         </h1>
                         <p className="text-xl mb-12 leading-relaxed text-white/95 md:text-base">
                             Master cloud certifications with expert-led training, comprehensive mock exams,
                             and personalized guidance. Join 50,000+ successful students worldwide.
-                        </p>
+                        </p> */}
                         {/* Global Search */}
                         <div className={`relative max-w-[800px] mx-auto mb-8`}>
                             <div className="flex items-center bg-white rounded-2xl shadow-md overflow-hidden ring-2 ring-primary-blue/50">
@@ -148,7 +148,7 @@ const Home = () => {
                             )}
                         </div>
 
-                        <div className="flex flex-col md:flex-row gap-6 flex-wrap justify-center items-center">
+                        <div className="flex flex-col mb-8 md:flex-row gap-6 flex-wrap justify-center items-center">
                             <Link to="/mock-exams">
                                 <Button variant="secondary" size="large" icon={<FaArrowRight />}>
                                     Explore Mock Exams
@@ -187,9 +187,9 @@ const Home = () => {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                        <Link to="/mock-exams?difficulty=Beginner" className="block">
-                        <div className="bg-white border border-border rounded-lg p-8 shadow-sm cursor-pointer">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 items-stretch">
+                        <Link to="/mock-exams?difficulty=Beginner" className="block h-full">
+                        <div className="bg-white border border-border rounded-lg p-8 shadow-sm cursor-pointer h-full flex flex-col">
                             <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-bg-light md:gap-4">
                                 <div>
                                     <h3 className="text-2xl text-primary-blue m-0 mb-1 font-bold">FUNDAMENTALS</h3>
@@ -219,8 +219,8 @@ const Home = () => {
                         </div>
                         </Link>
 
-                        <Link to="/mock-exams?difficulty=Intermediate" className="block">
-                        <div className="bg-white border border-border rounded-lg p-8 shadow-sm cursor-pointer">
+                        <Link to="/mock-exams?difficulty=Intermediate" className="block h-full">
+                        <div className="bg-white border border-border rounded-lg p-8 shadow-sm cursor-pointer h-full flex flex-col">
                             <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-bg-light md:gap-4">
                                 <div>
                                     <h3 className="text-2xl text-primary-blue m-0 mb-1 font-bold">ROLE-BASED</h3>
@@ -250,8 +250,8 @@ const Home = () => {
                         </div>
                         </Link>
 
-                        <Link to="/mock-exams?difficulty=Advanced" className="block">
-                        <div className="bg-white border border-border rounded-lg p-8 shadow-sm cursor-pointer">
+                        <Link to="/mock-exams?difficulty=Advanced" className="block h-full">
+                        <div className="bg-white border border-border rounded-lg p-8 shadow-sm cursor-pointer h-full flex flex-col">
                             <div className="flex flex-col md:flex-row justify-between items-start mb-8 pb-6 border-b-2 border-bg-light md:gap-4">
                                 <div>
                                     <h3 className="text-2xl text-primary-blue m-0 mb-1 font-bold">SPECIALITY</h3>
