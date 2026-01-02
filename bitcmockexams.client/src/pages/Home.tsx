@@ -72,10 +72,10 @@ const Home = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-blue/90 to-secondary-blue/80"></div>
                 <div className="container mx-auto px-4 relative z-[100] py-16">
                     <div className="max-w-[800px] animate-fadeIn text-center mx-auto">
-                        {/* <h1 className="text-5xl font-extrabold mb-6 leading-tight text-white md:text-3xl">
+                        <h6 className="text-3xl font-extrabold mb-6 leading-tight text-white md:text-2xl" style={{marginTop :'-25px'}}>
                             Transform Your Cloud Journey
-                        </h1>
-                        <p className="text-xl mb-12 leading-relaxed text-white/95 md:text-base">
+                        </h6>
+                        {/* <p className="text-xl mb-12 leading-relaxed text-white/95 md:text-base">
                             Master cloud certifications with expert-led training, comprehensive mock exams,
                             and personalized guidance. Join 50,000+ successful students worldwide.
                         </p> */}

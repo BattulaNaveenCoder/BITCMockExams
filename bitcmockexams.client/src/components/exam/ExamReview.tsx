@@ -542,7 +542,6 @@ const ExamReview: React.FC = () => {
 
 	// Intercept browser back to route to ExamTopics
 	useEffect(() => {
-		debugger;
 		const onPopState = async () => {
 			try {
 				const pathId = (suiteMeta as any)?.PathId || await resolvePathId();

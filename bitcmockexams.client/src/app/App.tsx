@@ -19,6 +19,7 @@ import LoginModal from '../components/auth/LoginModal';
 import PracticeExam from '../pages/PracticeExam';
 import ExamReview from '../components/exam/ExamReview';
 import { TestSuitesProvider } from '@shared/contexts/TestSuitesContext';
+import RecaptchaV3Badge from '@shared/components/ui/RecaptchaV3Badge';
 
 function ScrollToTop() {
     const { pathname } = useLocation();
@@ -34,6 +35,7 @@ function App() {
                     <AuthProvider>
                         <TestSuitesProvider>
                             <Loader />
+                            <RecaptchaV3Badge />
                             <ScrollToTop />
                             <LoginModal />
                             <AuthRoutes />
@@ -50,6 +52,7 @@ export default App;
 function AuthRoutes() {
     const { isAuthenticated } = useAuth();
     const location = useLocation();
+    
     if (isAuthenticated && (location.pathname === '/signup')) {
         const searchParams = new URLSearchParams(location.search);
         const returnUrl = searchParams.get('returnURL');

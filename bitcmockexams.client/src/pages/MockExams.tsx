@@ -79,6 +79,7 @@ const MockExams = () => {
                 rating: s.Average ?? 0,
                 students: s.TotalLearners ?? 0,
                 image: s.ImageTestsuiteUrl,
+                Subscribed: s.Subscribed,
             } as MockExam;
         });
 

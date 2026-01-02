@@ -3,6 +3,7 @@ import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 import Button from '@shared/components/ui/Button';
 import Input from '@shared/components/ui/Input';
 import Modal from '@shared/components/ui/Modal';
+import { getRecaptchaToken } from '@shared/utils/recaptchaV3';
 import { useContactApi, CountryCode } from '@shared/api/contact';
 
 const Contact = () => {
@@ -19,6 +20,7 @@ const Contact = () => {
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [captchaError, setCaptchaError] = useState<string | null>(null);
     const [modalState, setModalState] = useState<{
         isOpen: boolean;
         type: 'success' | 'error';
@@ -198,6 +200,16 @@ const Contact = () => {
             return;
         }
 
+        // Obtain v3 token for this action
+        let captchaToken: string | null = null;
+        try {
+            captchaToken = await getRecaptchaToken('contact_submit');
+            setCaptchaError(null);
+        } catch (err: any) {
+            setCaptchaError(err?.message || 'reCAPTCHA verification failed');
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
@@ -209,10 +221,8 @@ const Contact = () => {
                 HowDidYouFindUs: formData.howDidYouFindUs,  // Separate field
                 Query: formData.message  // Just the message, not combined
             };
-
-            const response = await submitContactForm(contactData);
-
-            if (response.success) {
+            const response = await submitContactForm(contactData, captchaToken || undefined);
+            if (response.message !== 'Something went wrong with the verification. Please retry.') {
                 setModalState({
                     isOpen: true,
                     type: 'success',
@@ -370,6 +380,10 @@ const Contact = () => {
                                         <p className="mt-1 text-sm text-red-500">{errors.howDidYouFindUs}</p>
                                     )}
                                 </div>
+
+                                {captchaError && (
+                                    <p className="mb-4 text-sm text-red-500">{captchaError}</p>
+                                )}
 
                                 <Button
                                     type="submit"

@@ -802,7 +802,6 @@ const PracticeExam: React.FC = () => {
     if (quizWithQuestionTimer) {
       pauseTotalTimer();
     }
-    debugger;
     // Save progress before closing
     await updateBuyerTest(false);
 
@@ -1176,18 +1175,17 @@ const PracticeExam: React.FC = () => {
       if (!testId || !userId) return;
 
       try {
-        setIsBDTCheckLoading(true);
         const subscribed = await isTestSubscribed(testId, userId, false);
         if (mounted) setIsSubscribed(subscribed);
 
-        // Check BDT subscription only if userEmail and testTitle are available
-        if (userEmail && testTitle) {
-          const bdtSub = await checkBDTSubscription(userEmail, testTitle);
-          if (mounted) setIsBDTUserSubscriber(bdtSub);
-        }
+        // // Check BDT subscription only if userEmail and testTitle are available
+        // if (userEmail && testTitle) {
+        //   const bdtSub = await checkBDTSubscription(userEmail, testTitle);
+        //   if (mounted) setIsBDTUserSubscriber(bdtSub);
+        // }
 
-        const balance = await getWalletBalance(undefined, false);
-        if (mounted) setWalletBalance(balance);
+        // const balance = await getWalletBalance(undefined, false);
+        // if (mounted) setWalletBalance(balance);
       } catch (error) {
         console.error('Error checking subscription:', error);
       } finally {
@@ -1216,7 +1214,6 @@ const PracticeExam: React.FC = () => {
         if (vm && vm.Questions) {
           // Shuffle questions for students with subscription if exam not started
           const hasAnyAnswer = vm.Questions.some((q: Question) => q.QuestionStatus === QuestionStatus.IsAnswered || q.QuestionStatus === QuestionStatus.MarkedandAnswered);
-          debugger;
           if (userRole === 'Student' && (isSubscribed || isBDTUserSubscriber) && !hasAnyAnswer) {
             vm.Questions = shuffleArray(vm.Questions);
           }
