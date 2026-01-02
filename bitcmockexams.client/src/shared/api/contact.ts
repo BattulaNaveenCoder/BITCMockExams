@@ -34,10 +34,16 @@ export const useContactApi = () => {
         }
     };
 
-    const submitContactForm = async (data: ContactUsVM): Promise<ContactUsResponse> => {
-        const endpoint = `${environment.identityUrl}/UserProfile/ContactUs`;
+    const submitContactForm = async (data: ContactUsVM, recaptchaToken?: string): Promise<ContactUsResponse> => {
+        const endpoint = `${environment.identityUrl}/UserProfile/ContactUsV2${recaptchaToken ? `?recaptchaToken=${encodeURIComponent(recaptchaToken)}` : ''}`;
         try {
-            const response = await api.post(endpoint, data, true);
+            const response = await api.post(
+                endpoint,
+                data,
+                {
+                    showGlobalLoader: true
+                }
+            );
 
             // If we reach here without an error, the API call was successful
             // The C# controller returns Ok() with no body, so response will be empty

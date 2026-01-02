@@ -19,7 +19,7 @@ const WhatsAppFab: React.FC = () => {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="WhatsApp chat"
-      className="fixed bottom-8 right-8 z-50"
+      className="fixed bottom-15 right-15 z-50"
     >
       <span className="relative inline-flex items-center justify-center">
         <span className="absolute inline-flex h-16 w-16 rounded-full bg-green-500/40 animate-ping" />

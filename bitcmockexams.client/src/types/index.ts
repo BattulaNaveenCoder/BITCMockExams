@@ -22,6 +22,8 @@ export interface MockExam {
     rating: number;
     students: number;
     image?: string;
+    // Indicates whether the current user is subscribed to this exam/test suite
+    Subscribed?: boolean;
 }
 
 export interface BlogPost {

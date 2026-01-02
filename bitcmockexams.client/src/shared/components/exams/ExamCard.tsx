@@ -8,6 +8,7 @@ import RatingBadge from './RatingBadge';
 import PriceTag from './PriceTag';
 import { useAuth } from '@features/auth/context/AuthContext';
 import { useLoginModal } from '@features/auth/context/LoginModalContext';
+import { FaLock } from 'react-icons/fa';
 
 interface Props {
   exam: MockExam;
@@ -19,6 +20,7 @@ const ExamCard: React.FC<Props> = ({ exam, hideVendorTag = false }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { open: openLoginModal } = useLoginModal();
+  const isSubscribed = Boolean((exam as any).Subscribed);
   return (
     <div
       className="relative flex flex-col h-full rounded-2xl p-6 bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
@@ -77,7 +79,14 @@ const ExamCard: React.FC<Props> = ({ exam, hideVendorTag = false }) => {
             navigate(returnUrl);
           }}
         >
-          Start Practice
+          {isSubscribed ? (
+            'Start Practice'
+          ) : (
+            <span className="flex items-center justify-center gap-2">
+              <FaLock />
+              Enroll Now
+            </span>
+          )}
         </Button>
       </div>
     

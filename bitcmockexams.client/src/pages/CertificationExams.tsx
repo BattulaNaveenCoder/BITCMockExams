@@ -96,6 +96,7 @@ const CertificationExams: React.FC = () => {
         rating: suite.Average ?? 0,
         students: suite.TotalLearners ?? 0,
         image: suite.ImageTestsuiteUrl || '',
+        Subscribed: suite.Subscribed,
       } as MockExam;
     });
   }, [suites, getCategoryFromCode]);
