@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Layout from '@shared/components/layout/Layout';
 import Home from '../pages/Home';
-import About from '../pages/About';
+// import About from '../pages/About';
 import MockExams from '../pages/MockExams';
 import CertificationExams from '../pages/CertificationExams';
 import ExamTopics from '../pages/ExamTopics';
@@ -65,7 +65,7 @@ function AuthRoutes() {
     return (
         <Routes>
             <Route path="/" element={<Layout><Home /></Layout>} />
-            <Route path="/about" element={<Layout><About /></Layout>} />
+            {/* <Route path="/about" element={<Layout><About /></Layout>} /> */}
             <Route path="/certification-exams" element={<Layout><CertificationExams /></Layout>} />
             <Route
                 path="/dashboard"
