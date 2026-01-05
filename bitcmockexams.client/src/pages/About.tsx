@@ -23,10 +23,7 @@ const About = () => {
                         <div className="mission-text">
                             <h2 className="mb-6 text-3xl font-bold">Our Mission</h2>
                             <p className="mb-6 leading-relaxed">
-                                At Deccansoft, we are dedicated to transforming the way professionals approach
-                                cloud certifications. Our mission is to provide world-class training, comprehensive
-                                practice exams, and personalized guidance that empowers individuals and organizations
-                                to succeed in their cloud journey.
+                                At exam.getmicrosoftcertification, our mission is to bridge the gap between ambition and achievement. We provide high-fidelity mock exams designed to mirror the rigors of official Microsoft assessments, ensuring that IT professionals worldwide have the confidence, knowledge, and practice needed to earn their credentials and accelerate their careers.
                             </p>
                             <p className="mb-6 leading-relaxed">
                                 Founded by cloud experts with decades of combined experience, we understand the
@@ -136,7 +133,7 @@ const About = () => {
                                     <div className="bg-gradient-to-br from-accent-blue to-primary-blue text-white p-8 rounded-lg shadow-lg">
                                         <h2 className="text-2xl font-bold mb-4 uppercase tracking-wide">Our History</h2>
                                         <p className="leading-relaxed text-white/95">
-                                            Deccansoft was founded in 1997 by Sandeep Soni and Rahul Rampurkar.
+                                             was founded in 1997 by Sandeep Soni and Rahul Rampurkar.
                                             Since its inception, it has earned strong recognition for innovation and commitment in software training, particularly in Microsoft Azure and other modern technologies.
                                             The institute is considered one of India’s top training centers and has trained over 1,50,000 candidates who are now placed in companies worldwide.
                                         </p>
