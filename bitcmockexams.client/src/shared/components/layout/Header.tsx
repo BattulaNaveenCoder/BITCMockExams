@@ -266,7 +266,7 @@ const Header = () => {
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between py-4">
                     <Link to="/" className="flex items-center no-underline z-[1001]">
-                        <span className="text-2xl font-extrabold text-text-primary tracking-tighter">BITC<span className="text-primary-blue">MockExams</span></span>
+                        <span className="text-2xl font-extrabold text-text-primary tracking-tighter"><span className="text-primary-blue">exam.getmicrosoftcertification</span></span>
                     </Link>
 
                     <nav id="primary-navigation" className={`fixed top-0 w-4/5 max-w-[320px] h-screen bg-white flex flex-col items-center p-6 pt-20 shadow-xl transition-all duration-250 gap-4 md:static md:w-auto md:max-w-none md:h-auto md:bg-transparent md:flex-row md:items-center md:p-0 md:shadow-none md:gap-8 ${isMobileMenuOpen ? 'right-0' : '-right-full'}`}>

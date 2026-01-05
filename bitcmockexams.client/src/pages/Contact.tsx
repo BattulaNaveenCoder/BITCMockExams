@@ -406,7 +406,7 @@ const Contact = () => {
                             </p>
 
                             <div className="flex flex-col gap-6 mb-8">
-                                <div className="flex gap-6 p-6 bg-white rounded-lg shadow-sm transition-shadow duration-250 hover:shadow-md">
+                                {/* <div className="flex gap-6 p-6 bg-white rounded-lg shadow-sm transition-shadow duration-250 hover:shadow-md">
                                     <div className="w-[50px] h-[50px] bg-light-blue text-primary-blue rounded-md flex items-center justify-center text-2xl shrink-0">
                                         <FaMapMarkerAlt />
                                     </div>
@@ -414,7 +414,7 @@ const Contact = () => {
                                         <h4 className="text-base font-bold mb-2">Address</h4>
                                         <p className="text-text-secondary m-0 leading-relaxed">H.No: 153, A/4,<br />Balamrai,<br />Rasoolpura,<br />Secunderabad-500003<br />TELANGANA, INDIA.</p>
                                     </div>
-                                </div>
+                                </div> */}
 
                                 <div className="flex gap-6 p-6 bg-white rounded-lg shadow-sm transition-shadow duration-250 hover:shadow-md">
                                     <div className="w-[50px] h-[50px] bg-light-blue text-primary-blue rounded-md flex items-center justify-center text-2xl shrink-0">

@@ -20,7 +20,9 @@ const Footer = () => {
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
                     <div className="flex flex-col gap-4">
-                        <h3 className="text-2xl font-extrabold mb-2 text-white">BITC<span className="text-primary-blue">MockExams</span></h3>
+                        <Link to="/" className="no-underline">
+                            <h3 className="text-2xl font-extrabold text-white mt-[-1%]" >exam.getmicrosoftcertification<span className="text-primary-blue"></span></h3>
+                        </Link>
                         <p className="text-white/80 leading-relaxed mb-4">
                             Your trusted partner for cloud certification training, mock exams, and technology consulting services.
                         </p>
@@ -59,26 +61,26 @@ const Footer = () => {
                     <div className="flex flex-col gap-4">
                         <h4 className="text-lg font-bold mb-4 text-white">Mock Exams</h4>
                         <ul className="list-none p-0 m-0 flex flex-col gap-2">
-                            <li><Link to="/mock-exams?difficulty=beginner" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Fundamentals</Link></li>
-                            <li><Link to="/mock-exams?difficulty=intermediate" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Role Based</Link></li>
-                            <li><Link to="/mock-exams?difficulty=advanced" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Speciality</Link></li>
+                            <li><Link to="/mock-exams?difficulty=beginner" onClick={() => window.scrollTo(0, 0)} className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Fundamentals</Link></li>
+                            <li><Link to="/mock-exams?difficulty=intermediate" onClick={() => window.scrollTo(0, 0)} className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Role Based</Link></li>
+                            <li><Link to="/mock-exams?difficulty=advanced" onClick={() => window.scrollTo(0, 0)} className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Speciality</Link></li>
                         </ul>
                     </div>
 
                     <div className="flex flex-col gap-4">
                         <h4 className="text-lg font-bold mb-4 text-white">Contact Us</h4>
                         <ul className="list-none p-0 m-0 flex flex-col gap-4">
-                            <li className="flex gap-4 text-white/80 items-start">
+                            {/* <li className="flex gap-4 text-white/80 items-start">
                                 <FaMapMarkerAlt className="text-primary-blue mt-1 shrink-0" />
                                 <span>H.No: 153, A/4,<br />Balamrai,<br />Rasoolpura,<br />Secunderabad-500003<br />TELANGANA, INDIA.</span>
                             </li>
                             <li className="flex gap-4 text-white/80 items-start">
                                 <FaPhone className="text-primary-blue mt-1 shrink-0" />
                                 <span>+91 9347458388</span>
-                            </li>
+                            </li> */}
                             <li className="flex gap-4 text-white/80 items-start">
                                 <FaEnvelope className="text-primary-blue mt-1 shrink-0" />
-                                <span>azurea2z@deccansoft.net</span>
+                                <a href="mailto:support@bestitcourses.com" className="text-white/80 no-underline hover:text-accent-blue transition-colors">support@bestitcourses.com</a>
                             </li>
                         </ul>
 
@@ -104,13 +106,13 @@ const Footer = () => {
 
                 <div className="flex justify-between items-center pt-8 border-t border-white/10 flex-wrap gap-4 md:flex-col md:text-center">
                     <div className="w-full flex flex-col items-center gap-2 text-center">
-                        <a href="https://www.deccansoft.com/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-white/80 no-underline">
+                        {/* <a href="https://www.deccansoft.com/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-white/80 no-underline">
                             <span>Proudly Powered by</span>
                             <img src="https://www.azurea2z.com/lib/assets/Images/Footer/Dss13.png" alt="DeccansoftLogo" className="h-6 object-contain" />
-                        </a>
+                        </a> */}
                     </div>
                     <p className="text-white/60 m-0">
-                        © {currentYear} BITCMockExams. All rights reserved.
+                        © {currentYear} exam.getmicrosoftcertification. All rights reserved.
                     </p>
                     <div className="flex gap-4 items-center md:flex-wrap md:justify-center">
                         <a href="https://bdtmaterial.blob.core.windows.net/shared/WebsiteRewamp/Documents/NewprivacyagreementBITC.pdf" target="_blank" rel="noopener noreferrer" className="text-white/60 no-underline transition-colors duration-150 hover:text-accent-blue">Privacy Policy</a>
