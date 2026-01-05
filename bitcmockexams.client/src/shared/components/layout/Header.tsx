@@ -7,6 +7,7 @@ import { useLoginModal } from '@features/auth/context/LoginModalContext';
 import { useAuth } from '@features/auth/context/AuthContext';
 import { FaChartBar, FaWallet, FaLock, FaPowerOff } from 'react-icons/fa';
 import { useTestSuites } from '@shared/contexts/TestSuitesContext';
+const logoUrl = new URL('../../../assets/logo.png', import.meta.url).href;
 
 const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -264,9 +265,9 @@ const Header = () => {
     return (
         <header className={`sticky top-0 left-0 right-0 z-[1000] bg-white transition-all duration-250 border-b ${isScrolled ? 'shadow-md border-border' : 'border-transparent'}`}>
             <div className="container mx-auto px-4">
-                <div className="flex items-center justify-between py-4">
+                <div className="flex items-center justify-between py-1">
                     <Link to="/" className="flex items-center no-underline z-[1001]">
-                        <span className="text-2xl font-extrabold text-text-primary tracking-tighter"><span className="text-primary-blue">exam.getmicrosoftcertification</span></span>
+                        <img src={logoUrl} alt="Get Microsoft Certification" className="h-15 md:h-15 w-auto" />
                     </Link>
 
                     <nav id="primary-navigation" className={`fixed top-0 w-4/5 max-w-[320px] h-screen bg-white flex flex-col items-center p-6 pt-20 shadow-xl transition-all duration-250 gap-4 md:static md:w-auto md:max-w-none md:h-auto md:bg-transparent md:flex-row md:items-center md:p-0 md:shadow-none md:gap-8 ${isMobileMenuOpen ? 'right-0' : '-right-full'}`}>

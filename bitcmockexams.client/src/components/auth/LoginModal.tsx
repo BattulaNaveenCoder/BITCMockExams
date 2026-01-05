@@ -100,8 +100,10 @@ const LoginModal: React.FC = () => {
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
+        debugger;
         // tokenResponse.access_token can be used to call backend to exchange for app JWT
         const result: any = await authApi.loginWithGoogle({ accessToken: tokenResponse.access_token });
+
         if (!result?.isSuccess) throw new Error(result?.message || 'Google login failed.');
         const token = result?.data?.token as string | undefined;
         if (!token) throw new Error('Token missing in response');
