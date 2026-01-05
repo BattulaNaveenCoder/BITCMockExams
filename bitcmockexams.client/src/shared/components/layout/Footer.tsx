@@ -52,7 +52,7 @@ const Footer = () => {
                         <h4 className="text-lg font-bold mb-4 text-white">Quick Links</h4>
                         <ul className="list-none p-0 m-0 flex flex-col gap-2">
                             <li><Link to="/" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Home</Link></li>
-                            <li><Link to="/about" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">About Us</Link></li>
+                            {/* <li><Link to="/about" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">About Us</Link></li> */}
                             <li><Link to="/mock-exams" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Mock Exams</Link></li>
                             <li><Link to="/contact" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Contact</Link></li>
                         </ul>

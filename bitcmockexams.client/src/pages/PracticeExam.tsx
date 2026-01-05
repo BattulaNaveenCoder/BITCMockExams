@@ -2207,12 +2207,12 @@ const PracticeExam: React.FC = () => {
                       >
                         <FaWhatsapp /> WhatsApp Chat
                       </a>
-                      <a
+                      {/* <a
                         className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 text-text-primary hover:bg-gray-200"
                         href="tel:+918143805923"
                       >
                         <FaPhone /> Call
-                      </a>
+                      </a> */}
                     </div>
                   </div>
 
@@ -2240,12 +2240,12 @@ const PracticeExam: React.FC = () => {
                       >
                         <FaWhatsapp /> WhatsApp Chat
                       </a>
-                      <a
+                      {/* <a
                         className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 text-text-primary hover:bg-gray-200"
                         href="tel:+919347458388"
                       >
                         <FaPhone /> Call
-                      </a>
+                      </a> */}
                     </div>
                   </div>
                 </div>

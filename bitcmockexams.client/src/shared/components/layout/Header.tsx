@@ -253,7 +253,7 @@ const Header = () => {
 
     const navLinks = [
         { path: '/', label: 'Home' },
-        { path: '/about', label: 'About' },
+        // { path: '/about', label: 'About' },
         { path: '/certification-exams', label: 'Certifications' },
         { path: '/mock-exams', label: 'Mock Exams' },
         { path: '/contact', label: 'Contact' }
@@ -505,7 +505,10 @@ const Header = () => {
                                         <div id="user-menu" className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-border overflow-hidden z-[1100]">
                                             <button
                                                 className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-light-blue bg-transparent border-none cursor-pointer"
-                                                onMouseDown={() => { setMenuOpen(false); navigate('/dashboard'); }}
+                                                onClick={() => {
+                                                    setMenuOpen(false);
+                                                    navigate('/dashboard');
+                                                }}
                                             >
                                                 <FaChartBar className="text-text-secondary" />
                                                 <span>DashBoard</span>
