@@ -5,6 +5,8 @@ import { useTestsApi } from '@shared/api/tests';
 import { useTestSuites } from '@shared/contexts/TestSuitesContext';
 import { getUserIdFromClaims, normalizeClaims } from '@shared/utils/auth';
 import Skeleton from '@shared/components/ui/Skeleton';
+import Button from '@shared/components/ui/Button';
+import { HiOutlineInbox } from 'react-icons/hi2';
 
 // Removed tabs and reports; Dashboard now shows subscriptions only.
 
@@ -131,7 +133,7 @@ export default function Dashboard() {
         )}
         {error && <div className="col-span-full text-center text-red-600">{error}</div>}
         {!loading && !error && subs.length === 0 && (
-          <div className="col-span-full text-center text-[#6b7280]">No subscriptions found.</div>
+          <EmptySubscriptions />
         )}
         {subs.map((s: SubscriptionView, i: number) => (
           <CertificationCard key={i} code={s.code} title={s.title} start={s.start} end={s.end} pathId={s.pathId} suiteId={s.suiteId} />
@@ -178,3 +180,25 @@ function SubscriptionCardSkeleton() {
 }
 
 // Reports UI removed
+
+function EmptySubscriptions() {
+  const navigate = useNavigate();
+  return (
+    <div className="col-span-full">
+      <div className="relative rounded-3xl border border-[#cfe6ff] bg-gradient-to-b from-[#eaf4ff] via-[#e1f0ff] to-[#d7ecff] shadow-sm p-10 text-center">
+        <div className="mx-auto mb-6 h-16 w-16 rounded-2xl bg-white/80 backdrop-blur-sm border border-[#cfe6ff] flex items-center justify-center shadow-sm">
+          <HiOutlineInbox className="h-8 w-8 text-[#1e88e5]" aria-hidden="true" />
+        </div>
+        <h3 className="text-2xl md:text-3xl font-semibold text-[#111827]">No subscriptions yet</h3>
+        <p className="mt-2 text-[#6b7280] max-w-md mx-auto">
+          You don’t have any active subscriptions. Browse certification exams to get started.
+        </p>
+        <div className="mt-6 flex justify-center">
+          <Button variant="primary" size="medium" onClick={() => navigate('/certification-exams')}>
+            Browse Certification Exams
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

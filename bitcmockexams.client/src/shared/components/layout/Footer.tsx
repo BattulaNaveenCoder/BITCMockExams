@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FaFacebookF, FaTwitter, FaLinkedinIn, FaYoutube, FaEnvelope, FaPhone, FaMapMarkerAlt, FaInstagram, FaWhatsapp } from 'react-icons/fa';
 import Button from '@shared/components/ui/Button';
 import Input from '@shared/components/ui/Input';
+const logoUrl = new URL('../../../assets/logo.png', import.meta.url).href;
 
 const Footer = () => {
     const [email, setEmail] = useState('');
@@ -21,7 +22,7 @@ const Footer = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
                     <div className="flex flex-col gap-4">
                         <Link to="/" className="no-underline">
-                            <h3 className="text-2xl font-extrabold text-white mt-[-1%]" >exam.getmicrosoftcertification<span className="text-primary-blue"></span></h3>
+                            <img src={logoUrl} alt="Get Microsoft Certification" className="h-8 md:h-9 w-auto" />
                         </Link>
                         <p className="text-white/80 leading-relaxed mb-4">
                             Your trusted partner for cloud certification training, mock exams, and technology consulting services.
