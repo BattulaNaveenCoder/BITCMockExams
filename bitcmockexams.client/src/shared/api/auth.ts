@@ -49,14 +49,15 @@ export const useAuthApi = () => {
     }
   };
 
+  // Accept either a raw Google access token or a full social profile payload
   const loginWithGoogle = (
-    payload: { accessToken: string; provider?: 'Google' },
+    payload: Record<string, unknown>,
     showGlobalLoader: boolean = true
   ) => {
     const base = process.env.NODE_ENV === 'development' ? `${window.location.origin}/a2z-identity` : 'https://a2z-identity.azurewebsites.net';
     const url = `${base}/api/AuthAPI/SocialLogin`;
     // Ensure provider is sent as Google if not specified
-    const body = { ...payload, provider: payload.provider ?? 'Google' } as Record<string, unknown>;
+    const body = { ...payload, provider: (payload as any)?.provider ?? 'Google' } as Record<string, unknown>;
     return api.post(url, body, { showGlobalLoader, skipAuth: true });
   };
 

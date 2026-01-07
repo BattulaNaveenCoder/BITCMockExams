@@ -98,16 +98,46 @@ const LoginModal: React.FC = () => {
   };
 
   const googleLogin = useGoogleLogin({
+    
+    scope: 'openid email profile',
     onSuccess: async (tokenResponse) => {
+      debugger;
       try {
-        debugger;
-        // tokenResponse.access_token can be used to call backend to exchange for app JWT
-        const result: any = await authApi.loginWithGoogle({ accessToken: tokenResponse.access_token });
+        const accessToken = tokenResponse.access_token;
+        if (!accessToken) throw new Error('Google access token not received');
 
-        if (!result?.isSuccess) throw new Error(result?.message || 'Google login failed.');
-        const token = result?.data?.token as string | undefined;
+        // Fetch user profile details from Google
+        const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (!resp.ok) throw new Error('Failed to fetch Google user info');
+        const profile = await resp.json();
+
+        const firstName = (profile?.given_name ?? '').toString();
+        const lastName = (profile?.family_name ?? '').toString();
+        const email = (profile?.email ?? '').toString();
+        const image = (profile?.picture ?? '').toString();
+        if (!email) throw new Error('Google did not return an email');
+
+        // Build payload similar to Angular SocialLogin flow
+        const userData = {
+          Provider: 'Google',
+          FirstName: firstName || null,
+          LastName: lastName || null,
+          EmailAddress: email,
+          Image: image || null,
+          Country: null,
+          PhoneNumber: null,
+          howDidFindUs: null,
+        } as Record<string, unknown>;
+
+        const result: any = await authApi.loginWithGoogle(userData);
+        if (!result) throw new Error(result?.message || 'Google login failed.');
+        const token = (result?.token as string | undefined) ?? (result?.token as string | undefined);
         if (!token) throw new Error('Token missing in response');
-        login(token, returnUrl);
+
+        const displayName = [firstName, lastName].filter(Boolean).join(' ') || undefined;
+        login(token, returnUrl, displayName);
         close();
       } catch (err: any) {
         setErrors((p) => ({ ...p, form: err?.message || 'Google login failed. Please try again.' }));
