@@ -547,11 +547,11 @@ namespace BITCMockExams.Server.CustomMiddleware
             // Default
             return new MetaData
             {
-                Title = "Best AI/ML, Azure and DotNet Training | BestITCourses",
-                Description = " Cloud Computing Courses - Master Azure, AI/ML, DevOps, and more from industry experts. Learn from beginner to advanced levels at BestITCourses",
-                ImageUrl = $"https://bdtmaterial.blob.core.windows.net/shared/WebsiteRewamp/HomePage/OG_Image_Design.webp",
-                Url = $"https://www.bestdotnettraining.com/",
-                Keywords = "Best IT Courses,BestDotNetTraining,best dotnet training,BITC,Courses,cloud technology course, azure course, azure for beginners, cloud computing training, AI/ML, cloud computing training,csharp,AI-900,AI-102,AZ-900,AZ-104,AZ-204,AZ-305,AZ-400,trainings courses,training training courses,microsoft it certifications,az 900,microsoft azure certification,ms azure certification,microsoft certified azure developer,azure in cloud computing,online training class,courses it online,courses on linkedin,technology classes online,training and certification,learn azure,udemy cloud computing machine learning,certification cloud computing,it job course,technology classes online,platform training,microsoft training classes,azure aws,learn azure,best azure training from scratch training,devops free,udemy cloud computing"
+                Title = "Microsoft Certification Mock Tests & Exam Practice Online",
+                Description = "Prepare for Microsoft Certification Exams with real mock tests,practice questions, and official Microsoft exam vouchers. Start your certification journey today.\r\n",
+                Keywords = "Microsoft Certification Exams, Microsoft Certification Mock Tests, Microsoft Exam Practice Tests, Azure Certification Practice Tests, Microsoft Azure Certification Exams, Microsoft Certification Exam Vouchers, Azure Mock Exams Online, Microsoft Certification Preparation, Azure Exam Dumps Practice, Microsoft Official Exam Vouchers, AZ-900 Azure Fundamentals Practice Test, AI-900 Azure AI Fundamentals Mock Exam, DP-900 Azure Data Fundamentals Practice, PL-900 Power Platform Fundamentals Mock Test, AZ-104 Azure Administrator Practice Test, AZ-204 Azure Developer Mock Exam, Microsoft Role-Based Certification Exams, Online Microsoft Certification Training, Azure Certification for Beginners, Advanced Azure Certification Exams, Microsoft Cloud Certification Practice, Azure Security Certification Practice Tests, Microsoft Certification Exam Preparation Online",
+                ImageUrl = $"https://www.getmicrosoftcertification.com/lib/images/examgetmicrosoftcertifiction.png",
+                Url = $"https://exam-getmicrosoftcertification.azurewebsites.net/"
             };
         }
     }
