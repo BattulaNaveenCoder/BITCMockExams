@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/aria-proptypes */
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FaBars, FaTimes } from 'react-icons/fa';
+import { FaBars, FaTimes, FaTicketAlt, FaArrowRight } from 'react-icons/fa';
 import Button from '@shared/components/ui/Button';
 import { useLoginModal } from '@features/auth/context/LoginModalContext';
 import { useAuth } from '@features/auth/context/AuthContext';
@@ -17,6 +17,7 @@ const Header = () => {
     const { open } = useLoginModal();
     const { isAuthenticated, user, logout, displayName } = useAuth();
     const [menuOpen, setMenuOpen] = useState(false);
+    const userMenuRef = useRef<HTMLDivElement | null>(null);
     const [mockMenuOpen, setMockMenuOpen] = useState(false);
     const [certMenuOpen, setCertMenuOpen] = useState(false);
     const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
@@ -84,6 +85,29 @@ const Header = () => {
         setIsMobileMenuOpen(false);
     }, [location]);
 
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (!menuOpen) return;
+            const target = event.target as Node | null;
+            if (userMenuRef.current && target && !userMenuRef.current.contains(target)) {
+                setMenuOpen(false);
+            }
+        };
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (menuOpen && event.key === 'Escape') {
+                setMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleEscape);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEscape);
+        };
+    }, [menuOpen]);
+
     const getCategoryFromCode = (code: string, title?: string): string => {
         const upperCode = code.toUpperCase();
         const upperTitle = (title || '').toUpperCase();
@@ -102,7 +126,7 @@ const Header = () => {
         if (upperCode.startsWith('SC-')) return 'Security';
         
         // Check for Docker certifications - should go to Miscellaneous
-        if (upperCode.includes('DOCKER') || upperTitle.includes('DOCKER')) return 'Miscellaneous';
+        if (upperCode.includes('DOCKER') || upperTitle.includes('DOCKER')) return 'GitHub Copilot';
         
         // Check for Azure certifications - multiple patterns
         // This check comes AFTER DP- check to prevent DP courses from being categorized as Azure
@@ -110,7 +134,7 @@ const Header = () => {
             upperCode.includes('AZURE') || 
             upperTitle.includes('AZURE')) return 'Azure';
         
-        return 'Miscellaneous';
+        return 'GitHub Copilot';
     };
 
     const getDifficultyLevel = (code: string, title: string): string => {
@@ -166,7 +190,7 @@ const Header = () => {
             'Data Engineering': [],
             'Power Platform': [],
             'Security': [],
-            'Miscellaneous': []
+            'GitHub Copilot': []
         };
 
         // Only process if suites data is available
@@ -254,16 +278,44 @@ const Header = () => {
 
     const navLinks = [
         { path: '/', label: 'Home' },
+        
         // { path: '/about', label: 'About' },
         { path: '/certification-exams', label: 'Certifications' },
         { path: '/mock-exams', label: 'Mock Exams' },
+        { label: 'Redeem Voucher', href: 'https://www.getmicrosoftcertification.com/#redeemVoucher', external: true },
+        { label: 'Exam Vouchers', href: 'https://www.getmicrosoftcertification.com/Home/Vouchers', external: true },
         { path: '/contact', label: 'Contact' }
     ];
 
     const isActive = (path: string) => location.pathname === path;
 
     return (
-        <header className={`sticky top-0 left-0 right-0 z-[1000] bg-white transition-all duration-250 border-b ${isScrolled ? 'shadow-md border-border' : 'border-transparent'}`}>
+        <>
+            {/* Top promotional strip linking to vouchers page (opens in new tab) */}
+            <div className="w-full bg-gradient-to-r from-orange-500 via-pink-500 to-indigo-500 text-white shadow-sm">
+                <a
+                    href="https://www.getmicrosoftcertification.com/Home/Vouchers"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Get Microsoft Exam Vouchers (opens in new tab)"
+                    className="group container mx-auto px-4 block"
+                >
+                    <div className="flex items-center justify-center gap-3 py-2.5 text-sm md:text-[15px]">
+                        <span className="inline-flex items-center justify-center w-6 h-6 md:w-7 md:h-7 rounded-full bg-white/15">
+                            <FaTicketAlt className="text-white/95" />
+                        </span>
+                        <span className="font-semibold text-white/95">
+                            Don't Miss Out! <span className="hidden sm:inline">30% Off Microsoft Exam Vouchers</span>
+                        </span>
+                        {/* <span className="inline-flex items-center gap-1 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs md:text-sm font-semibold tracking-wide text-white/95 transition-all duration-200 group-hover:bg-white/15">
+                            Shop Vouchers
+                            <FaArrowRight className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                        </span> */}
+                    </div>
+                </a>
+            </div>
+
+            <header className={`sticky top-0 left-0 right-0 z-[1000] bg-white transition-all duration-250 border-b ${isScrolled ? 'shadow-md border-border' : 'border-transparent'}`}>
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between py-1">
                     <Link to="/" className="flex items-center no-underline z-[1001]">
@@ -273,18 +325,35 @@ const Header = () => {
                     <nav id="primary-navigation" className={`fixed top-0 w-4/5 max-w-[320px] h-screen bg-white flex flex-col items-center p-6 pt-20 shadow-xl transition-all duration-250 gap-4 md:static md:w-auto md:max-w-none md:h-auto md:bg-transparent md:flex-row md:items-center md:p-0 md:shadow-none md:gap-8 ${isMobileMenuOpen ? 'right-0' : '-right-full'}`}>
                         <ul className="flex flex-col items-center gap-2 w-full list-none m-0 p-0 md:flex-row md:items-center md:gap-8 md:w-auto">
                             {navLinks.map((link) => {
-                                const isMock = link.path === '/mock-exams';
-                                const isCert = link.path === '/certification-exams';
+                                const isMock = (link as any).path === '/mock-exams';
+                                const isCert = (link as any).path === '/certification-exams';
+                                const isExternal = Boolean((link as any).external && (link as any).href);
+                                const key = (isExternal ? (link as any).href : (link as any).path) as string;
                                 
                                 if (!isMock && !isCert) {
+                                    if (isExternal) {
+                                        return (
+                                            <li key={key} className="relative w-full md:w-auto">
+                                                <a
+                                                    href={(link as any).href}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className={`block w-full py-3 text-center text-lg text-text-primary no-underline font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base md:text-left group`}
+                                                >
+                                                    {link.label}
+                                                    <span className={`absolute bottom-0 left-1/2 md:left-0 -translate-x-1/2 md:translate-x-0 h-0.5 bg-primary-blue transition-all duration-250 w-0 group-hover:w-full`}></span>
+                                                </a>
+                                            </li>
+                                        );
+                                    }
                                     return (
-                                        <li key={link.path} className="relative w-full md:w-auto">
+                                        <li key={(link as any).path} className="relative w-full md:w-auto">
                                             <Link
-                                                to={link.path}
-                                                className={`block w-full py-3 text-center text-lg text-text-primary no-underline font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base md:text-left group ${isActive(link.path) ? 'text-primary-blue' : ''}`}
+                                                to={(link as any).path}
+                                                className={`block w-full py-3 text-center text-lg text-text-primary no-underline font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base md:text-left group ${isActive(String(((link as any).path ?? ''))) ? 'text-primary-blue' : ''}`}
                                             >
                                                 {link.label}
-                                                <span className={`absolute bottom-0 left-1/2 md:left-0 -translate-x-1/2 md:translate-x-0 h-0.5 bg-primary-blue transition-all duration-250 ${isActive(link.path) ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                                                <span className={`absolute bottom-0 left-1/2 md:left-0 -translate-x-1/2 md:translate-x-0 h-0.5 bg-primary-blue transition-all duration-250 ${isActive(String(((link as any).path ?? ''))) ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                                             </Link>
                                         </li>
                                     );
@@ -300,7 +369,7 @@ const Header = () => {
                                         >
                                             <button
                                                 type="button"
-                                                className={`block w-full py-3 text-center text-lg text-text-primary font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base md:text-left bg-transparent border-none cursor-pointer ${isActive(link.path) ? 'text-primary-blue' : ''}`}
+                                                className={`block w-full py-3 text-center text-lg text-text-primary font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base md:text-left bg-transparent border-none cursor-pointer ${isActive(String(((link as any).path ?? ''))) ? 'text-primary-blue' : ''}`}
                                                 onClick={() => {
                                                     if (window.innerWidth < 768) {
                                                         setCertMenuOpen((o) => !o);
@@ -310,7 +379,7 @@ const Header = () => {
                                                 aria-controls="cert-dropdown"
                                             >
                                                 {link.label}
-                                                <span className={`absolute bottom-0 left-1/2 md:left-0 -translate-x-1/2 md:translate-x-0 h-0.5 bg-primary-blue transition-all duration-250 ${isActive(link.path) ? 'w-full' : 'w-0'}`}></span>
+                                                <span className={`absolute bottom-0 left-1/2 md:left-0 -translate-x-1/2 md:translate-x-0 h-0.5 bg-primary-blue transition-all duration-250 ${isActive(String(((link as any).path ?? ''))) ? 'w-full' : 'w-0'}`}></span>
                                             </button>
                                             <div
                                                 id="cert-dropdown"
@@ -318,7 +387,7 @@ const Header = () => {
                                                 onMouseEnter={handleCertEnter}
                                                 onMouseLeave={handleCertLeave}
                                             >
-                                                {['AI', 'Azure', 'Data Engineering', 'Power Platform', 'Security', 'Miscellaneous'].map((category) => {
+                                                {['AI', 'Azure', 'Data Engineering', 'Power Platform', 'Security', 'GitHub Copilot'].map((category) => {
                                                     const coursesInCategory = categorizedCourses[category] || [];
                                                     // Always show all categories to prevent loading flash
                                                     return (
@@ -355,7 +424,7 @@ const Header = () => {
                                                                 }}
                                                             >
                                                                 <span className="flex-1 text-primary-blue group-hover:text-blue-700 font-medium text-sm transition-colors">
-                                                                    {category} Certification Dumps
+                                                                    {category === 'GitHub Copilot' ? 'GitHub Copilot' : `${category} Certification Dumps`}
                                                                 </span>
                                                                 <span className={`text-base text-gray-400 group-hover:text-blue-700 ml-2 transition-all duration-200 md:rotate-0 ${activeSubmenu === category ? 'rotate-90' : ''}`}>›</span>
                                                             </button>
@@ -434,7 +503,7 @@ const Header = () => {
                                         {/* Trigger: do not navigate on click, just toggle dropdown */}
                                         <button
                                             type="button"
-                                            className={`block w-full py-3 text-center text-lg text-text-primary font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base md:text-left bg-transparent border-none cursor-pointer ${isActive(link.path) ? 'text-primary-blue' : ''}`}
+                                            className={`block w-full py-3 text-center text-lg text-text-primary font-medium transition-colors duration-150 relative hover:text-primary-blue md:inline-block md:w-auto md:py-2 md:text-base md:text-left bg-transparent border-none cursor-pointer ${isActive(String(((link as any).path ?? ''))) ? 'text-primary-blue' : ''}`}
                                             onClick={() => {
                                                 if (window.innerWidth < 768) {
                                                     setMockMenuOpen((o) => !o);
@@ -444,7 +513,7 @@ const Header = () => {
                                             aria-controls="mock-dropdown"
                                         >
                                             {link.label}
-                                            <span className={`absolute bottom-0 left-1/2 md:left-0 -translate-x-1/2 md:translate-x-0 h-0.5 bg-primary-blue transition-all duration-250 ${isActive(link.path) ? 'w-full' : 'w-0'}`}></span>
+                                            <span className={`absolute bottom-0 left-1/2 md:left-0 -translate-x-1/2 md:translate-x-0 h-0.5 bg-primary-blue transition-all duration-250 ${isActive(String(((link as any).path ?? ''))) ? 'w-full' : 'w-0'}`}></span>
                                         </button>
                                         {/* Dropdown: visible when mockMenuOpen */}
                                         <div
@@ -486,7 +555,7 @@ const Header = () => {
                                     <Button variant="primary" size="small" className="w-full md:w-auto">Login</Button>
                                 </a>
                             ) : (
-                                <div className="relative w-full md:w-auto flex justify-center md:justify-start">
+                                <div ref={userMenuRef} className="relative w-full md:w-auto flex justify-center md:justify-start">
                                     <button
                                         className="flex items-center gap-2 bg-transparent border-none cursor-pointer text-text-primary font-semibold"
                                         onClick={() => setMenuOpen((o) => !o)}
@@ -546,6 +615,7 @@ const Header = () => {
                 </div>
             </div>
         </header>
+        </>
     );
 };
 

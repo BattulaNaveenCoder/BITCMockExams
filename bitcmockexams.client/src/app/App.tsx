@@ -1,25 +1,28 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Layout from '@shared/components/layout/Layout';
-import Home from '../pages/Home';
-// import About from '../pages/About';
-import MockExams from '../pages/MockExams';
-import CertificationExams from '../pages/CertificationExams';
-import ExamTopics from '../pages/ExamTopics';
-import Practice from '../pages/PracticeExam';
-import Contact from '../pages/Contact';
-import SignUp from '../pages/SignUp';
-import Dashboard from '../pages/Dashboard';
 import { LoadingProvider } from '@shared/contexts/LoadingContext';
 import Loader from '@shared/components/layout/Loader';
 import { AuthProvider, useAuth } from '@features/auth/context/AuthContext';
 import ProtectedRoute from '@features/auth/components/ProtectedRoute';
 import { LoginModalProvider } from '@features/auth/context/LoginModalContext';
-import LoginModal from '../components/auth/LoginModal';
-import PracticeExam from '../pages/PracticeExam';
-import ExamReview from '../components/exam/ExamReview';
 import { TestSuitesProvider } from '@shared/contexts/TestSuitesContext';
 import RecaptchaV3Badge from '@shared/components/ui/RecaptchaV3Badge';
+
+// Eagerly load critical components for home page
+import Home from '../pages/Home';
+
+// Lazy load all other pages for code splitting
+const MockExams = lazy(() => import('../pages/MockExams'));
+const CertificationExams = lazy(() => import('../pages/CertificationExams'));
+const ExamTopics = lazy(() => import('../pages/ExamTopics'));
+const Contact = lazy(() => import('../pages/Contact'));
+const SignUp = lazy(() => import('../pages/SignUp'));
+const Dashboard = lazy(() => import('../pages/Dashboard'));
+const PracticeExam = lazy(() => import('../pages/PracticeExam'));
+const ExamReview = lazy(() => import('../components/exam/ExamReview'));
+const PageNotFound = lazy(() => import('../pages/PageNotFound'));
+const LoginModal = lazy(() => import('../components/auth/LoginModal'));
 
 function ScrollToTop() {
     const { pathname } = useLocation();
@@ -37,7 +40,9 @@ function App() {
                             <Loader />
                             <RecaptchaV3Badge />
                             <ScrollToTop />
-                            <LoginModal />
+                            <Suspense fallback={<Loader />}>
+                                <LoginModal />
+                            </Suspense>
                             <AuthRoutes />
                         </TestSuitesProvider>
                     </AuthProvider>
@@ -66,37 +71,72 @@ function AuthRoutes() {
         <Routes>
             <Route path="/" element={<Layout><Home /></Layout>} />
             {/* <Route path="/about" element={<Layout><About /></Layout>} /> */}
-            <Route path="/certification-exams" element={<Layout><CertificationExams /></Layout>} />
+            <Route path="/certification-exams" element={
+                <Suspense fallback={<Layout><Loader /></Layout>}>
+                    <Layout><CertificationExams /></Layout>
+                </Suspense>
+            } />
             <Route
                 path="/dashboard"
                 element={
                     <ProtectedRoute>
-                        <Layout><Dashboard /></Layout>
+                        <Suspense fallback={<Layout><Loader /></Layout>}>
+                            <Layout><Dashboard /></Layout>
+                        </Suspense>
                     </ProtectedRoute>
                 }
             />
             {/** Exam Reports now rendered as a tab inside Dashboard; route removed **/}
             <Route
                 path="/mock-exams"
-                element={<Layout><MockExams /></Layout>}
+                element={
+                    <Suspense fallback={<Layout><Loader /></Layout>}>
+                        <Layout><MockExams /></Layout>
+                    </Suspense>
+                }
             />
             <Route
                 path="/exams/:PathId"
-                element={<Layout><ExamTopics /></Layout>}
+                element={
+                    <Suspense fallback={<Layout><Loader /></Layout>}>
+                        <Layout><ExamTopics /></Layout>
+                    </Suspense>
+                }
             />
             <Route
                 path="/exams/:PathId/:Title/:TestId"
-                element={<Layout><PracticeExam /></Layout>}
+                element={
+                    <Suspense fallback={<Layout><Loader /></Layout>}>
+                        <Layout><PracticeExam /></Layout>
+                    </Suspense>
+                }
             />
             <Route
                 path="/exam-review/:buyerTestId"
-                element={<Layout><ExamReview /></Layout>}
+                element={
+                    <Suspense fallback={<Layout><Loader /></Layout>}>
+                        <Layout><ExamReview /></Layout>
+                    </Suspense>
+                }
             />
             <Route
                 path="/contact"
-                element={<Layout><Contact /></Layout>}
+                element={
+                    <Suspense fallback={<Layout><Loader /></Layout>}>
+                        <Layout><Contact /></Layout>
+                    </Suspense>
+                }
             />
-            <Route path="/signup" element={<SignUp />} />
+            <Route path="/signup" element={
+                <Suspense fallback={<Loader />}>
+                    <SignUp />
+                </Suspense>
+            } />
+            <Route path="*" element={
+                <Suspense fallback={<Layout><Loader /></Layout>}>
+                    <Layout><PageNotFound /></Layout>
+                </Suspense>
+            } />
         </Routes>
     );
 }

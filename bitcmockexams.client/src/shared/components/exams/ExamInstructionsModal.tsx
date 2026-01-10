@@ -1,5 +1,5 @@
-import React from 'react';
-import { FaTimes, FaCheck, FaFileAlt } from 'react-icons/fa';
+import React, { useEffect } from 'react';
+import { FaTimes, FaCheck, FaFileAlt, FaLock } from 'react-icons/fa';
 import Button from '@shared/components/ui/Button';
 
 interface Props {
@@ -11,6 +11,7 @@ interface Props {
   passingPercent?: number; // e.g., 50
   title?: string;
   instructions?: string[];
+  isSubscribed?: boolean;
 }
 
 const ExamInstructionsModal: React.FC<Props> = ({
@@ -24,11 +25,20 @@ const ExamInstructionsModal: React.FC<Props> = ({
   instructions = [
     'The exam comprises of the following types of questions - Multiple Choice Single Response & Multiple Choice Multiple Response',
     'There is no negative Marking',
-    'There is a timer at the upper-right corner of the exam screen that indicates the time remaining for the completion of the exam.',
-    'Pause Quiz - you can pause the ongoing quiz anytime by clicking on pause quiz between next to timer on the upper-right corner. The timer will pause & resume only after you click on resume button',
-    'Exam can be ended once you click finish or will automatically end if time-up'
-  ]
+    'Exam can be ended once you click finish or when you close or go back, the exam automatically pauses. You can resume by clicking Start.'
+  ],
+  isSubscribed = true
 }) => {
+  // Close on Escape key
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
   const marks = maxMarks ?? questions;
 
@@ -38,8 +48,16 @@ const ExamInstructionsModal: React.FC<Props> = ({
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       {/* Modal */}
-      <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-[800px] bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div
+        className="absolute inset-0 flex items-center justify-center p-2 sm:p-4"
+        role="dialog"
+        aria-modal="true"
+        onClick={onClose}
+      >
+        <div
+          className="w-full max-w-[95vw] sm:max-w-[700px] md:max-w-[800px] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Header with gradient */}
           <div className="relative px-6 py-5 bg-gradient-to-r from-secondary-blue to-primary-blue text-white">
             <div className="flex items-center gap-3">
@@ -56,9 +74,9 @@ const ExamInstructionsModal: React.FC<Props> = ({
           </div>
 
           {/* Body */}
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-6 overflow-y-auto">
             {/* Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="rounded-xl bg-light-blue border border-primary-blue/20 p-4">
                 <div className="text-sm text-text-secondary">QUESTIONS</div>
                 <div className="text-2xl font-extrabold text-text-primary mt-1">{questions}</div>
@@ -89,17 +107,18 @@ const ExamInstructionsModal: React.FC<Props> = ({
             </div>
 
             {/* Actions */}
-            <div className="flex justify-between items-center pt-2 border-t border-border">
-              <Button variant="secondary" size="medium" className="rounded-md" onClick={onClose}>
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-2 border-t border-border">
+              <Button variant="secondary" size="medium" className="rounded-md w-full sm:w-auto" onClick={onClose}>
                 ← Go Back
               </Button>
               <Button
-                variant="primary"
+                variant="secondary"
                 size="medium"
-                className="rounded-md bg-gradient-to-r from-secondary-blue to-primary-blue"
+                className="rounded-lg px-5 py-2 shadow-[0_2px_12px_rgba(28,100,242,0.20)] w-full sm:w-auto"
+                icon={isSubscribed ? undefined : <FaLock />}
                 onClick={onStart}
               >
-                Start Exam →
+                {isSubscribed ? 'Start Exam' : 'Practice Preview'}
               </Button>
             </div>
           </div>

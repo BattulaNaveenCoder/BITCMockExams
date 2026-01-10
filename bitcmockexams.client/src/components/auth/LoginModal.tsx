@@ -82,7 +82,7 @@ const LoginModal: React.FC = () => {
         Password: formData.password,
         isrememberme: formData.rememberMe,
       } as Record<string, unknown>;
-
+debugger;
       const result: any = await authApi.login(payload, true);
       const token = (result?.data?.token as string | undefined) ?? (result?.token as string | undefined);
       if (!token) {
@@ -91,7 +91,16 @@ const LoginModal: React.FC = () => {
       login(token, returnUrl);
       close();
     } catch (err: any) {
-      setErrors((p) => ({ ...p, form: err?.message || 'Login failed. Please try again.' }));
+      const isAxiosError = !!(err?.response);
+      const status = err?.response?.status as number | undefined;
+      const serverMessage = err?.response?.data?.message || err?.response?.data?.error || err?.message;
+      // Show a user-friendly message for any auth failure
+      const friendlyMessage = 'Incorrect Password or Email';
+      // Optionally keep server message for debugging in console
+      if (isAxiosError || serverMessage) {
+        console.warn('Login failed:', { status, serverMessage });
+      }
+      setErrors((p) => ({ ...p, form: friendlyMessage }));
     } finally {
       setIsSubmitting(false);
     }
@@ -173,7 +182,7 @@ const LoginModal: React.FC = () => {
             <p className="text-text-secondary m-0">Login using BestITCourses credentials</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="mb-5">
+          <form onSubmit={handleSubmit} className="mb-4">
             <Input
               label="Email Address"
               type="email"
@@ -186,6 +195,7 @@ const LoginModal: React.FC = () => {
             />
 
             <Input
+            className='mt-1'
               label="Password"
               type="password"
               name="password"
@@ -193,6 +203,7 @@ const LoginModal: React.FC = () => {
               onChange={handleChange}
               error={errors.password}
               placeholder="Enter your password"
+              enablePasswordToggle
               required
             />
 

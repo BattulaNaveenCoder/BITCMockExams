@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaArrowRight, FaStar, FaServer, FaDatabase, FaLightbulb, FaUsers, FaThLarge, FaShieldAlt } from 'react-icons/fa';
 import Button from '@shared/components/ui/Button';
 import Card from '@shared/components/ui/Card';
+import PromoAd from '@shared/components/ui/PromoAd';
 import { mockExams, testimonials, stats } from '../data/mockData';
 import { useTestSuitesApi, type TestSuite } from '@shared/api/testSuites';
 import { useEffect, useRef, useState } from 'react';
@@ -468,6 +469,24 @@ const Home = () => {
                             </div>
                         ))}
                     </div>
+                </div>
+            </section>
+
+            {/* Promo Ad */}
+            <section className="py-8">
+                <div className="container mx-auto px-4">
+                   <PromoAd
+          brand="Microsoft"
+          title="Microsoft Certification Exam Vouchers"
+          oldPrice="₹5,000"
+          price="₹4,000/-"
+          description="Supercharge your career with Deccansoft exclusive offer: Microsoft Azure Exam Voucher for just ₹4,000 and unlock doors to higher salaries."
+          highlight="Free Practice Questions / Mock Tests"
+          contactName="Kashmira Shah"
+          phone="+919347458388"
+          email="kashmira.shah@deccansoft.com"
+          note="Note: valid only for those having active INDIAN id card."
+        />
                 </div>
             </section>
 

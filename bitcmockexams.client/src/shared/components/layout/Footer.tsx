@@ -22,31 +22,12 @@ const Footer = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
                     <div className="flex flex-col gap-4">
                         <Link to="/" className="no-underline">
-                            <img src={logoUrl} alt="Get Microsoft Certification" className="h-8 md:h-9 w-auto" />
+                            <img src={logoUrl} alt="Get Microsoft Certification" className="h-15 md:h-14 w-auto" />
                         </Link>
                         <p className="text-white/80 leading-relaxed mb-4">
                             Your trusted partner for cloud certification training, mock exams, and technology consulting services.
                         </p>
-                        <div className="flex gap-4">
-                            <a href="https://www.facebook.com/DeccansoftAcademy" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="Facebook">
-                                <FaFacebookF />
-                            </a>
-                            <a href="https://x.com/deccansoft" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="Twitter">
-                                <FaTwitter />
-                            </a>
-                            <a href="https://www.instagram.com/best.it.courses" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="Instagram">
-                                <FaInstagram />
-                            </a>
-                            <a href="https://www.linkedin.com/showcase/bestitcourses" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="LinkedIn">
-                                <FaLinkedinIn />
-                            </a>
-                            <a href="https://www.youtube.com/user/Deccansoft123" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="YouTube">
-                                <FaYoutube />
-                            </a>
-                            <a href="https://api.whatsapp.com/send?phone=8555823343&text=Hello%20BestITCourses!" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 bg-white/10 text-white rounded-full transition-all duration-250 hover:bg-primary-blue hover:-translate-y-1" aria-label="WhatsApp">
-                                <FaWhatsapp />
-                            </a>
-                        </div>
+                       
                     </div>
 
                     <div className="flex flex-col gap-4">
@@ -121,6 +102,14 @@ const Footer = () => {
                         <a href="https://bestitcourses-hgb4dhd3cmfnd5gn.z01.azurefd.net/shared/Blogs/termandconditions.pdf" target="_blank" rel="noopener noreferrer" className="text-white/60 no-underline transition-colors duration-150 hover:text-accent-blue">Terms and Conditions</a>
                         
                     </div>
+                    {/* reCAPTCHA v3 disclosure (required when badge hidden) */}
+                    <p className="text-white/50 text-xs m-0 block md:hidden">
+                        This site is protected by reCAPTCHA and the Google
+                        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-accent-blue no-underline ml-1">Privacy Policy</a>
+                        <span className="mx-1">and</span>
+                        <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="text-accent-blue no-underline">Terms of Service</a>
+                        apply.
+                    </p>
                 </div>
             </div>
         </footer>

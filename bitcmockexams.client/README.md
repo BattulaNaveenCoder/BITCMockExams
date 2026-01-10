@@ -55,9 +55,27 @@ npm install
 npm run dev
 ```
 
+**Performance Monitoring**: In development mode, performance metrics are automatically logged to the console after page load. Check for FCP (First Contentful Paint) and bundle size metrics.
+
 ## Build
 
 ```powershell
 npm run build
 npm run preview
 ```
+
+**Bundle Analysis**: After build, check `dist/assets/` to verify:
+- Initial bundle is <300KB (gzipped <100KB)
+- Pages are split into separate chunks
+- Vendor chunks are properly separated
+
+## Performance Optimizations
+
+This app implements Netflix/YouTube-style loading strategies:
+
+- ⚡ **Route-based code splitting** - Pages load on-demand
+- 📦 **Smart vendor chunking** - React, Router, Icons separated
+- 🚀 **<500ms FCP target** - Critical path optimized
+- 💾 **Aggressive caching** - Hashed filenames for long-term caching
+
+See [QUICK_START_PERFORMANCE.md](QUICK_START_PERFORMANCE.md) for details or [PERFORMANCE_OPTIMIZATION.md](PERFORMANCE_OPTIMIZATION.md) for in-depth guide.

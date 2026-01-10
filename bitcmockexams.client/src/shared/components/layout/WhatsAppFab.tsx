@@ -19,7 +19,7 @@ const WhatsAppFab: React.FC = () => {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="WhatsApp chat"
-      className="fixed bottom-15 right-15 z-50"
+      className="group fixed bottom-15 right-15 z-50"
     >
       <span className="relative inline-flex items-center justify-center">
         <span className="absolute inline-flex h-16 w-16 rounded-full bg-green-500/40 animate-ping" />
@@ -28,6 +28,16 @@ const WhatsAppFab: React.FC = () => {
           <FaWhatsapp className="text-5xl" />
           {/* Notification red dot */}
           <span className="absolute -top-0 -right-0 h-3 w-3 rounded-full bg-red-500 ring-2 ring-white" />
+        </span>
+
+        {/* Hover label tooltip */}
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute right-full mr-3 top-1/2 -translate-y-1/2 select-none whitespace-nowrap rounded-md bg-neutral-800 px-4 py-2 text-sm font-medium text-white shadow-2xl opacity-0 scale-95 transition-all duration-200 ease-out group-hover:opacity-100 group-hover:scale-100 group-focus-visible:opacity-100"
+        >
+          Thank you for visiting , how can I help you?
+          {/* Arrow */}
+          <span className="absolute left-full top-1/2 -translate-y-1/2 h-0 w-0 border-y-6 border-y-transparent border-l-8 border-l-neutral-800" />
         </span>
       </span>
     </a>
