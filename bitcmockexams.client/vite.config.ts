@@ -45,4 +45,62 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    // Optimize chunk sizes for fast initial load
+    chunkSizeWarningLimit: 500,
+    target: 'esnext',
+    minify: 'esbuild',
+    // Enable module preload for faster chunk loading
+    modulePreload: {
+      polyfill: true,
+    },
+    rollupOptions: {
+      output: {
+        // Safer manual chunks - avoid circular dependency issues
+        manualChunks: (id) => {
+          // React core - small, cached long-term
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'react-vendor';
+          }
+          // Router - needed for navigation
+          if (id.includes('node_modules/react-router')) {
+            return 'router';
+          }
+          // Google OAuth - defer loading
+          if (id.includes('@react-oauth/google')) {
+            return 'oauth';
+          }
+          // Icons - often large
+          if (id.includes('react-icons')) {
+            return 'icons';
+          }
+          // Axios
+          if (id.includes('node_modules/axios')) {
+            return 'http-client';
+          }
+          // JWT handling
+          if (id.includes('jwt-decode')) {
+            return 'jwt';
+          }
+          // Let Vite handle these automatically to avoid circular deps
+        },
+        // Optimize chunk file naming for caching
+        chunkFileNames: (chunkInfo) => {
+          const facadeModuleId = chunkInfo.facadeModuleId || '';
+          // Pages get their own chunks with clear names
+          if (facadeModuleId.includes('/pages/')) {
+            const pageName = facadeModuleId.split('/pages/')[1]?.split('/')[0] || 'page';
+            return `pages/${pageName}-[hash].js`;
+          }
+          return 'chunks/[name]-[hash].js';
+        },
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+      },
+    },
+    // Enable source maps for production debugging (optional)
+    sourcemap: false,
+    // CSS code splitting
+    cssCodeSplit: true,
+  },
 })

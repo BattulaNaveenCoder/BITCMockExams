@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
+import { FaGoogle } from 'react-icons/fa';
+import microsoftLogo from '../assets/microsoft.png';
 import Button from '@shared/components/ui/Button';
 import Input from '@shared/components/ui/Input';
 
@@ -226,7 +227,7 @@ const SignUp = () => {
                             className="flex items-center justify-center gap-4 px-6 py-3 border-2 border-border bg-white rounded-md font-semibold cursor-pointer transition-all duration-250 hover:border-primary-blue hover:bg-light-blue"
                             onClick={() => handleSocialSignup('Microsoft')}
                         >
-                            <FaMicrosoft className="text-[#00A4EF]" /> Sign up with Microsoft
+                            <img src={microsoftLogo} alt="Microsoft" className="w-5 h-5" /> Sign up with Microsoft
                         </button>
                     </div>
 

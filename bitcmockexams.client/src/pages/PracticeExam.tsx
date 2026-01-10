@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import Button from '@shared/components/ui/Button';
 import Skeleton from '@shared/components/ui/Skeleton';
-import { FaClock, FaTimes, FaPause, FaPlay, FaThumbsUp, FaFlag, FaEdit, FaTrash, FaReply, FaPlus, FaMinus, FaAngleLeft, FaAngleRight, FaAngleDoubleLeft, FaAngleDoubleRight, FaLock, FaCheck, FaPhone, FaWhatsapp, FaEnvelope, FaUser } from 'react-icons/fa';
+import { FaTimes, FaPause, FaPlay, FaThumbsUp, FaFlag, FaEdit, FaTrash, FaReply, FaPlus, FaMinus, FaAngleLeft, FaAngleRight, FaAngleDoubleLeft, FaAngleDoubleRight, FaLock, FaCheck, FaPhone, FaWhatsapp, FaEnvelope, FaUser } from 'react-icons/fa';
+import UnlockQuestionsModal from '@shared/components/ui/UnlockQuestionsModal';
 import { useTestSuitesApi } from '@shared/api/testSuites';
 import { useTestsApi } from '@shared/api/tests';
 import { useAuth } from '@features/auth/context/AuthContext';
@@ -298,13 +299,7 @@ const PracticeExam: React.FC = () => {
   const [examLoaded, setExamLoaded] = useState(false);
   const [needCredits, setNeedCredits] = useState(0);
 
-  // Timer state
-  const [minutesCounter, setMinutesCounter] = useState(0);
-  const [secondsCounter, setSecondsCounter] = useState(0);
-  const [totalMinutesCounter, setTotalMinutesCounter] = useState(0);
-  const [totalSecondsCounter, setTotalSecondsCounter] = useState(0);
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const totalTimerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Timer functionality removed
 
   // Comments state
   const [comments, setComments] = useState<CommentDTO[]>([]);
@@ -337,6 +332,16 @@ const PracticeExam: React.FC = () => {
 
   // Payment modal state
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+
+  // Close Unlock modal on Escape key
+  useEffect(() => {
+    if (!showUnlockModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowUnlockModal(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showUnlockModal]);
 
   const [loading, setLoading] = useState(true);
   const [isBDTCheckLoading, setIsBDTCheckLoading] = useState(true);
@@ -380,96 +385,9 @@ const PracticeExam: React.FC = () => {
     return correctCount > 1;
   }, [currentQuestion]);
 
-  const quizWithQuestionTimer = useMemo(() => {
-    return (testViewModel?.DefaultTimeinSecondsForEachQuestion || 0) !== 0 && testMode === TestMode.Quiz;
-  }, [testViewModel, testMode]);
+  // Removed timer mode checks
 
-  // ===== TIMER FUNCTIONS =====
-  const startTimer = useCallback(() => {
-    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-
-    timerIntervalRef.current = setInterval(() => {
-      if (testMode === TestMode.Quiz) {
-        setSecondsCounter(prev => {
-          if (prev > 0) {
-            if (testViewModel?.DefaultTimeinSecondsForEachQuestion) {
-              // Per-question timer
-              if (testViewModel) {
-                testViewModel.QuestionTimeElapsedinSeconds++;
-              }
-            } else {
-              // Total exam timer
-              if (testViewModel) {
-                testViewModel.TimeElapsedinSeconds++;
-              }
-            }
-            return prev - 1;
-          } else {
-            if (minutesCounter > 0) {
-              setMinutesCounter(m => m - 1);
-              return 59;
-            }
-            return 0;
-          }
-        });
-      } else {
-        // Practice mode - count up
-        setSecondsCounter(prev => {
-          if (prev < 59) {
-            if (testViewModel) {
-              testViewModel.TimeElapsedinSeconds++;
-            }
-            return prev + 1;
-          } else {
-            setMinutesCounter(m => m + 1);
-            return 0;
-          }
-        });
-      }
-    }, 1000);
-  }, [testMode, minutesCounter, testViewModel]);
-
-  const startTotalTimer = useCallback(() => {
-    if (totalTimerIntervalRef.current) clearInterval(totalTimerIntervalRef.current);
-
-    totalTimerIntervalRef.current = setInterval(() => {
-      setTotalSecondsCounter(prev => {
-        if (prev > 0) {
-          if (testViewModel) {
-            testViewModel.TimeElapsedinSeconds++;
-          }
-          return prev - 1;
-        } else {
-          if (totalMinutesCounter > 0) {
-            setTotalMinutesCounter(m => m - 1);
-            return 59;
-          }
-          return 0;
-        }
-      });
-    }, 1000);
-  }, [totalMinutesCounter, testViewModel]);
-
-  const pauseTimer = useCallback(() => {
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
-    }
-  }, []);
-
-  const pauseTotalTimer = useCallback(() => {
-    if (totalTimerIntervalRef.current) {
-      clearInterval(totalTimerIntervalRef.current);
-      totalTimerIntervalRef.current = null;
-    }
-  }, []);
-
-  const resumeTimers = useCallback(() => {
-    startTimer();
-    if (quizWithQuestionTimer) {
-      startTotalTimer();
-    }
-  }, [startTimer, startTotalTimer, quizWithQuestionTimer]);
+  // Timer functions removed
 
   // ===== NAVIGATION FUNCTIONS =====
   const goToQuestion = useCallback(async (index: number) => {
@@ -740,10 +658,7 @@ const PracticeExam: React.FC = () => {
 
   // ===== FINISH EXAM =====
   const handleFinish = useCallback(async () => {
-    pauseTimer();
-    if (quizWithQuestionTimer) {
-      pauseTotalTimer();
-    }
+    // Timers removed
 
     // Update buyer test as completed
     await updateBuyerTest(true);
@@ -761,16 +676,16 @@ const PracticeExam: React.FC = () => {
         };
         const token = await encryptPayload(suitePayload);
         console.log('Navigating to ExamReview with suite token:', token?.slice(0, 48));
-        navigate(`/exam-review/${buyerTestId}?suite=${encodeURIComponent(token)}`);
+        navigate(`/exam-review/${buyerTestId}?suite=${encodeURIComponent(token)}`, { replace: true });
       } catch {
         console.warn('Failed to encrypt suite payload; navigating without token');
-        navigate(`/exam-review/${buyerTestId}`);
+        navigate(`/exam-review/${buyerTestId}`, { replace: true });
       }
     } else {
       console.warn('BuyerTestId not available; returning to exam list');
-      navigate(`/exams/${PathId}`);
+      navigate(`/exams/${PathId}`, { replace: true });
     }
-  }, [pauseTimer, pauseTotalTimer, quizWithQuestionTimer, updateBuyerTest, testViewModel, navigate, PathId]);
+  }, [updateBuyerTest, testViewModel, navigate, PathId]);
 
   const handleSubmitReview = useCallback(async () => {
     // Submit review to API (to be implemented with actual API)
@@ -785,29 +700,21 @@ const PracticeExam: React.FC = () => {
   // ===== PAUSE/RESUME =====
   const handlePause = useCallback(() => {
     setIsPaused(true);
-    pauseTimer();
-    if (quizWithQuestionTimer) {
-      pauseTotalTimer();
-    }
-  }, [pauseTimer, pauseTotalTimer, quizWithQuestionTimer]);
+  }, []);
 
   const handleResume = useCallback(() => {
     setIsPaused(false);
-    resumeTimers();
-  }, [resumeTimers]);
+  }, []);
 
   // ===== CLOSE EXAM =====
   const handleClose = useCallback(async () => {
-    pauseTimer();
-    if (quizWithQuestionTimer) {
-      pauseTotalTimer();
-    }
+    // Timers removed
     // Save progress before closing
     await updateBuyerTest(false);
 
     // Navigate back to test suite details
     navigate(`/exams/${PathId}`);
-  }, [pauseTimer, pauseTotalTimer, quizWithQuestionTimer, updateBuyerTest, navigate, PathId]);
+  }, [updateBuyerTest, navigate, PathId]);
 
   // ===== UNLOCK QUESTIONS =====
   const handleUnlock = useCallback(() => {
@@ -1240,26 +1147,7 @@ const PracticeExam: React.FC = () => {
             }));
           }
 
-          // Initialize timers
-          if (vm.Mode === TestMode.Practice) {
-            if (vm.TimeElapsedinSeconds === 0) {
-              setMinutesCounter(0);
-              setSecondsCounter(0);
-            } else {
-              setMinutesCounter(Math.floor(vm.TimeElapsedinSeconds / 60));
-              setSecondsCounter(vm.TimeElapsedinSeconds % 60);
-            }
-          } else {
-            if (vm.DefaultTimeinSecondsForEachQuestion) {
-              setMinutesCounter(Math.floor((vm.DefaultTimeinSecondsForEachQuestion - vm.QuestionTimeElapsedinSeconds) / 60));
-              setSecondsCounter((vm.DefaultTimeinSecondsForEachQuestion - vm.QuestionTimeElapsedinSeconds) % 60);
-              setTotalMinutesCounter(Math.floor((vm.DurationinSeconds! - vm.TimeElapsedinSeconds) / 60));
-              setTotalSecondsCounter((vm.DurationinSeconds! - vm.TimeElapsedinSeconds) % 60);
-            } else {
-              setMinutesCounter(Math.floor((vm.DurationinSeconds! - vm.TimeElapsedinSeconds) / 60));
-              setSecondsCounter((vm.DurationinSeconds! - vm.TimeElapsedinSeconds) % 60);
-            }
-          }
+          // Timer initialization removed
 
           console.log('Test ViewModel loaded:', vm);
           setTestViewModel(vm);
@@ -1356,58 +1244,9 @@ const PracticeExam: React.FC = () => {
     fetchInitialQuestion();
   }, [examLoaded, testViewModel, currentIndex, getCurrentExamQuestion]); // Re-run when exam loads or testViewModel/currentIndex changes
 
-  // ===== START TIMERS =====
-  useEffect(() => {
-    if (!examLoaded || isPaused) return;
+  // Timer start logic removed
 
-    startTimer();
-
-    if (quizWithQuestionTimer) {
-      startTotalTimer();
-    }
-
-    return () => {
-      pauseTimer();
-      if (quizWithQuestionTimer) {
-        pauseTotalTimer();
-      }
-    };
-  }, [examLoaded, isPaused, startTimer, startTotalTimer, pauseTimer, pauseTotalTimer, quizWithQuestionTimer]);
-
-  // ===== AUTO-FINISH ON TIMER END =====
-  useEffect(() => {
-    if (testMode !== TestMode.Quiz) return;
-    if (isExamOver) return;
-
-    // Check for exam timeout
-    if (testViewModel?.DefaultTimeinSecondsForEachQuestion === 0) {
-      // No per-question timer, check total timer
-      if (minutesCounter === 0 && secondsCounter === 0) {
-        handleFinish();
-      }
-    } else {
-      // Per-question timer mode
-      if (quizWithQuestionTimer) {
-        // Check total exam timer
-        if (totalMinutesCounter === 0 && totalSecondsCounter === 0) {
-          handleFinish();
-        }
-        // Auto-advance to next question when question timer expires
-        else if (minutesCounter === 0 && secondsCounter === 0) {
-          if (currentIndex < questions.length - 1) {
-            // Reset question timer and move to next
-            if (testViewModel) {
-              testViewModel.QuestionTimeElapsedinSeconds = 0;
-            }
-            goToQuestion(currentIndex + 1);
-          } else {
-            // Last question and timer expired
-            handleFinish();
-          }
-        }
-      }
-    }
-  }, [minutesCounter, secondsCounter, totalMinutesCounter, totalSecondsCounter, testMode, isExamOver, testViewModel, quizWithQuestionTimer, currentIndex, questions.length, handleFinish, goToQuestion]);
+  // Auto-finish on timer end removed
 
   // ===== BEFORE UNLOAD - SAVE PROGRESS =====
   useEffect(() => {
@@ -1482,8 +1321,7 @@ const PracticeExam: React.FC = () => {
   useEffect(() => {
     return () => {
       mountedRef.current = false;
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-      if (totalTimerIntervalRef.current) clearInterval(totalTimerIntervalRef.current);
+      // Timer interval cleanup removed
     };
   }, []);
 
@@ -1620,12 +1458,7 @@ const PracticeExam: React.FC = () => {
           )}
         </div>
 
-        {/* Timer (Quiz with total timer) */}
-        {quizWithQuestionTimer && (
-          <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg mb-4 text-center font-semibold">
-            Time Left: {formatTime(totalMinutesCounter * 60 + totalSecondsCounter)}
-          </div>
-        )}
+        {/* Timer UI removed */}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Question Panel */}
@@ -1683,16 +1516,7 @@ const PracticeExam: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full font-semibold">
-                      <FaClock />
-                      <span>
-                        {testMode === TestMode.Practice ? 'Time: ' :
-                          testViewModel?.DefaultTimeinSecondsForEachQuestion ? 'Time for this Question: ' : 'Time Left: '}
-                        {formatTime(minutesCounter * 60 + secondsCounter)}
-                      </span>
-                    </div>
-
-                    {testMode === TestMode.Quiz && !quizWithQuestionTimer && (
+                    {testMode === TestMode.Quiz && (
                       <button
                         onClick={handlePause}
                         className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
@@ -1872,7 +1696,7 @@ const PracticeExam: React.FC = () => {
                       variant="secondary"
                       size="small"
                       onClick={handleFirst}
-                      disabled={currentIndex === 0 || isPaused || (testViewModel?.DefaultTimeinSecondsForEachQuestion !== 0 && testMode === TestMode.Quiz)}
+                      disabled={currentIndex === 0 || isPaused}
                     >
                       <FaAngleDoubleLeft />
                     </Button>
@@ -1880,7 +1704,7 @@ const PracticeExam: React.FC = () => {
                       variant="secondary"
                       size="small"
                       onClick={handlePrevious}
-                      disabled={currentIndex === 0 || isPaused || (testViewModel?.DefaultTimeinSecondsForEachQuestion !== 0 && testMode === TestMode.Quiz) || (!isBDTUserSubscriber && !isSubscribed && currentIndex > needCredits)}
+                      disabled={currentIndex === 0 || isPaused || (!isBDTUserSubscriber && !isSubscribed && currentIndex > needCredits)}
                     >
                       <FaAngleLeft />
                     </Button>
@@ -1908,7 +1732,7 @@ const PracticeExam: React.FC = () => {
                       variant="secondary"
                       size="small"
                       onClick={handleLast}
-                      disabled={currentIndex === questions.length - 1 || isPaused || (testViewModel?.DefaultTimeinSecondsForEachQuestion !== 0 && testMode === TestMode.Quiz) || (!isSubscribed && !isBDTUserSubscriber)}
+                      disabled={currentIndex === questions.length - 1 || isPaused || (!isSubscribed && !isBDTUserSubscriber)}
                     >
                       <FaAngleDoubleRight />
                     </Button>
@@ -1924,18 +1748,16 @@ const PracticeExam: React.FC = () => {
           <div className="lg:col-span-3">
             <div className="bg-white rounded-xl shadow-md border border-border p-6 sticky top-4">
               {/* Mark for Review */}
-              {!quizWithQuestionTimer && (
-                <div className="text-center mb-4">
-                  <label className="flex items-center justify-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={currentQuestion?.isMarkedforReview || false}
-                      onChange={(e) => handleMarkForReview(e.target.checked)}
-                    />
-                    <span className="font-semibold">Mark for Review</span>
-                  </label>
-                </div>
-              )}
+              <div className="text-center mb-4">
+                <label className="flex items-center justify-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={currentQuestion?.isMarkedforReview || false}
+                    onChange={(e) => handleMarkForReview(e.target.checked)}
+                  />
+                  <span className="font-semibold">Mark for Review</span>
+                </label>
+              </div>
 
               <hr className="my-4 border-border" />
 
@@ -1976,21 +1798,6 @@ const PracticeExam: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 shadow-2xl text-center max-w-md">
             <h2 className="text-2xl font-bold mb-4">Exam Paused</h2>
-            {testViewModel?.DefaultTimeinSecondsForEachQuestion === 0 && (
-              <p className="mb-2">
-                Time Left: <strong>{formatTime(minutesCounter * 60 + secondsCounter)}</strong>
-              </p>
-            )}
-            {quizWithQuestionTimer && (
-              <>
-                <p className="mb-2">
-                  Time Left for this Question: <strong>{formatTime(minutesCounter * 60 + secondsCounter)}</strong>
-                </p>
-                <p className="mb-2">
-                  Time Left for the Exam: <strong>{formatTime(totalMinutesCounter * 60 + totalSecondsCounter)}</strong>
-                </p>
-              </>
-            )}
             <Button
               variant="primary"
               onClick={handleResume}
@@ -2154,142 +1961,11 @@ const PracticeExam: React.FC = () => {
       }
 
       {/* Unlock Questions - Contact Modal */}
-      {showUnlockModal && (
-        <div
-          className="fixed inset-0 pt-10 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => setShowUnlockModal(false)}
-        >
-          <div
-            className="bg-white rounded-xl p-8 shadow-2xl max-w-xl w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between mb-4">
-              <h2 className="text-2xl font-bold">Unlock Questions</h2>
-              <button
-                aria-label="Close"
-                className="p-2 rounded-full hover:bg-gray-100"
-                onClick={() => setShowUnlockModal(false)}
-              >
-                <FaTimes className="text-gray-600" />
-              </button>
-            </div>
-
-            <p className="text-text-secondary mb-6">
-              To unlock full access, please contact our support team.
-            </p>
-
-            <div className="space-y-4">
-              <div className="flex items-start gap-4 p-4 border border-border rounded-lg">
-                <div className="w-10 h-10 rounded-md bg-light-blue text-primary-blue flex items-center justify-center">
-                  <FaUser />
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold">Contact Persons</div>
-
-                  {/* Shubham Mishra - First */}
-                  <div className="mt-2">
-                    <div className="font-medium">Mr. Shubham Mishra</div>
-                    <div className="text-sm text-text-secondary">Mobile / WhatsApp: +91 81438 05923</div>
-                    <div className="text-sm">
-                      <a
-                        className="text-primary-blue underline"
-                        href="mailto:info@bestitcourses.com"
-                      >
-                        info@bestitcourses.com
-                      </a>
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                      <a
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
-                        href={`https://wa.me/918143805923?text=${supportMessage}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <FaWhatsapp /> WhatsApp Chat
-                      </a>
-                      {/* <a
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 text-text-primary hover:bg-gray-200"
-                        href="tel:+918143805923"
-                      >
-                        <FaPhone /> Call
-                      </a> */}
-                    </div>
-                  </div>
-
-                  {/* Divider */}
-                  <div className="border-t border-border my-4" />
-
-                  {/* Kashmira Shah - Second */}
-                  <div>
-                    <div className="font-medium">Mrs. Kashmira Shah</div>
-                    <div className="text-sm text-text-secondary">Mobile / WhatsApp: +91 93474 58388</div>
-                    <div className="text-sm">
-                      <a
-                        className="text-primary-blue underline"
-                        href="mailto:kashmira.shah@deccansoft.com"
-                      >
-                        kashmira.shah@deccansoft.com
-                      </a>
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                      <a
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
-                        href={`https://wa.me/919347458388?text=${supportMessage}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <FaWhatsapp /> WhatsApp Chat
-                      </a>
-                      {/* <a
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 text-text-primary hover:bg-gray-200"
-                        href="tel:+919347458388"
-                      >
-                        <FaPhone /> Call
-                      </a> */}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-4 border border-border rounded-lg">
-                <div className="w-10 h-10 rounded-md bg-light-blue text-primary-blue flex items-center justify-center">
-                  <FaEnvelope />
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold">Support Email</div>
-                  <a
-                    className="text-primary-blue underline text-sm"
-                    href="mailto:support@bestitcourses.com"
-                  >
-                    support@bestitcourses.com
-                  </a>
-                </div>
-              </div>
-
-              {/* <div className="flex items-start gap-4 p-4 border border-border rounded-lg">
-                <div className="w-10 h-10 rounded-md bg-light-blue text-primary-blue flex items-center justify-center">
-                  <FaEnvelope />
-                </div>
-                <div>
-                  <div className="font-semibold">Support Email</div>
-                  <a
-                    className="text-primary-blue underline text-sm"
-                    href="mailto:support@bestitcourses.com"
-                  >
-                    support@bestitcourses.com
-                  </a>
-                </div>
-              </div> */}
-            </div>
-
-            <div className="flex justify-end mt-6">
-              <Button variant="primary" onClick={() => setShowUnlockModal(false)}>
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <UnlockQuestionsModal
+        isOpen={showUnlockModal}
+        onClose={() => setShowUnlockModal(false)}
+        supportMessage={supportMessage}
+      />
 
       {/* Network Offline Warning */}
       {

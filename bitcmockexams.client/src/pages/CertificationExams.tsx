@@ -40,7 +40,7 @@ const CertificationExams: React.FC = () => {
     { value: 'Data Engineering', label: 'Data Engineering Certification Dumps' },
     { value: 'Power Platform', label: 'Power Platform Certification Dumps' },
     { value: 'Security', label: 'SC Certification Dumps' },
-    { value: 'Miscellaneous', label: 'Miscellaneous Certification Dumps' }
+    { value: 'GitHub Copilot', label: 'GitHub Copilot' }
   ], []);
 
   const getCategoryFromCode = useMemo(() => (code: string, title: string): string => {
@@ -61,10 +61,10 @@ const CertificationExams: React.FC = () => {
     if (upperCode.startsWith('SC-')) return 'Security';
     
     // Check for Docker certifications - should go to Miscellaneous
-    if (upperCode.includes('DOCKER') || upperTitle.includes('DOCKER')) return 'Miscellaneous';
+    if (upperCode.includes('DOCKER') || upperTitle.includes('DOCKER')) return 'GitHub Copilot';
     
     // Check for SQL Server - should go to Miscellaneous
-    if (upperCode.includes('SQL') || upperTitle.includes('SQL')) return 'Miscellaneous';
+    if (upperCode.includes('SQL') || upperTitle.includes('SQL')) return 'GitHub Copilot';
     
     // Check for Azure certifications - multiple patterns
     // This check comes AFTER DP- check to prevent DP courses from being categorized as Azure
@@ -72,7 +72,7 @@ const CertificationExams: React.FC = () => {
         upperCode.includes('AZURE') || 
         upperTitle.includes('AZURE')) return 'Azure';
     
-    return 'Miscellaneous';
+    return 'GitHub Copilot';
   }, []);
 
   const apiTransformedExams: MockExam[] = useMemo(() => {

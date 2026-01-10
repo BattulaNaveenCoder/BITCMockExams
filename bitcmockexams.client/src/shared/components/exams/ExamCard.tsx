@@ -4,8 +4,7 @@ import type { MockExam } from '../../../types';
 import Button from '@shared/components/ui/Button';
 import DifficultyBadge from './DifficultyBadge';
 import ExamStats from './ExamStats';
-import RatingBadge from './RatingBadge';
-import PriceTag from './PriceTag';
+// Rating and Price removed from card UI
 import { useAuth } from '@features/auth/context/AuthContext';
 import { useLoginModal } from '@features/auth/context/LoginModalContext';
 import { FaLock } from 'react-icons/fa';
@@ -54,15 +53,11 @@ const ExamCard: React.FC<Props> = ({ exam, hideVendorTag = false }) => {
         ) : null}
       </div>
 
-      <div className="min-h-[170px]">
-        <ExamStats questions={exam.questions} duration={exam.duration} students={exam.students} />
-        <div className="flex justify-between items-center mt-4">
-          <RatingBadge rating={exam.rating} />
-          {/* <PriceTag price={exam.price} /> */}
-        </div>
+      <div>
+        <ExamStats questions={exam.questions} students={exam.students} />
       </div>
 
-      <div className="mt-auto pt-6">
+      <div className="mt-4">
         <Button
           variant="primary"
           fullWidth
@@ -82,9 +77,13 @@ const ExamCard: React.FC<Props> = ({ exam, hideVendorTag = false }) => {
           {isSubscribed ? (
             'Start Practice'
           ) : (
-            <span className="flex items-center justify-center gap-2">
+            <span
+              className="flex items-center justify-center gap-2"
+              title="Practice limited questions. Enrollment required for full access"
+              aria-label="Practice limited questions. Enrollment required for full access"
+            >
               <FaLock />
-              Enroll Now
+              Practice Preview
             </span>
           )}
         </Button>

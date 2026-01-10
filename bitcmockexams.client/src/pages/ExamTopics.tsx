@@ -2,13 +2,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Button from '@shared/components/ui/Button';
 import Skeleton from '@shared/components/ui/Skeleton';
+import PromoAd from '@shared/components/ui/PromoAd';
 import { getExamTopics } from '../data/examTopics';
 import ExamInstructionsModal from '@shared/components/exams/ExamInstructionsModal';
 import { useTestSuitesApi } from '@shared/api/testSuites';
 import { useAuth } from '@features/auth/context/AuthContext';
 import { useLoginModal } from '@features/auth/context/LoginModalContext';
-import { FaQuestionCircle, FaClock } from 'react-icons/fa';
+import { FaQuestionCircle, FaLock } from 'react-icons/fa';
 import { getUserIdFromClaims } from '@shared/utils/auth';
+import UnlockQuestionsModal from '@shared/components/ui/UnlockQuestionsModal';
 
 const ExamTopics: React.FC = () => {
   const { PathId } = useParams();
@@ -52,8 +54,14 @@ const ExamTopics: React.FC = () => {
   }, [pathId, userId]);
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const supportMessage = useMemo(() => {
+    const title = (suiteDetails?.TestSuiteTitle || 'BITC').trim();
+    return encodeURIComponent(`Hello ${title} Mock Exam Support`);
+  }, [suiteDetails?.TestSuiteTitle]);
 
   const selected = topics.find(t => t.id === selectedId) || null;
+  const isSubscribed = !!suiteDetails?.Subscribed;
 
   const startExam = (topic: any) => {
     const testId = topic?.testId || '';
@@ -74,6 +82,43 @@ const ExamTopics: React.FC = () => {
 
   return (
     <div className="max-w-screen-2xl mx-auto px-4 md:px-6 lg:px-12">
+       <div className="mt-6 mb-10">
+        <PromoAd
+          brand="Microsoft"
+          title="Microsoft Certification Exam Vouchers"
+          oldPrice="₹5,000"
+          price="₹4,000/-"
+          description="Supercharge your career with Deccansoft exclusive offer: Microsoft Azure Exam Voucher for just ₹4,000 and unlock doors to higher salaries."
+          highlight="Free Practice Questions / Mock Tests"
+          contactName="Kashmira Shah"
+          phone="+919347458388"
+          email="kashmira.shah@deccansoft.com"
+          note="Note: valid only for those having active INDIAN id card."
+        />
+        {!isSubscribed && (
+          <div className="mt-4 rounded-2xl bg-gradient-to-r from-primary-blue to-secondary-blue text-white p-5 md:p-6 shadow-xl ring-1 ring-white/15">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/20">
+                  <FaLock className="w-5 h-5" />
+                </span>
+                <p className="text-sm md:text-base font-semibold">
+                  Enroll to unlock all questions and full exam access
+                </p>
+              </div>
+              <Button
+                variant="secondary"
+                size="medium"
+                className="bg-white text-primary-blue font-bold px-5 py-2"
+                onClick={() => setShowUnlockModal(true)}
+              >
+                ENROLL FOR FULL ACCESS
+              </Button>
+            </div>
+            <p className="text-[12px] text-white/80 mt-2">Don't miss out! Unlock everything with full access</p>
+          </div>
+        )}
+      </div>
       <div className="rounded-2xl bg-light-blue border border-primary-blue/10 p-5 md:p-6 lg:p-8">
         <div className="mb-4 md:mb-6">
           {loading ? (
@@ -134,28 +179,25 @@ const ExamTopics: React.FC = () => {
                     <FaQuestionCircle className="text-primary-blue" />
                     Questions {topic.questions}
                   </span>
-                  <span className="flex items-center gap-2">
-                    <FaClock className="text-yellow-500" />
-                    {topic.durationMins} Mins
-                  </span>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <Button
-                  variant="primary"
+                  variant="secondary"
                   size="medium"
-                  className="rounded-md px-5 py-2 shadow-[0_8px_24px_rgba(28,100,242,0.25)]"
+                  className="rounded-lg px-5 py-2 shadow-[0_2px_12px_rgba(28,100,242,0.20)]"
+                  icon={isSubscribed ? undefined : <FaLock />}
                   onClick={() => {
                     startExam(topic);
                   }}
                 >
-                  Start
+                  {isSubscribed ? 'Start' : 'Practice Preview'}
                 </Button>
                 <button
                   aria-label="Info"
                   className="w-10 h-10 grid place-items-center rounded-md bg-secondary-blue text-white"
-                  title="Section details"
+                  title="exam guidelines "
                   onClick={() => { setSelectedId(topic.id); setOpen(true); }}
                 >
                   i
@@ -165,7 +207,10 @@ const ExamTopics: React.FC = () => {
           ))
         )}
       </div>
+      {/* Bottom Promo Ad (outside the section) */}
+     
       </div>
+      
       {/* Instructions Modal */}
       <ExamInstructionsModal
         open={open}
@@ -180,6 +225,13 @@ const ExamTopics: React.FC = () => {
         maxMarks={selected?.questions || 0}
         passingPercent={50}
         title={`${suiteDetails?.TestSuiteTitle || 'Exam'} Instructions`}
+        isSubscribed={isSubscribed}
+      />
+      {/* Unlock Questions Modal */}
+      <UnlockQuestionsModal
+        isOpen={showUnlockModal}
+        onClose={() => setShowUnlockModal(false)}
+        supportMessage={supportMessage}
       />
     </div>
   );

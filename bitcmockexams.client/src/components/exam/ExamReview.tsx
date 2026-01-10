@@ -632,11 +632,11 @@ const ExamReview: React.FC = () => {
 						<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
 							{/* Confetti celebration overlay */}
 							<ConfettiOverlay active={celebrate} duration={4200} />
+							<MetricCard icon={<FaFileAlt />} value={computedCounts.total} label="Total Questions" tone="default" />
+							<MetricCard icon={<FaFileAlt />} value={totalMarksAllocated} label="Total Marks" tone="default" />
 							<MetricCard icon={<FaCheck />} value={marksScored} label="Marks Scored" tone="success" />
 							<MetricCard icon={<FaTimes />} value={computedCounts.incorrect} label="Incorrect" tone="error" />
-							<MetricCard icon={<FaFileAlt />} value={totalMarksAllocated} label="Total Marks" tone="default" />
 							<MetricCard icon={<FaQuestionCircle />} value={computedCounts.unanswered} label="Unanswered" tone="warning" />
-							<MetricCard icon={<FaFileAlt />} value={computedCounts.total} label="Total Questions" tone="default" />
 						</div>
 					)}
 
