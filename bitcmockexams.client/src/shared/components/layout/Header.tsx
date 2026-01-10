@@ -126,7 +126,7 @@ const Header = () => {
         if (upperCode.startsWith('SC-')) return 'Security';
         
         // Check for Docker certifications - should go to Miscellaneous
-        if (upperCode.includes('DOCKER') || upperTitle.includes('DOCKER')) return 'GitHub Copilot';
+        if (upperCode.includes('DOCKER') || upperTitle.includes('DOCKER')) return 'Docker';
         
         // Check for Azure certifications - multiple patterns
         // This check comes AFTER DP- check to prevent DP courses from being categorized as Azure
@@ -134,7 +134,7 @@ const Header = () => {
             upperCode.includes('AZURE') || 
             upperTitle.includes('AZURE')) return 'Azure';
         
-        return 'GitHub Copilot';
+        return 'GitHub';
     };
 
     const getDifficultyLevel = (code: string, title: string): string => {
@@ -190,7 +190,8 @@ const Header = () => {
             'Data Engineering': [],
             'Power Platform': [],
             'Security': [],
-            'GitHub Copilot': []
+            'GitHub': [],
+            'Docker': []
         };
 
         // Only process if suites data is available
@@ -387,7 +388,7 @@ const Header = () => {
                                                 onMouseEnter={handleCertEnter}
                                                 onMouseLeave={handleCertLeave}
                                             >
-                                                {['AI', 'Azure', 'Data Engineering', 'Power Platform', 'Security', 'GitHub Copilot'].map((category) => {
+                                                {['AI', 'Azure', 'Data Engineering', 'Power Platform', 'Security', 'GitHub', 'Docker'].map((category) => {
                                                     const coursesInCategory = categorizedCourses[category] || [];
                                                     // Always show all categories to prevent loading flash
                                                     return (
@@ -424,7 +425,7 @@ const Header = () => {
                                                                 }}
                                                             >
                                                                 <span className="flex-1 text-primary-blue group-hover:text-blue-700 font-medium text-sm transition-colors">
-                                                                    {category === 'GitHub Copilot' ? 'GitHub Copilot' : `${category} Certification Dumps`}
+                                                                    {category === 'GitHub' || category === 'Docker' ? category : `${category} Certification Dumps`}
                                                                 </span>
                                                                 <span className={`text-base text-gray-400 group-hover:text-blue-700 ml-2 transition-all duration-200 md:rotate-0 ${activeSubmenu === category ? 'rotate-90' : ''}`}>›</span>
                                                             </button>

@@ -2,7 +2,9 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ExamCard from '@shared/components/exams/ExamCard';
 import ExamCardSkeleton from '@shared/components/exams/ExamCardSkeleton';
+import SEO from '@shared/components/SEO';
 import { useTestSuites } from '@shared/contexts/TestSuitesContext';
+import { getSEOConfigForCategory } from '../config/seoConfig';
 import type { MockExam } from '../types';
 
 const MockExams = () => {
@@ -144,10 +146,24 @@ const MockExams = () => {
         return list;
     }, [mappedExams, code, q, category, difficulty]);
  
+    // Get dynamic SEO content based on category and difficulty
+    const seoContent = getSEOConfigForCategory({ category, difficulty });
+
     // Card presentation is handled by shared ExamCard component
 
     return (
         <div className="mock-exams">
+            <SEO
+                title={seoContent.title}
+                description={seoContent.description}
+                keywords={seoContent.keywords}
+                canonical={seoContent.canonical}
+                ogTitle={seoContent.title}
+                ogDescription={seoContent.description}
+                tweeterTitle={seoContent.title}
+                TweeterDes={seoContent.description}
+                ogImage={seoContent.imageUrl}
+            />
             {/* Page Header */}
             <section className="bg-gradient-to-br from-primary-blue to-secondary-blue text-white py-16 text-center">
                 <div className="container mx-auto px-4">

@@ -1,5 +1,6 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import Layout from '@shared/components/layout/Layout';
 import { LoadingProvider } from '@shared/contexts/LoadingContext';
 import Loader from '@shared/components/layout/Loader';
@@ -23,6 +24,7 @@ const PracticeExam = lazy(() => import('../pages/PracticeExam'));
 const ExamReview = lazy(() => import('../components/exam/ExamReview'));
 const PageNotFound = lazy(() => import('../pages/PageNotFound'));
 const LoginModal = lazy(() => import('../components/auth/LoginModal'));
+const SiteMap = lazy(() => import('../pages/SiteMap'));
 
 function ScrollToTop() {
     const { pathname } = useLocation();
@@ -32,23 +34,25 @@ function ScrollToTop() {
 
 function App() {
     return (
-        <LoadingProvider>
-            <Router>
-                <LoginModalProvider>
-                    <AuthProvider>
-                        <TestSuitesProvider>
-                            <Loader />
-                            <RecaptchaV3Badge />
-                            <ScrollToTop />
-                            <Suspense fallback={<Loader />}>
-                                <LoginModal />
-                            </Suspense>
-                            <AuthRoutes />
-                        </TestSuitesProvider>
-                    </AuthProvider>
-                </LoginModalProvider>
-            </Router>
-        </LoadingProvider>
+        <HelmetProvider>
+            <LoadingProvider>
+                <Router>
+                    <LoginModalProvider>
+                        <AuthProvider>
+                            <TestSuitesProvider>
+                                <Loader />
+                                <RecaptchaV3Badge />
+                                <ScrollToTop />
+                                <Suspense fallback={<Loader />}>
+                                    <LoginModal />
+                                </Suspense>
+                                <AuthRoutes />
+                            </TestSuitesProvider>
+                        </AuthProvider>
+                    </LoginModalProvider>
+                </Router>
+            </LoadingProvider>
+        </HelmetProvider>
     );
 }
 
@@ -100,6 +104,14 @@ function AuthRoutes() {
                 element={
                     <Suspense fallback={<Layout><Loader /></Layout>}>
                         <Layout><ExamTopics /></Layout>
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/sitemap"
+                element={
+                    <Suspense fallback={<Layout><Loader /></Layout>}>
+                        <Layout><SiteMap /></Layout>
                     </Suspense>
                 }
             />

@@ -11,6 +11,8 @@ import { useLoginModal } from '@features/auth/context/LoginModalContext';
 import { FaQuestionCircle, FaLock } from 'react-icons/fa';
 import { getUserIdFromClaims } from '@shared/utils/auth';
 import UnlockQuestionsModal from '@shared/components/ui/UnlockQuestionsModal';
+import SEO from '@shared/components/SEO';
+import { getSEOForExamPath } from '../config/seoConfig';
 
 const ExamTopics: React.FC = () => {
   const { PathId } = useParams();
@@ -22,7 +24,7 @@ const ExamTopics: React.FC = () => {
   const userId = useMemo(() => getUserIdFromClaims(user as any), [user]);
   const [topics, setTopics] = useState(getExamTopics(pathId || ''));
   const [suiteDetails, setSuiteDetails] = useState<any | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let mounted = true;
@@ -82,6 +84,22 @@ const ExamTopics: React.FC = () => {
 
   return (
     <div className="max-w-screen-2xl mx-auto px-4 md:px-6 lg:px-12">
+      {(() => {
+        const seo = getSEOForExamPath(pathId);
+        return seo ? (
+          <SEO
+            title={seo.title}
+            description={seo.description}
+            keywords={seo.keywords}
+            canonical={seo.canonical}
+            ogTitle={seo.title}
+            ogDescription={seo.description}
+            tweeterTitle={seo.title}
+            TweeterDes={seo.description}
+            ogImage={seo.imageUrl}
+          />
+        ) : null;
+      })()}
        <div className="mt-6 mb-10">
         <PromoAd
           brand="Microsoft"
@@ -95,7 +113,7 @@ const ExamTopics: React.FC = () => {
           email="kashmira.shah@deccansoft.com"
           note="Note: valid only for those having active INDIAN id card."
         />
-        {!isSubscribed && (
+        {!loading && suiteDetails && !isSubscribed && (
           <div className="mt-4 rounded-2xl bg-gradient-to-r from-primary-blue to-secondary-blue text-white p-5 md:p-6 shadow-xl ring-1 ring-white/15">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">

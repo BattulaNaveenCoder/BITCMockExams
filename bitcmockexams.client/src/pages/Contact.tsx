@@ -3,6 +3,7 @@ import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 import Button from '@shared/components/ui/Button';
 import Input from '@shared/components/ui/Input';
 import Modal from '@shared/components/ui/Modal';
+import SEO from '@shared/components/SEO';
 import { getRecaptchaToken } from '@shared/utils/recaptchaV3';
 import { useContactApi, CountryCode } from '@shared/api/contact';
 
@@ -254,6 +255,42 @@ const Contact = () => {
 
     return (
         <div className="contact-page">
+            <SEO
+                title="Contact Us | BITC Mock Exams - Get in Touch for Support"
+                description="Contact BITC Mock Exams for support, inquiries, or feedback. Reach us via phone, email, or our contact form. We're here to help with your Microsoft certification exam preparation."
+                keywords="contact BITC Mock Exams, customer support, exam support, Microsoft certification help, contact us, get in touch, inquiry, feedback"
+                canonical="https://www.bitcmockexams.com/contact"
+                ogTitle="Contact Us | BITC Mock Exams"
+                ogDescription="Get in touch with BITC Mock Exams team for any questions or support regarding Microsoft certification exam preparation."
+                tweeterTitle="Contact Us | BITC Mock Exams"
+                TweeterDes="Contact BITC Mock Exams for support with your Microsoft certification preparation."
+                structuredData={{
+                    "@context": "https://schema.org",
+                    "@type": "ContactPage",
+                    "name": "Contact BITC Mock Exams",
+                    "description": "Contact page for BITC Mock Exams - Microsoft Certification Practice Tests",
+                    "url": "https://www.bitcmockexams.com/contact",
+                    "mainEntity": {
+                        "@type": "Organization",
+                        "name": "BITC Mock Exams",
+                        "url": "https://www.bitcmockexams.com",
+                        "logo": "https://www.bitcmockexams.com/logo.png",
+                        "contactPoint": {
+                            "@type": "ContactPoint",
+                            "telephone": "+91-9347458388",
+                            "contactType": "Customer Support",
+                            "email": "support@bestitcourses.com",
+                            "availableLanguage": ["English"],
+                            "areaServed": "IN"
+                        },
+                        "address": {
+                            "@type": "PostalAddress",
+                            "addressCountry": "IN",
+                            "addressRegion": "Telangana"
+                        }
+                    }
+                }}
+            />
             {/* Page Header */}
             <section className="bg-gradient-to-br from-primary-blue to-secondary-blue text-white py-16 text-center">
                 <div className="container mx-auto px-4">

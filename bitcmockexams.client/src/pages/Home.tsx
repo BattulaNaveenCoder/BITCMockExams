@@ -3,6 +3,7 @@ import { FaArrowRight, FaStar, FaServer, FaDatabase, FaLightbulb, FaUsers, FaThL
 import Button from '@shared/components/ui/Button';
 import Card from '@shared/components/ui/Card';
 import PromoAd from '@shared/components/ui/PromoAd';
+import SEO from '@shared/components/SEO';
 import { mockExams, testimonials, stats } from '../data/mockData';
 import { useTestSuitesApi, type TestSuite } from '@shared/api/testSuites';
 import { useEffect, useRef, useState } from 'react';
@@ -66,7 +67,15 @@ const Home = () => {
     };
     const featuredExams = mockExams.filter(exam => featuredCodes.includes(exam.code));
     return (
-        <div className="home">
+        <>
+            <SEO 
+                title="Microsoft Certification Mock Tests & Azure Exam Practice Online"
+                description="Prepare for Microsoft Certification Exams with real mock tests, Azure practice questions, and official Microsoft exam vouchers. Start your certification journey today."
+                keywords="Microsoft Certification Exams, Microsoft Certification Mock Tests, Microsoft Exam Practice Tests, Azure Certification Practice Tests, Microsoft Azure Certification Exams, Microsoft Certification Exam Vouchers, Azure Mock Exams Online, Microsoft Certification Preparation, Azure Exam Dumps Practice, Microsoft Official Exam Vouchers, AZ-900 Azure Fundamentals Practice Test, AI-900 Azure AI Fundamentals Mock Exam, DP-900 Azure Data Fundamentals Practice, PL-900 Power Platform Fundamentals Mock Test, AZ-104 Azure Administrator Practice Test, AZ-204 Azure Developer Mock Exam, Microsoft Role-Based Certification Exams, Online Microsoft Certification Training, Azure Certification for Beginners, Advanced Azure Certification Exams, Microsoft Cloud Certification Practice, Azure Security Certification Practice Tests, Microsoft Certification Exam Preparation Online"
+                ogImage='https://www.getmicrosoftcertification.com/lib/images/examgetmicrosoftcertifiction.png'
+                canonical='https://exam-getmicrosoftcertification.azurewebsites.net/'
+            />
+            <div className="home">
             {/* Hero Section */}
             <section className="relative min-h-[400px] display flex items-center justify-center bg-gradient-to-br from-primary-blue via-secondary-blue to-dark-blue text-white md:min-h-[300px]">
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80')] bg-cover bg-center opacity-10"></div>
@@ -528,6 +537,7 @@ const Home = () => {
                 </div>
             </section>
         </div>
+        </>
     );
 };
 

@@ -37,6 +37,7 @@ const Footer = () => {
                             {/* <li><Link to="/about" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">About Us</Link></li> */}
                             <li><Link to="/mock-exams" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Mock Exams</Link></li>
                             <li><Link to="/contact" className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Contact</Link></li>
+                            <li><Link to="/sitemap" onClick={() => window.scrollTo(0, 0)} className="text-white/80 no-underline transition-all duration-200 hover:text-accent-blue hover:pl-2 inline-block">Site Map</Link></li>
                         </ul>
                     </div>
 

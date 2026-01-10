@@ -10,7 +10,7 @@ const WhatsAppFab: React.FC = () => {
   const isExamReview = /^\/exam-review\//.test(pathname);
   if (isPracticeExam || isExamReview) return null;
 
-  const message = encodeURIComponent('Hello Shubham');
+  const message = encodeURIComponent('Hello, I need assistance with Mock Exams.');
   const link = `https://wa.me/918143805923?text=${message}`;
 
   return (

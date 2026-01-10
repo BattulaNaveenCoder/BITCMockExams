@@ -1,3 +1,5 @@
+using BITCMockExams.Server.CustomMiddleware;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -22,7 +24,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.UseMetaTags();
 app.MapFallbackToFile("/index.html");
 
 app.Run();
